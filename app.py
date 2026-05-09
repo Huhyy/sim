@@ -406,7 +406,6 @@ elif st.session_state.page == "simulation":
         ("Sold inițial disponibil", f"{initial:.2f}"),
         ("Total venituri", f"{income:.2f}"),
         ("Total cheltuieli", f"{expenses:.2f}"),
-        ("Sumă disponibilă înainte de plata creditului", f"{liquidity_before_credit:.2f}"),
     ], columns=["Indicator", "Valoare (€)"]))
 
     blocked = liquidity_before_credit <= 0
