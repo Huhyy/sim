@@ -12,6 +12,14 @@ from db import save_participant
 
 DEV = True
 
+st.markdown("""
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
+
 
 def randomize_sections(sections):
     for section in sections:
