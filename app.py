@@ -357,6 +357,33 @@ elif st.session_state.page == "simulation":
 
     st.markdown('<div id="sim-top"></div>', unsafe_allow_html=True)
 
+    if st.session_state.get("scroll_to_top"):
+        st.components.v1.html("""
+<script>
+(function() {
+  function tryScroll() {
+    try {
+      var win = window.parent;
+      var doc = win.document;
+      win.scrollTo(0, 0);
+      doc.documentElement.scrollTop = 0;
+      doc.body.scrollTop = 0;
+      ['[data-testid="stAppViewContainer"]','[data-testid="stMain"]',
+       '[data-testid="stAppViewBlockContainer"]','section.main','.main','.stApp']
+        .forEach(function(sel){
+          var el = doc.querySelector(sel);
+          if (el) { el.scrollTop = 0; if (el.scrollTo) el.scrollTo(0,0); }
+        });
+      var anchor = doc.getElementById('sim-top');
+      if (anchor) anchor.scrollIntoView({behavior:'instant', block:'start'});
+    } catch(e) {}
+  }
+  [0, 50, 150, 300, 600, 1000, 1500, 2500].forEach(function(t){ setTimeout(tryScroll, t); });
+})();
+</script>
+""", height=0)
+        st.session_state.scroll_to_top = False
+
     month = st.session_state.month
     loan = st.session_state.loan
     overdraft = st.session_state.overdraft
@@ -469,19 +496,7 @@ Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.
         st.write(f"Scor luna aceasta: {result_flag} | Scor total: {st.session_state.total_score}")
 
         st.session_state.month += 1
-        st.components.v1.html("""
-<script>
-  function scrollUp() {
-    try {
-      var el = window.parent.document.getElementById('sim-top');
-      if (el) { el.scrollIntoView({behavior: 'instant', block: 'start'}); return; }
-    } catch(e) {}
-  }
-  scrollUp();
-  setTimeout(scrollUp, 100);
-  setTimeout(scrollUp, 300);
-</script>
-""", height=0)
+        st.session_state.scroll_to_top = True
         st.rerun()
 
 
