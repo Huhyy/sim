@@ -20,8 +20,30 @@ header {visibility: hidden;}
 [data-testid="stToolbar"] {display: none !important;}
 [data-testid="stDecoration"] {display: none !important;}
 [data-testid="stStatusWidget"] {display: none !important;}
+[data-testid="stAppDeployButton"] {display: none !important;}
 </style>
 """, unsafe_allow_html=True)
+
+st.components.v1.html("""
+<script>
+(function hide() {
+  try {
+    var doc = window.parent.document;
+    doc.querySelectorAll('a').forEach(function(a) {
+      if (a.href && (a.href.includes('github.com') || a.href.includes('streamlit.io'))) {
+        var el = a;
+        for (var i = 0; i < 6; i++) {
+          if (el.parentElement) el = el.parentElement;
+        }
+        el.style.display = 'none';
+      }
+    });
+  } catch(e) {}
+}
+setTimeout(hide, 500);
+setTimeout(hide, 2000);
+</script>
+""", height=0)
 
 
 def randomize_sections(sections):
