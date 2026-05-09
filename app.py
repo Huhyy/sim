@@ -137,7 +137,7 @@ if "page" not in st.session_state:
     st.session_state.loan = Loan(balance=7000.0, annual_interest=0.0835, months=24)
     st.session_state.overdraft = Overdraft(limit=1000.0, annual_interest=0.24)
     st.session_state.savings = None
-    st.session_state.total_score = 0
+    st.session_state.total_score = 24
     st.session_state.answers = {}
 
 
@@ -505,8 +505,8 @@ Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.
         upper_bound = 1.1 * required_payment
         invalid = not (lower_bound <= payment <= upper_bound)
 
-        result_flag = 0 if invalid else 1
-        st.session_state.total_score += result_flag
+        lost = 1 if invalid else 0
+        st.session_state.total_score -= lost
 
         st.subheader("Rezultate end of month")
         st.write(f"Dobândă credit: {loan_result['interest']:.2f} €")
@@ -516,7 +516,7 @@ Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.
         st.write(f"Restanțe credit: {loan_state['arrears']:.2f} €")
         st.write(f"Sold overdraft: {overdraft_state['balance']:.2f} €")
         st.write(f"Dobândă overdraft luna aceasta: {overdraft_interest:.2f} €")
-        st.write(f"Scor luna aceasta: {result_flag} | Scor total: {st.session_state.total_score}")
+        st.write(f"Puncte pierdute luna aceasta: {lost} | Scor rămas: {st.session_state.total_score}")
 
         st.session_state.month += 1
         st.session_state.scroll_to_top = True
