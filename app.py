@@ -459,6 +459,7 @@ elif st.session_state.page == "simulation":
     max_payment = max(0.0, liquidity_before_credit)
 
     projected_overdraft_interest = round(overdraft.balance * overdraft.monthly_rate, 2)
+    projected_loan_interest = loan.apply_interest()
 
     st.info(f"""**Decizie privind rata**
 
@@ -468,7 +469,9 @@ Rata recomandată: **{required_payment:.2f} €**
 
 Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.2f} €**
 
-Dobândă overdraft estimată: **{projected_overdraft_interest:.2f} €** | Penalități credit: **{loan.arrears:.2f} €**
+Dobândă credit estimată: **{projected_loan_interest:.2f} €** | Dobândă overdraft estimată: **{projected_overdraft_interest:.2f} €**
+
+Penalități credit: **{loan.arrears:.2f} €**
 """)
 
     if blocked:
