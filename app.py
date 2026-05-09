@@ -194,17 +194,20 @@ Are următoarele obiceiuri:
     st.subheader("Economii")
     st.markdown("""
 La începutul simulării:
-- are aproximativ **350 euro** economii, ținute în cont curent, nu separat
+- are aproximativ **350 euro** economii
+- ținute în cont curent, nu separat
 - nu are un „fond de urgență" clar definit
 
-Aceste economii nu sunt rezultatul unei discipline — sunt mai degrabă „ce a rămas" din ultimele luni mai bune.
+Aceste economii:
+- nu sunt rezultatul unei discipline
+- sunt mai degrabă „ce a rămas" din ultimele luni mai bune
 """)
 
     st.subheader("Creditul")
     st.markdown("""
 | | |
 |---|---|
-| **Tip** | Credit de nevoi personale |
+| **Tip credit** | Credit de nevoi personale |
 | **Valoare inițială** | Aproximativ 7.000 euro |
 | **Durată** | 24 luni |
 | **Rată lunară** | Aproximativ 330 euro |
@@ -216,11 +219,20 @@ De ce a luat creditul:
 - reparații minore
 - câteva cheltuieli „de confort"
 
-Creditul nu a fost luat într-o criză, ci într-o perioadă relativ stabilă, cu convingerea că „mă descurc fără probleme".
+Creditul nu a fost luat într-o criză, ci:
+- într-o perioadă relativ stabilă
+- cu convingerea că „mă descurc fără probleme"
+""")
 
-Andrei nu vede creditul ca pe un pericol — îl vede ca pe „o obligație fixă". Nu se gândește la ce se întâmplă dacă venitul întârzie sau apar 2–3 luni proaste la rând. Mentalitatea lui: **„Dacă apare ceva, rezolv atunci."**
+    st.subheader("Cum se raportează Andrei la credit")
+    st.markdown("""
+Nu vede creditul ca pe un pericol. Îl vede ca pe „o obligație fixă". Nu se gândește la ce se întâmplă dacă:
+- venitul întârzie
+- apar 2–3 luni proaste la rând
 
-Creditul îl plătește Andrei, dar cheltuielile lunare sunt suportate împreună cu Maria.
+Are mentalitatea: **„Dacă apare ceva, rezolv atunci."**
+
+Creditul îl plătește Andrei, dar cheltuielile lunare sunt suportate împreună.
 """)
 
     st.subheader("Overdraft")
