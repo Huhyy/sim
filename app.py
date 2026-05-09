@@ -89,9 +89,17 @@ procesul decizional în situații economice riscante.
         "incerte sau stresante."
     )
     st.markdown('</div>', unsafe_allow_html=True)
-    if st.button("Începe simularea →", type="primary"):
-        st.session_state.page = "pre_questions"
-        st.rerun()
+
+    col_start, col_translate = st.columns([3, 1])
+    with col_start:
+        if st.button("Începe simularea →", type="primary"):
+            st.session_state.page = "pre_questions"
+            st.rerun()
+    with col_translate:
+        st.link_button(
+            "🌐 Translate to English",
+            "https://translate.google.com/translate?sl=ro&tl=en&u=https://simulatorcredit.streamlit.app",
+        )
 
 
 # ==================== PRE-SIMULATION QUESTIONS ====================
