@@ -448,13 +448,6 @@ elif st.session_state.page == "simulation":
     st.table(pd.DataFrame(list(data["expenses"].items()), columns=["Categoria", "Valoare (€)"]))
     st.write(f"**Total cheltuieli:** {expenses:.2f}")
 
-    st.markdown("**Poziție lunară**")
-    st.table(pd.DataFrame([
-        ("Sold inițial disponibil", f"{initial:.2f}"),
-        ("Total venituri", f"{income:.2f}"),
-        ("Total cheltuieli", f"{expenses:.2f}"),
-    ], columns=["Indicator", "Valoare (€)"]))
-
     blocked = liquidity_before_credit <= 0
     max_payment = max(0.0, liquidity_before_credit)
 
