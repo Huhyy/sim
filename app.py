@@ -457,6 +457,7 @@ elif st.session_state.page == "simulation":
     st.info(f"""**Decizie privind rata**
 
 Sumă disponibilă înainte de plata creditului: **{liquidity_before_credit:.2f} €**
+*(Sold inițial + Total Venituri − Total Cheltuieli)*
 
 Rata recomandată: **{required_payment:.2f} €**
 
