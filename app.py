@@ -86,11 +86,14 @@ def goto(page):
 def scroll_top_anchor():
     st.markdown('<div id="sim-top"></div>', unsafe_allow_html=True)
     if st.session_state.get("scroll_to_top"):
-        st.components.v1.html("""
+        import time as _t
+        nonce = int(_t.time() * 1000)
+        st.components.v1.html(f"""
 <script>
-(function() {
-  function tryScroll() {
-    try {
+(function() {{
+  var nonce = {nonce};
+  function tryScroll() {{
+    try {{
       var win = window.parent;
       var doc = win.document;
       win.scrollTo(0, 0);
@@ -98,16 +101,21 @@ def scroll_top_anchor():
       doc.body.scrollTop = 0;
       ['[data-testid="stAppViewContainer"]','[data-testid="stMain"]',
        '[data-testid="stAppViewBlockContainer"]','section.main','.main','.stApp']
-        .forEach(function(sel){
+        .forEach(function(sel){{
           var el = doc.querySelector(sel);
-          if (el) { el.scrollTop = 0; if (el.scrollTo) el.scrollTo(0,0); }
-        });
+          if (el) {{ el.scrollTop = 0; if (el.scrollTo) el.scrollTo(0,0); }}
+        }});
       var anchor = doc.getElementById('sim-top');
-      if (anchor) anchor.scrollIntoView({behavior:'instant', block:'start'});
-    } catch(e) {}
-  }
-  [0, 50, 150, 300, 600, 1000, 1500, 2500].forEach(function(t){ setTimeout(tryScroll, t); });
-})();
+      if (anchor) anchor.scrollIntoView({{behavior:'instant', block:'start'}});
+    }} catch(e) {{}}
+  }}
+  [0, 50, 150, 300, 600, 1000, 1500, 2500].forEach(function(t){{ setTimeout(tryScroll, t); }});
+  try {{
+    var obs = new MutationObserver(tryScroll);
+    obs.observe(window.parent.document.body, {{childList: true, subtree: true}});
+    setTimeout(function() {{ obs.disconnect(); }}, 2500);
+  }} catch(e) {{}}
+}})();
 </script>
 """, height=0)
         st.session_state.scroll_to_top = False
