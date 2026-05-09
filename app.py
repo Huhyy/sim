@@ -381,8 +381,9 @@ elif st.session_state.page == "simulation":
         st.metric("Scor total", st.session_state.total_score)
 
     with st.expander("Scenariu"):
+        narrative = re.sub(r'^(\S+)', r'<strong>\1</strong>', get_narrative(month))
         st.markdown(
-            f'<div style="text-align: justify">{get_narrative(month)}</div>',
+            f'<div style="text-align: justify">{narrative}</div>',
             unsafe_allow_html=True,
         )
 
