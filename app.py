@@ -90,16 +90,47 @@ procesul decizional în situații economice riscante.
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
-    col_start, col_translate = st.columns([3, 1])
-    with col_start:
-        if st.button("Începe simularea →", type="primary"):
-            st.session_state.page = "pre_questions"
-            st.rerun()
-    with col_translate:
-        st.link_button(
-            "🌐 Translate to English",
-            "https://translate.google.com/translate?sl=ro&tl=en&u=https://simulatorcredit.streamlit.app",
-        )
+    if st.button("Începe simularea →", type="primary"):
+        st.session_state.page = "pre_questions"
+        st.rerun()
+
+    st.components.v1.html("""
+<script>
+(function() {
+  try {
+    var parentDoc = window.parent.document;
+
+    if (!parentDoc.getElementById('google_translate_element')) {
+      var div = parentDoc.createElement('div');
+      div.id = 'google_translate_element';
+      div.style.position = 'fixed';
+      div.style.bottom = '16px';
+      div.style.right = '16px';
+      div.style.zIndex = '9999';
+      div.style.background = 'white';
+      div.style.borderRadius = '8px';
+      div.style.padding = '4px 8px';
+      div.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+      parentDoc.body.appendChild(div);
+    }
+
+    window.parent.googleTranslateElementInit = function() {
+      new window.parent.google.translate.TranslateElement(
+        { pageLanguage: 'ro', includedLanguages: 'en', layout: 1 },
+        'google_translate_element'
+      );
+    };
+
+    if (!parentDoc.getElementById('gt-script')) {
+      var s = parentDoc.createElement('script');
+      s.id = 'gt-script';
+      s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+      parentDoc.head.appendChild(s);
+    }
+  } catch(e) {}
+})();
+</script>
+""", height=0)
 
 
 # ==================== PRE-SIMULATION QUESTIONS ====================
