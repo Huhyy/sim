@@ -355,18 +355,7 @@ elif st.session_state.page == "simulation":
         st.session_state.page = "post_questions"
         st.rerun()
 
-    st.components.v1.html("""
-<script>
-  var doc = window.parent.document;
-  var container = doc.querySelector('[data-testid="stAppViewContainer"]')
-    || doc.querySelector('section.main')
-    || doc.querySelector('.main');
-  if (container) container.scrollTo(0, 0);
-  window.parent.scrollTo(0, 0);
-  doc.documentElement.scrollTo(0, 0);
-  doc.body.scrollTo(0, 0);
-</script>
-""", height=0)
+    st.markdown('<div id="sim-top"></div>', unsafe_allow_html=True)
 
     month = st.session_state.month
     loan = st.session_state.loan
@@ -480,7 +469,19 @@ Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.
         st.write(f"Scor luna aceasta: {result_flag} | Scor total: {st.session_state.total_score}")
 
         st.session_state.month += 1
-        st.button("Luna următoare →", on_click=lambda: st.rerun())
+        st.components.v1.html("""
+<script>
+  function scrollUp() {
+    try {
+      var el = window.parent.document.getElementById('sim-top');
+      if (el) { el.scrollIntoView({behavior: 'instant', block: 'start'}); return; }
+    } catch(e) {}
+  }
+  scrollUp();
+  setTimeout(scrollUp, 100);
+  setTimeout(scrollUp, 300);
+</script>
+""", height=0)
         st.rerun()
 
 
