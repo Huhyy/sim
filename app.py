@@ -99,17 +99,169 @@ elif st.session_state.page == "pre_questions":
     if DEV:
         if st.button("⚡ DEV: Randomizează și continuă", type="secondary"):
             randomize_sections(PRE_SECTIONS)
-            st.session_state.page = "simulation"
+            st.session_state.page = "profile"
             st.rerun()
 
     if not all_answered(PRE_SECTIONS):
         st.warning("Te rugăm să răspunzi la toate întrebările înainte de a continua.")
-    if st.button("Continuă către simulare →", type="primary"):
+    if st.button("Continuă →", type="primary"):
         if all_answered(PRE_SECTIONS):
-            st.session_state.page = "simulation"
+            st.session_state.page = "profile"
             st.rerun()
         else:
             st.error("Sunt întrebări fără răspuns.")
+
+
+# ==================== PROFILE ====================
+elif st.session_state.page == "profile":
+    st.title("Profilul participantului")
+    st.markdown("Înainte de a începe simularea, citește cu atenție profilul personajului pe care îl vei reprezenta.")
+    st.markdown("---")
+
+    st.markdown("""
+<style>
+.profile-text { text-align: justify; }
+</style>
+""", unsafe_allow_html=True)
+
+    st.markdown('<div class="profile-text">', unsafe_allow_html=True)
+
+    st.subheader("Profil general – Andrei")
+    st.markdown("""
+| | |
+|---|---|
+| **Nume** | Andrei |
+| **Vârstă** | 34 de ani |
+| **Oraș** | Locuiește într-un oraș mare (ex. București / Cluj / Timișoara) |
+| **Locuință** | Împreună cu soția, în chirie, apartament de 2 camere |
+| **Chirie** | 330 euro / lună (nu include utilitățile) |
+""")
+
+    st.subheader("Situație profesională")
+    st.markdown("""
+Andrei lucrează de aproximativ 6 ani în aceeași companie, într-o firmă din zona de servicii / corporație
+(de exemplu: suport tehnic, operațiuni, back-office, project coordinator junior).
+Nu este la început de drum, dar nici într-o poziție foarte bine plătită.
+
+| | |
+|---|---|
+| **Contract** | Perioadă nedeterminată |
+| **Venit lunar net** | Aproximativ 880 euro |
+
+Venitul este relativ stabil, dar:
+- fără bonusuri garantate
+- creșteri salariale mici și rare
+- uneori apar întârzieri administrative
+
+Andrei se percepe ca având un job „sigur".
+""")
+
+    st.subheader("Situație personală și emoțională")
+    st.markdown("""
+- **Status relațional:** căsătorit cu Maria. Maria are un venit net lunar în jur de 600 euro.
+- Are un cerc restrâns de prieteni, mulți dintre ei deja căsătoriți, cu copii, cu rate la casă.
+
+Andrei nu este impulsiv emoțional, dar:
+- evită conflictele
+- evită să spună „nu" în contexte sociale
+- preferă soluții pe termen scurt care reduc stresul imediat
+""")
+
+    st.subheader("Stil de viață și hobby-uri")
+    st.markdown("""
+- Iese de 1–2 ori pe săptămână în oraș (mâncare, cafea).
+- Merge ocazional la sală.
+- Are mașină (nu foarte nouă), pe care o folosește zilnic.
+- Îi place să plece din oraș de câteva ori pe an.
+- Nu cheltuie extravagant, dar nici nu ține un buget strict.
+- Cheltuielile „mici, dar dese" sunt o constantă.
+""")
+
+    st.subheader("Obiceiuri financiare")
+    st.markdown("""
+Andrei:
+- nu ține un buget scris
+- știe aproximativ cât câștigă, cât este chiria și cât este rata
+- restul banilor sunt gestionați „din mers"
+
+Are următoarele obiceiuri:
+- plătește facturile la timp, de obicei
+- evită restanțele, pentru că îl stresează
+- când apare o problemă, taie mai întâi din economii
+- abia la final reduce din cheltuieli
+""")
+
+    st.subheader("Economii")
+    st.markdown("""
+La începutul simulării:
+- are aproximativ **350 euro** economii, ținute în cont curent, nu separat
+- nu are un „fond de urgență" clar definit
+
+Aceste economii nu sunt rezultatul unei discipline — sunt mai degrabă „ce a rămas" din ultimele luni mai bune.
+""")
+
+    st.subheader("Creditul")
+    st.markdown("""
+| | |
+|---|---|
+| **Tip** | Credit de nevoi personale |
+| **Valoare inițială** | Aproximativ 7.000 euro |
+| **Durată** | 24 luni |
+| **Rată lunară** | Aproximativ 330 euro |
+| **Dobândă** | 8,35% |
+
+De ce a luat creditul:
+- mobilă și electrocasnice pentru apartament
+- o parte din bani au mers pe mutare
+- reparații minore
+- câteva cheltuieli „de confort"
+
+Creditul nu a fost luat într-o criză, ci într-o perioadă relativ stabilă, cu convingerea că „mă descurc fără probleme".
+
+Andrei nu vede creditul ca pe un pericol — îl vede ca pe „o obligație fixă". Nu se gândește la ce se întâmplă dacă venitul întârzie sau apar 2–3 luni proaste la rând. Mentalitatea lui: **„Dacă apare ceva, rezolv atunci."**
+
+Creditul îl plătește Andrei, dar cheltuielile lunare sunt suportate împreună cu Maria.
+""")
+
+    st.subheader("Overdraft")
+    st.markdown("""
+| | |
+|---|---|
+| **Tip instrument** | Linie de credit de tip overdraft atașată contului curent |
+| **Limită maximă** | Aproximativ 1.000 euro |
+
+**Rolul overdraftului:** funcționează ca o rezervă de lichiditate care poate fi utilizată atunci când cheltuielile
+lunare depășesc suma disponibilă în cont.
+
+**Mod de utilizare:** dacă totalul cheltuielilor lunare și al sumei introduse pentru plata creditului depășește
+lichiditatea disponibilă, diferența este acoperită automat din overdraft, în limita disponibilă.
+Participanții nu activează manual overdraftul, dar decizia lor de plată poate conduce la utilizarea lui.
+
+**Dobândă overdraft:** sumele utilizate generează dobândă lunară, care se adaugă la datoria acumulată.
+
+**Rambursarea overdraftului:** orice sumă rămasă în cont după efectuarea plăților lunare reduce automat
+soldul overdraftului utilizat.
+""")
+
+    st.subheader("Instrucțiuni pentru participant")
+    st.markdown("""
+În fiecare lună vei vedea:
+- veniturile disponibile
+- cheltuielile lunare
+- suma rămasă în cont
+- soldul creditului și al overdraftului
+- dobânzile sau penalitățile acumulate
+
+**La fiecare lună vei decide ce sumă dorești să plătești din credit.**
+Decizia ta poate influența evoluția soldului creditului, utilizarea overdraftului și rezultatul financiar final.
+""")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("---")
+
+    if st.button("Începe simularea →", type="primary"):
+        st.session_state.page = "simulation"
+        st.rerun()
 
 
 # ==================== SIMULATION ====================
@@ -140,7 +292,10 @@ elif st.session_state.page == "simulation":
     st.title(f"Luna {month}")
 
     with st.expander("Scenariu"):
-        st.markdown(get_narrative(month))
+        st.markdown(
+            f'<div style="text-align: justify">{get_narrative(month)}</div>',
+            unsafe_allow_html=True,
+        )
 
     st.subheader("Buget lunar")
 
