@@ -112,14 +112,17 @@ elif st.session_state.page == "pre_questions":
 
 # ==================== PROFILE ====================
 elif st.session_state.page == "profile":
-    st.title("Profilul participantului")
-    st.markdown("Înainte de a începe simularea, citește cu atenție profilul personajului pe care îl vei reprezenta.")
-
     st.markdown("""
 <style>
 .profile-text { text-align: justify; }
+div[data-testid="stAppViewBlockContainer"] > div:first-child { padding-top: 0.5rem; }
+h1:first-of-type { margin-top: 0; }
+h3 { margin-top: 0.5rem; }
 </style>
 """, unsafe_allow_html=True)
+
+    st.title("Profilul participantului")
+    st.markdown("Înainte de a începe simularea, citește cu atenție profilul personajului pe care îl vei reprezenta.")
 
     st.markdown('<div class="profile-text">', unsafe_allow_html=True)
 
@@ -252,8 +255,8 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
 soldul overdraftului utilizat.
 """)
 
-    st.subheader("Instrucțiuni pentru participant")
-    st.markdown("""
+    st.info("""**Instrucțiuni pentru participant**
+
 În fiecare lună vei vedea:
 - veniturile disponibile
 - cheltuielile lunare
