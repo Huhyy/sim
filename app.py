@@ -471,7 +471,7 @@ Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.
 
 Dobândă credit estimată: **{projected_loan_interest:.2f} €** | Dobândă overdraft estimată: **{projected_overdraft_interest:.2f} €**
 
-Penalități credit: **{loan.arrears:.2f} €**
+Penalități întârziere credit: **{loan.arrears:.2f} €**
 """)
 
     if blocked:
