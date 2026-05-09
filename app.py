@@ -337,12 +337,14 @@ elif st.session_state.page == "simulation":
     if blocked:
         payment = st.number_input(
             "Sumă de rambursat din credit (€)",
-            min_value=0.0, max_value=0.0, value=0.0, step=1.0, disabled=True
+            min_value=0.0, max_value=0.0, value=0.0, step=1.0, disabled=True,
+            key=f"payment_{month}"
         )
     else:
         payment = st.number_input(
             "Sumă de rambursat din credit (€)",
-            min_value=0.0, step=1.0, value=None, placeholder="Introduceți suma..."
+            min_value=0.0, step=1.0, value=None, placeholder="Introduceți suma...",
+            key=f"payment_{month}"
         )
 
     if st.button("Confirmă plata"):
