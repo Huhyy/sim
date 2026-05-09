@@ -330,14 +330,19 @@ elif st.session_state.page == "simulation":
     st.markdown("**Poziție lunară**")
     st.table(pd.DataFrame(list(data["position"].items()), columns=["Indicator", "Valoare (€)"]))
 
-    st.subheader("Decizie privind rata")
-    st.write(f"Sumă disponibilă înainte de plata creditului: **{liquidity_before_credit:.2f} €**")
-    st.write(f"Rata recomandată: **{required_payment:.2f} €**")
-    st.write(f"Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.2f} €**")
-
     blocked = liquidity_before_credit <= 0
     max_payment = max(0.0, liquidity_before_credit)
-    st.caption(f"Poți plăti maxim {max_payment:.2f} €")
+
+    st.info(f"""**Decizie privind rata**
+
+Sumă disponibilă înainte de plata creditului: **{liquidity_before_credit:.2f} €**
+
+Rata recomandată: **{required_payment:.2f} €**
+
+Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.2f} €**
+
+Poți plăti maxim **{max_payment:.2f} €**
+""")
 
     if blocked:
         payment = st.number_input(
