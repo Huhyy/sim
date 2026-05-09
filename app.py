@@ -60,7 +60,14 @@ def all_answered(sections):
 
 # ==================== HOME ====================
 if st.session_state.page == "home":
-    st.title("Percepția riscului și decizia financiară în condiții de incertitudine")
+    st.markdown("""
+<style>
+.home-title { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
+.home-body { text-align: justify; }
+</style>
+<div class="home-title">Percepția riscului și decizia financiară în condiții de incertitudine</div>
+""", unsafe_allow_html=True)
+    st.markdown('<div class="home-body">', unsafe_allow_html=True)
     st.markdown("""
 Acest studiu își propune să investigheze modul în care indivizii percep și evaluează riscul
 atunci când iau decizii financiare în contexte incerte sau instabile. Vei fi invitat(ă) să
@@ -81,6 +88,7 @@ procesul decizional în situații economice riscante.
         "dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții "
         "incerte sau stresante."
     )
+    st.markdown('</div>', unsafe_allow_html=True)
     if st.button("Începe simularea →", type="primary"):
         st.session_state.page = "pre_questions"
         st.rerun()
