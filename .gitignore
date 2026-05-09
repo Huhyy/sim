@@ -1,0 +1,8 @@
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+docx_unpacked/
+docx_q_unpacked/
+setup.sql

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pandoc \"C:\\\\Users\\\\Nutzu\\\\Downloads\\\\Scenariu credit actualizat 19.03.26 vers fara nudge neutru.docx\" -t plain)",
+      "Read(//c/Users/Nutzu/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/818067af-76bc-467a-b608-5ab5ce25e7ae/03547559-5c1c-4d2f-b044-2954e284f95e/skills/docx/**)",
+      "Bash(python scripts/office/unpack.py \"C:\\\\Users\\\\Nutzu\\\\Downloads\\\\Scenariu credit actualizat 19.03.26 vers fara nudge neutru.docx\" /tmp/docx_unpacked/)"
+    ]
+  }
+}

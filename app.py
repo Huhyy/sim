@@ -1,0 +1,272 @@
+import random
+import uuid
+import streamlit as st
+import pandas as pd
+
+from loan import Loan
+from overdraft import Overdraft
+from narratives import get_narrative
+from tables import get_month
+from questions import PRE_SECTIONS, POST_SECTIONS
+from db import save_participant
+
+DEV = True
+
+
+def randomize_sections(sections):
+    for section in sections:
+        for i in range(len(section["questions"])):
+            key = f"{section['key_prefix']}_{i}"
+            st.session_state.answers[key] = random.choice(section["scale"])
+
+# -------------------------
+# INIT STATE
+# -------------------------
+if "page" not in st.session_state:
+    st.session_state.page = "home"
+    st.session_state.session_id = str(uuid.uuid4())
+    st.session_state.month = 1
+    st.session_state.loan = Loan(balance=7000.0, annual_interest=0.0835, months=24)
+    st.session_state.overdraft = Overdraft(limit=1000.0, annual_interest=0.24)
+    st.session_state.savings = None
+    st.session_state.total_score = 0
+    st.session_state.answers = {}
+
+
+def render_question_section(section):
+    st.markdown(f"### {section['title']}")
+    st.caption(section["instruction"])
+    for i, q in enumerate(section["questions"]):
+        key = f"{section['key_prefix']}_{i}"
+        current = st.session_state.answers.get(key)
+        idx = section["scale"].index(current) if current in section["scale"] else None
+        st.session_state.answers[key] = st.radio(
+            q,
+            options=section["scale"],
+            index=idx,
+            horizontal=True,
+            key=f"radio_{key}",
+        )
+    st.markdown("---")
+
+
+def all_answered(sections):
+    for section in sections:
+        for i in range(len(section["questions"])):
+            key = f"{section['key_prefix']}_{i}"
+            if st.session_state.answers.get(key) is None:
+                return False
+    return True
+
+
+# ==================== HOME ====================
+if st.session_state.page == "home":
+    st.title("Percepția riscului și decizia financiară în condiții de incertitudine")
+    st.markdown("""
+Acest studiu își propune să investigheze modul în care indivizii percep și evaluează riscul
+atunci când iau decizii financiare în contexte incerte sau instabile. Vei fi invitat(ă) să
+parcurgi o serie de scenarii realiste de creditare, în care va trebui să formulezi estimări
+și să iei decizii care implică bani, timp și responsabilitate. În paralel, vom analiza
+reacțiile tale subiective privind nivelul de stres, presiunea socială, încărcătura
+emoțională și încrederea în propriile judecăți.
+
+Scopul este de a înțelege cum interacționează stările afective și profilul psihologic cu
+procesul decizional în situații economice riscante.
+    """)
+    st.info(
+        "Chestionarele sunt validate științific și nu conțin răspunsuri «corecte» sau «greșite». "
+        "Răspunde cât mai sincer, alegând opțiunea care reflectă cel mai bine cum ești tu în general."
+    )
+    st.markdown(
+        "Răspunsurile tale vor fi analizate **în mod anonim** și vor ajuta la înțelegerea legăturii "
+        "dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții "
+        "incerte sau stresante."
+    )
+    if st.button("Începe simularea →", type="primary"):
+        st.session_state.page = "pre_questions"
+        st.rerun()
+
+
+# ==================== PRE-SIMULATION QUESTIONS ====================
+elif st.session_state.page == "pre_questions":
+    st.title("Chestionar – înainte de simulare")
+    st.markdown("Te rugăm să citești cu atenție fiecare afirmație și să indici răspunsul potrivit.")
+    st.markdown("---")
+
+    for section in PRE_SECTIONS:
+        render_question_section(section)
+
+    if DEV:
+        if st.button("⚡ DEV: Randomizează și continuă", type="secondary"):
+            randomize_sections(PRE_SECTIONS)
+            st.session_state.page = "simulation"
+            st.rerun()
+
+    if not all_answered(PRE_SECTIONS):
+        st.warning("Te rugăm să răspunzi la toate întrebările înainte de a continua.")
+    if st.button("Continuă către simulare →", type="primary"):
+        if all_answered(PRE_SECTIONS):
+            st.session_state.page = "simulation"
+            st.rerun()
+        else:
+            st.error("Sunt întrebări fără răspuns.")
+
+
+# ==================== SIMULATION ====================
+elif st.session_state.page == "simulation":
+
+    if st.session_state.month > 24:
+        st.session_state.page = "post_questions"
+        st.rerun()
+
+    month = st.session_state.month
+    loan = st.session_state.loan
+    overdraft = st.session_state.overdraft
+
+    data = get_month(month)
+
+    income = sum(data["income"].values())
+    expenses = sum(data["expenses"].values())
+    initial = data["position"]["initial"]
+
+    if st.session_state.savings is None:
+        cash = initial + income - expenses
+    else:
+        cash = st.session_state.savings + income - expenses
+
+    liquidity_before_credit = cash
+    required_payment = loan.get_required_payment()
+
+    st.title(f"Luna {month}")
+
+    with st.expander("Scenariu"):
+        st.markdown(get_narrative(month))
+
+    st.subheader("Buget lunar")
+
+    st.markdown("**Venituri**")
+    st.table(pd.DataFrame(list(data["income"].items()), columns=["Categoria", "Valoare (€)"]))
+    st.write(f"**Total venituri:** {income:.2f}")
+
+    st.markdown("**Cheltuieli curente**")
+    st.table(pd.DataFrame(list(data["expenses"].items()), columns=["Categoria", "Valoare (€)"]))
+    st.write(f"**Total cheltuieli:** {expenses:.2f}")
+
+    st.markdown("**Obligații financiare**")
+    st.table(pd.DataFrame(list(data["obligations"].items()), columns=["Categoria", "Valoare (€)"]))
+
+    st.markdown("**Poziție lunară**")
+    st.table(pd.DataFrame(list(data["position"].items()), columns=["Indicator", "Valoare (€)"]))
+
+    st.subheader("Decizie privind rata")
+    st.write(f"Sumă disponibilă înainte de plata creditului: **{liquidity_before_credit:.2f} €**")
+    st.write(f"Rata recomandată: **{required_payment:.2f} €**")
+    st.write(f"Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.2f} €**")
+
+    blocked = liquidity_before_credit <= 0
+    max_payment = max(0.0, liquidity_before_credit)
+    st.caption(f"Poți plăti maxim {max_payment:.2f} €")
+
+    if blocked:
+        payment = st.number_input(
+            "Sumă de rambursat din credit (€)",
+            min_value=0.0, max_value=0.0, value=0.0, step=1.0, disabled=True
+        )
+    else:
+        payment = st.number_input(
+            "Sumă de rambursat din credit (€)",
+            min_value=0.0, step=1.0, value=None, placeholder="Introduceți suma..."
+        )
+
+    if st.button("Confirmă plata"):
+        if not blocked and payment is None:
+            st.warning("Introduceți o sumă.")
+            st.stop()
+
+        cash -= payment
+        loan_result = loan.apply_payment(payment)
+
+        cash = overdraft.cover_deficit(cash)
+        if cash > 0:
+            cash = overdraft.repay(cash)
+        overdraft_interest = overdraft.apply_interest()
+
+        st.session_state.savings = cash
+
+        loan_state = loan.get_state()
+        overdraft_state = overdraft.get_state()
+
+        lower_bound = 0.9 * required_payment
+        upper_bound = 1.1 * required_payment
+        invalid = not (lower_bound <= payment <= upper_bound)
+
+        result_flag = 0 if invalid else 1
+        st.session_state.total_score += result_flag
+
+        st.subheader("Rezultate end of month")
+        st.write(f"Dobândă credit: {loan_result['interest']:.2f} €")
+        st.write(f"Principal rambursat: {loan_result['principal']:.2f} €")
+        st.write(f"Economii rămase: {cash:.2f} €")
+        st.write(f"Sold credit: {loan_state['balance']:.2f} €")
+        st.write(f"Restanțe credit: {loan_state['arrears']:.2f} €")
+        st.write(f"Sold overdraft: {overdraft_state['balance']:.2f} €")
+        st.write(f"Dobândă overdraft luna aceasta: {overdraft_interest:.2f} €")
+        st.write(f"Scor luna aceasta: {result_flag} | Scor total: {st.session_state.total_score}")
+
+        st.session_state.month += 1
+        st.button("Luna următoare →", on_click=lambda: st.rerun())
+        st.rerun()
+
+
+# ==================== POST-SIMULATION QUESTIONS ====================
+elif st.session_state.page == "post_questions":
+    st.title("Chestionar – după simulare")
+    st.markdown("Indicați cât de mult sunteți de acord cu fiecare afirmație, în funcție de cum vă simțiți **acum**.")
+    st.markdown("---")
+
+    for section in POST_SECTIONS:
+        render_question_section(section)
+
+    st.markdown("### Feedback opțional")
+    st.session_state.answers["feedback"] = st.text_area(
+        "Ce parte a simulării ți s-a părut cea mai provocatoare sau realistă?",
+        value=st.session_state.answers.get("feedback", ""),
+    )
+
+    if DEV:
+        if st.button("⚡ DEV: Randomizează și finalizează", type="secondary"):
+            randomize_sections(POST_SECTIONS)
+            st.session_state.page = "done"
+            st.rerun()
+
+    if not all_answered(POST_SECTIONS):
+        st.warning("Te rugăm să răspunzi la toate întrebările înainte de a finaliza.")
+
+    if st.button("Finalizează →", type="primary"):
+        if all_answered(POST_SECTIONS):
+            st.session_state.page = "done"
+            st.rerun()
+        else:
+            st.error("Sunt întrebări fără răspuns.")
+
+
+# ==================== DONE ====================
+elif st.session_state.page == "done":
+    if not st.session_state.get("saved"):
+        try:
+            save_participant(
+                st.session_state.session_id,
+                st.session_state.answers,
+                st.session_state.total_score,
+            )
+            st.session_state.saved = True
+        except Exception as e:
+            st.error(f"Eroare la salvarea datelor: {e}")
+
+    st.title("Mulțumim pentru participare!")
+    st.metric("Scor final simulare", st.session_state.total_score)
+    st.markdown(
+        "Răspunsurile tale au fost înregistrate. Rezultatele studiului vor fi disponibile "
+        "după finalizarea colectării datelor.\n\n"
+        "Contact: coita.iflorina@gmail.com"
+    )
