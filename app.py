@@ -327,7 +327,7 @@ Aceste economii:
 | **Tip credit** | Credit de nevoi personale |
 | **Valoare inițială** | Aproximativ 7.000 euro |
 | **Durată** | 24 luni |
-| **Rată lunară** | Aproximativ 330 euro |
+| **Rată lunară** | Aproximativ 318 euro |
 | **Dobândă** | 8,35% |
 
 De ce a luat creditul:

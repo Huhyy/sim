@@ -13,7 +13,7 @@ class Loan:
         # -------------------------
         # FIXED PAYMENT (SCENARIO)
         # -------------------------
-        self.fixed_payment = 330.0
+        self.fixed_payment = 317.71
 
     # -------------------------
     # INTEREST
