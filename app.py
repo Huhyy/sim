@@ -77,6 +77,42 @@ st.components.v1.html("""
 """, height=0)
 
 
+def goto(page):
+    st.session_state.page = page
+    st.session_state.scroll_to_top = True
+    st.rerun()
+
+
+def scroll_top_anchor():
+    st.markdown('<div id="sim-top"></div>', unsafe_allow_html=True)
+    if st.session_state.get("scroll_to_top"):
+        st.components.v1.html("""
+<script>
+(function() {
+  function tryScroll() {
+    try {
+      var win = window.parent;
+      var doc = win.document;
+      win.scrollTo(0, 0);
+      doc.documentElement.scrollTop = 0;
+      doc.body.scrollTop = 0;
+      ['[data-testid="stAppViewContainer"]','[data-testid="stMain"]',
+       '[data-testid="stAppViewBlockContainer"]','section.main','.main','.stApp']
+        .forEach(function(sel){
+          var el = doc.querySelector(sel);
+          if (el) { el.scrollTop = 0; if (el.scrollTo) el.scrollTo(0,0); }
+        });
+      var anchor = doc.getElementById('sim-top');
+      if (anchor) anchor.scrollIntoView({behavior:'instant', block:'start'});
+    } catch(e) {}
+  }
+  [0, 50, 150, 300, 600, 1000, 1500, 2500].forEach(function(t){ setTimeout(tryScroll, t); });
+})();
+</script>
+""", height=0)
+        st.session_state.scroll_to_top = False
+
+
 def randomize_sections(sections):
     for section in sections:
         for i in range(len(section["questions"])):
@@ -124,6 +160,7 @@ def all_answered(sections):
 
 # ==================== HOME ====================
 if st.session_state.page == "home":
+    scroll_top_anchor()
     st.markdown("""
 <style>
 .home-title { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
@@ -155,12 +192,12 @@ procesul decizional în situații economice riscante.
     st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button("Începe simularea →", type="primary"):
-        st.session_state.page = "pre_questions"
-        st.rerun()
+        goto("pre_questions")
 
 
 # ==================== PRE-SIMULATION QUESTIONS ====================
 elif st.session_state.page == "pre_questions":
+    scroll_top_anchor()
     st.title("Chestionar – înainte de simulare")
     st.markdown("Te rugăm să citești cu atenție fiecare afirmație și să indici răspunsul potrivit.")
 
@@ -170,21 +207,20 @@ elif st.session_state.page == "pre_questions":
     if DEV:
         if st.button("⚡ DEV: Randomizează și continuă", type="secondary"):
             randomize_sections(PRE_SECTIONS)
-            st.session_state.page = "profile"
-            st.rerun()
+            goto("profile")
 
     if not all_answered(PRE_SECTIONS):
         st.warning("Te rugăm să răspunzi la toate întrebările înainte de a continua.")
     if st.button("Continuă →", type="primary"):
         if all_answered(PRE_SECTIONS):
-            st.session_state.page = "profile"
-            st.rerun()
+            goto("profile")
         else:
             st.error("Sunt întrebări fără răspuns.")
 
 
 # ==================== PROFILE ====================
 elif st.session_state.page == "profile":
+    scroll_top_anchor()
     st.markdown("""
 <style>
 .profile-text { text-align: justify; }
@@ -344,45 +380,16 @@ Decizia ta poate influența evoluția soldului creditului, utilizarea overdraftu
     st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button("Începe simularea →", type="primary"):
-        st.session_state.page = "simulation"
-        st.rerun()
+        goto("simulation")
 
 
 # ==================== SIMULATION ====================
 elif st.session_state.page == "simulation":
 
     if st.session_state.month > 24:
-        st.session_state.page = "post_questions"
-        st.rerun()
+        goto("post_questions")
 
-    st.markdown('<div id="sim-top"></div>', unsafe_allow_html=True)
-
-    if st.session_state.get("scroll_to_top"):
-        st.components.v1.html("""
-<script>
-(function() {
-  function tryScroll() {
-    try {
-      var win = window.parent;
-      var doc = win.document;
-      win.scrollTo(0, 0);
-      doc.documentElement.scrollTop = 0;
-      doc.body.scrollTop = 0;
-      ['[data-testid="stAppViewContainer"]','[data-testid="stMain"]',
-       '[data-testid="stAppViewBlockContainer"]','section.main','.main','.stApp']
-        .forEach(function(sel){
-          var el = doc.querySelector(sel);
-          if (el) { el.scrollTop = 0; if (el.scrollTo) el.scrollTo(0,0); }
-        });
-      var anchor = doc.getElementById('sim-top');
-      if (anchor) anchor.scrollIntoView({behavior:'instant', block:'start'});
-    } catch(e) {}
-  }
-  [0, 50, 150, 300, 600, 1000, 1500, 2500].forEach(function(t){ setTimeout(tryScroll, t); });
-})();
-</script>
-""", height=0)
-        st.session_state.scroll_to_top = False
+    scroll_top_anchor()
 
     month = st.session_state.month
     loan = st.session_state.loan
@@ -497,11 +504,12 @@ Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.
 
         st.session_state.month += 1
         st.session_state.scroll_to_top = True
-        st.rerun()
+        st.rerun()  # stay on simulation; flag triggers scroll on next render
 
 
 # ==================== POST-SIMULATION QUESTIONS ====================
 elif st.session_state.page == "post_questions":
+    scroll_top_anchor()
     st.title("Chestionar – după simulare")
     st.markdown("Indicați cât de mult sunteți de acord cu fiecare afirmație, în funcție de cum vă simțiți **acum**.")
 
@@ -517,22 +525,21 @@ elif st.session_state.page == "post_questions":
     if DEV:
         if st.button("⚡ DEV: Randomizează și finalizează", type="secondary"):
             randomize_sections(POST_SECTIONS)
-            st.session_state.page = "done"
-            st.rerun()
+            goto("done")
 
     if not all_answered(POST_SECTIONS):
         st.warning("Te rugăm să răspunzi la toate întrebările înainte de a finaliza.")
 
     if st.button("Finalizează →", type="primary"):
         if all_answered(POST_SECTIONS):
-            st.session_state.page = "done"
-            st.rerun()
+            goto("done")
         else:
             st.error("Sunt întrebări fără răspuns.")
 
 
 # ==================== DONE ====================
 elif st.session_state.page == "done":
+    scroll_top_anchor()
     if not st.session_state.get("saved"):
         try:
             save_participant(
