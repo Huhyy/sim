@@ -47,7 +47,6 @@ def render_question_section(section):
             horizontal=True,
             key=f"radio_{key}",
         )
-    st.markdown("---")
 
 
 def all_answered(sections):
@@ -91,7 +90,6 @@ procesul decizional în situații economice riscante.
 elif st.session_state.page == "pre_questions":
     st.title("Chestionar – înainte de simulare")
     st.markdown("Te rugăm să citești cu atenție fiecare afirmație și să indici răspunsul potrivit.")
-    st.markdown("---")
 
     for section in PRE_SECTIONS:
         render_question_section(section)
@@ -116,7 +114,6 @@ elif st.session_state.page == "pre_questions":
 elif st.session_state.page == "profile":
     st.title("Profilul participantului")
     st.markdown("Înainte de a începe simularea, citește cu atenție profilul personajului pe care îl vei reprezenta.")
-    st.markdown("---")
 
     st.markdown("""
 <style>
@@ -269,7 +266,6 @@ Decizia ta poate influența evoluția soldului creditului, utilizarea overdraftu
 """)
 
     st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown("---")
 
     if st.button("Începe simularea →", type="primary"):
         st.session_state.page = "simulation"
@@ -391,7 +387,6 @@ elif st.session_state.page == "simulation":
 elif st.session_state.page == "post_questions":
     st.title("Chestionar – după simulare")
     st.markdown("Indicați cât de mult sunteți de acord cu fiecare afirmație, în funcție de cum vă simțiți **acum**.")
-    st.markdown("---")
 
     for section in POST_SECTIONS:
         render_question_section(section)
