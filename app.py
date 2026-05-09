@@ -448,9 +448,6 @@ elif st.session_state.page == "simulation":
     st.table(pd.DataFrame(list(data["expenses"].items()), columns=["Categoria", "Valoare (€)"]))
     st.write(f"**Total cheltuieli:** {expenses:.2f}")
 
-    st.markdown("**Obligații financiare**")
-    st.table(pd.DataFrame(list(data["obligations"].items()), columns=["Categoria", "Valoare (€)"]))
-
     st.markdown("**Poziție lunară**")
     st.table(pd.DataFrame([
         ("Sold inițial disponibil", f"{initial:.2f}"),
@@ -461,6 +458,8 @@ elif st.session_state.page == "simulation":
     blocked = liquidity_before_credit <= 0
     max_payment = max(0.0, liquidity_before_credit)
 
+    projected_overdraft_interest = round(overdraft.balance * overdraft.monthly_rate, 2)
+
     st.info(f"""**Decizie privind rata**
 
 Sumă disponibilă înainte de plata creditului: **{liquidity_before_credit:.2f} €**
@@ -468,6 +467,8 @@ Sumă disponibilă înainte de plata creditului: **{liquidity_before_credit:.2f}
 Rata recomandată: **{required_payment:.2f} €**
 
 Sold credit: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.2f} €**
+
+Dobândă overdraft estimată: **{projected_overdraft_interest:.2f} €** | Penalități credit: **{loan.arrears:.2f} €**
 """)
 
     if blocked:
