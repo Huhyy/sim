@@ -26,22 +26,52 @@ header {visibility: hidden;}
 
 st.components.v1.html("""
 <script>
-(function hide() {
-  try {
-    var doc = window.parent.document;
-    doc.querySelectorAll('a').forEach(function(a) {
-      if (a.href && (a.href.includes('github.com') || a.href.includes('streamlit.io'))) {
-        var el = a;
-        for (var i = 0; i < 6; i++) {
-          if (el.parentElement) el = el.parentElement;
+(function() {
+  function hide() {
+    try {
+      var doc = window.parent.document;
+
+      // hide by known test IDs
+      ['stToolbar','stDecoration','stStatusWidget','stAppDeployButton'].forEach(function(id) {
+        var el = doc.querySelector('[data-testid="' + id + '"]');
+        if (el) el.style.setProperty('display', 'none', 'important');
+      });
+
+      // hide any fixed/absolute element sitting in the top-right corner
+      doc.querySelectorAll('body > div, body > div > div').forEach(function(el) {
+        var s = window.parent.getComputedStyle(el);
+        var r = el.getBoundingClientRect();
+        if ((s.position === 'fixed' || s.position === 'absolute') &&
+            r.top < 80 && r.right > window.parent.innerWidth * 0.6) {
+          el.style.setProperty('display', 'none', 'important');
         }
-        el.style.display = 'none';
-      }
-    });
+      });
+
+      // hide links to github / streamlit and their parent containers
+      doc.querySelectorAll('a[href*="github.com"], a[href*="streamlit.io"]').forEach(function(a) {
+        var el = a;
+        for (var i = 0; i < 10; i++) {
+          if (!el.parentElement || el.parentElement === doc.body) break;
+          el = el.parentElement;
+        }
+        el.style.setProperty('display', 'none', 'important');
+      });
+
+    } catch(e) {}
+  }
+
+  hide();
+  setTimeout(hide, 300);
+  setTimeout(hide, 1000);
+  setTimeout(hide, 3000);
+
+  try {
+    new MutationObserver(hide).observe(
+      window.parent.document.body,
+      {childList: true, subtree: true}
+    );
   } catch(e) {}
-}
-setTimeout(hide, 500);
-setTimeout(hide, 2000);
+})();
 </script>
 """, height=0)
 
