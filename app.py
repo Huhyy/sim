@@ -383,6 +383,17 @@ soldul overdraftului utilizat.
 
 **La fiecare lună vei decide ce sumă dorești să plătești din credit.**
 Decizia ta poate influența evoluția soldului creditului, utilizarea overdraftului și rezultatul financiar final.
+
+---
+
+**Notă privind câștigul experimental**
+
+Câștigul participantului nu este stabilit pe baza unei singure luni și nici exclusiv pe baza plății integrale a ratei. La finalul simulării se iau în calcul performanța acumulată pe parcursul celor 24 de luni, soldul rămas al creditului, soldul overdraftului utilizat și dobânzile sau penalitățile acumulate. Rezultatul final reflectă, așadar, consecințele cumulate ale deciziilor financiare luate în întregul parcurs al simulării.
+
+Participantul câștigă **1 punct** dacă decizia lui nu conduce la o situație financiară inconsistentă, adică:
+- nu depășește limita maximă a overdraftului,
+- nu lasă restanță nejustificată când avea lichiditate disponibilă,
+- nu introduce o plată imposibilă raportat la resursele lunii.
 """)
 
     st.markdown('</div>', unsafe_allow_html=True)
