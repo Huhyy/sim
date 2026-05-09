@@ -279,6 +279,8 @@ elif st.session_state.page == "simulation":
         st.session_state.page = "post_questions"
         st.rerun()
 
+    st.components.v1.html("<script>window.scrollTo(0, 0);</script>", height=0)
+
     month = st.session_state.month
     loan = st.session_state.loan
     overdraft = st.session_state.overdraft
@@ -297,7 +299,11 @@ elif st.session_state.page == "simulation":
     liquidity_before_credit = cash
     required_payment = loan.get_required_payment()
 
-    st.title(f"Luna {month}")
+    col_title, col_score = st.columns([5, 1])
+    with col_title:
+        st.title(f"Luna {month}")
+    with col_score:
+        st.metric("Scor total", st.session_state.total_score)
 
     with st.expander("Scenariu"):
         st.markdown(
