@@ -355,7 +355,18 @@ elif st.session_state.page == "simulation":
         st.session_state.page = "post_questions"
         st.rerun()
 
-    st.components.v1.html("<script>window.parent.scrollTo(0, 0);</script>", height=0)
+    st.components.v1.html("""
+<script>
+  var doc = window.parent.document;
+  var container = doc.querySelector('[data-testid="stAppViewContainer"]')
+    || doc.querySelector('section.main')
+    || doc.querySelector('.main');
+  if (container) container.scrollTo(0, 0);
+  window.parent.scrollTo(0, 0);
+  doc.documentElement.scrollTo(0, 0);
+  doc.body.scrollTo(0, 0);
+</script>
+""", height=0)
 
     month = st.session_state.month
     loan = st.session_state.loan
