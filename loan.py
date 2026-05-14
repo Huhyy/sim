@@ -11,7 +11,7 @@ class Loan:
         self.arrears = 0.0
 
         # Monthly reference value shown to the participant.
-        self.fixed_payment = 330.0
+        self.fixed_payment = 317.71
 
     # -------------------------
     # INTEREST
