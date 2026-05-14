@@ -143,21 +143,7 @@ if "page" not in st.session_state:
     st.session_state.monthly_results = []
     st.session_state.pending_month_result = None
     st.session_state.final_score = None
-    st.session_state.framing_mode = random.choice(["gain", "loss"])
     st.session_state.answers = {}
-
-
-if DEV:
-    with st.sidebar:
-        st.subheader("Admin panel")
-        framing_index = 0 if st.session_state.framing_mode == "gain" else 1
-        framing_choice = st.radio(
-            "Framing monetar",
-            ["A. Gain frame", "B. Loss frame"],
-            index=framing_index,
-            key="admin_framing_mode",
-        )
-        st.session_state.framing_mode = "gain" if framing_choice.startswith("A.") else "loss"
 
 
 def render_question_section(section):
@@ -310,12 +296,6 @@ def compute_final_score():
     return money(max(0.0, min(24.0, raw)))
 
 
-def framing_summary(final_score):
-    if st.session_state.get("framing_mode", "gain") == "loss":
-        return f"Ai păstrat {final_score:.2f} puncte din 24. Valoare rămasă: {final_score:.2f} euro din 24 euro."
-    return f"Ai acumulat {final_score:.2f} puncte din 24. Valoare câștigată: {final_score:.2f} euro."
-
-
 # ==================== HOME ====================
 if st.session_state.page == "home":
     scroll_top_anchor()
@@ -380,85 +360,85 @@ elif st.session_state.page == "pre_questions":
 elif st.session_state.page == "instructions":
     scroll_top_anchor()
     st.title("Instrucțiuni pentru participant")
-    st.markdown(
-        "În această simulare vei lua rolul lui Andrei, o persoană care are un credit de nevoi personale "
-        "și trebuie să ia decizii lunare de rambursare."
-    )
-
-    st.markdown(
+    st.info(
         """
-### Cum funcționează simularea
-- Simularea durează **24 de luni**.
-- În fiecare lună vei vedea veniturile, cheltuielile, soldul disponibil înainte de plata creditului, soldul creditului, soldul overdraftului și dobânzile sau penalitățile, dacă există.
-- După ce citești informațiile lunii, introduci **o singură sumă** pe care dorești să o rambursezi din credit.
-- Tu decizi doar suma plătită la credit. Nu trebuie să rambursezi separat overdraftul.
+În această simulare vei lua rolul lui Andrei, o persoană care are un credit de nevoi personale și trebuie să ia decizii lunare de rambursare.
+
+**Simularea durează 24 de luni.**
+
+În fiecare lună vei vedea:
+- veniturile lunii;
+- cheltuielile lunii;
+- suma disponibilă înainte de plata creditului;
+- soldul creditului;
+- soldul overdraftului;
+- dobânzile sau penalitățile, dacă există.
+
+După ce citești informațiile lunii, trebuie să introduci suma pe care dorești să o rambursezi din credit în acea lună.
+Tu decizi doar suma plătită la credit. Nu trebuie să rambursezi separat overdraftul.
+
+Creditul este obligația de bază a simulării. Overdraftul este o sursă suplimentară de finanțare care poate ajuta temporar, dar care indică fragilitate financiară.
+
+**Cum funcționează decizia lunară**
+- În fiecare lună introduci o singură sumă.
+- Apoi apeși **Confirmă decizia**.
 - După confirmare, decizia nu mai poate fi modificată.
-- După feedback-ul lunii curente, vei apăsa **Continuă către luna următoare**.
-"""
-    )
+- Platforma calculează automat dacă plata poate fi realizată, cât scade soldul creditului, dacă se folosește overdraftul, care este soldul final al lunii și ce scor primești.
+- După confirmare, vei vedea un ecran de feedback pentru luna curentă, apoi vei apăsa **Continuă către luna următoare**.
 
-    st.warning(
-        "Introduceți o sumă numerică validă, mai mare sau egală cu 0. "
-        "După confirmare, decizia nu mai poate fi modificată."
-    )
+Overdraftul este o linie de credit atașată contului curent.
+În această simulare, limita maximă de overdraft este de **1.000 euro**.
+Dacă banii disponibili nu ajung pentru cheltuielile lunii și pentru plata introdusă de tine, platforma va folosi overdraftul, în limita disponibilă.
 
-    st.markdown(
-        """
-### Overdraft
-- Overdraftul este o linie de credit atașată contului curent.
-- Limita maximă de overdraft este de **1.000 euro**.
-- Dacă banii disponibili nu ajung pentru cheltuielile lunii și pentru plata introdusă de tine, platforma va folosi overdraftul, în limita disponibilă.
-- Dacă limita este depășită, plata nu poate fi executată.
-"""
-    )
+**Ce se întâmplă dacă introduci o sumă posibilă**
+- plata se înregistrează;
+- soldul creditului scade;
+- soldurile lunii se actualizează;
+- primești scorul lunii.
 
-    st.markdown(
-        """
-### Ce se întâmplă după confirmare
-- Dacă plata este posibilă, aceasta se înregistrează.
-- Soldul creditului scade.
-- Soldul final al lunii este actualizat automat.
-- Primești scorul lunii.
-- Dacă plata este imposibilă, nu se execută și scorul lunii este **0**.
-"""
-    )
+**Ce se întâmplă dacă introduci o sumă imposibilă**
+- plata este respinsă;
+- creditul nu scade;
+- nu se depășește limita de overdraft;
+- scorul lunii este 0;
+- simularea continuă cu luna următoare.
 
-    st.markdown(
-        """
-### Scor și rezultat final
-- Scorul lunar este binar: **1** pentru o decizie executabilă, **0** pentru o decizie imposibilă.
-- La finalul celor 24 de luni se adună punctele lunare.
-- Scorul final este apoi ajustat în funcție de creditul rămas, overdraftul rămas și dobânzile sau penalitățile acumulate.
-"""
-    )
+Înainte să apeși „Confirmă decizia”, poți corecta suma introdusă.
+Dacă introduci din greșeală litere, semne sau o valoare negativă, platforma îți va cere să introduci o valoare numerică validă.
 
-    st.markdown(
-        """
-### Mesajele cheie ale simulării
-- **Decizie validă:** Decizia a fost acceptată. Plata a fost înregistrată, iar soldurile au fost actualizate.
-- **Decizie imposibilă:** Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. Plata nu a fost executată. Pentru această lună, scorul este 0.
-"""
-    )
+**Cum se acordă scorul lunar**
+- 1 punct sau 0 puncte
+- Primești 1 punct dacă suma introdusă este posibilă și plata poate fi executată.
+- Primești 0 puncte dacă suma introdusă este imposibilă.
 
-    st.markdown(
-        """
-### Fluxul fiecărei luni
+**Cum se calculează scorul final**
+- La finalul celor 24 de luni se adună punctele obținute în fiecare lună.
+- Scorul final este ajustat în funcție de creditul rămas, overdraftul rămas, dobânzile și penalitățile acumulate.
+- În ambele cazuri, 1 punct = 1 euro.
+
+**Regula generală a simulării**
+- Scopul nu este să plătești mereu aceeași sumă.
+- Scopul este să iei o decizie lunară care poate fi susținută de situația financiară a lunii respective.
+- Trebuie să alegi suma pe care o consideri potrivită, ținând cont de venituri, cheltuieli, credit, overdraft și riscul de a introduce o plată imposibilă.
+
+**Mesaj important înainte de începerea simulării**
+- Citește cu atenție informațiile fiecărei luni înainte de a introduce suma de rambursat.
+- După ce apeși „Confirmă decizia”, suma introdusă nu mai poate fi modificată.
+- Dacă suma introdusă depășește resursele disponibile și limita de overdraft, plata nu va fi executată, iar scorul lunii va fi 0.
+- Simularea continuă până la finalul celor 24 de luni.
+
+**Feedback**
+- Decizia a fost acceptată. Plata a fost înregistrată, iar soldurile au fost actualizate.
+- Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. Plata nu a fost executată. Pentru această lună, scorul este 0.
+
+**Fluxul fiecărei luni**
 1. Pagina lunii curente
 2. Context narativ al lunii
 3. Tabel bugetar lunar
 4. Câmp pentru suma de rambursat din credit
-5. Buton **Confirmă decizia**
+5. Buton „Confirmă decizia”
 6. Ecran de feedback lunar
-7. Buton **Continuă către luna următoare**
-"""
-    )
-
-    st.markdown(
-        """
-### Framing monetar
-- În admin panel există opțiunea **A. Gain frame** sau **B. Loss frame**.
-- Participantul nu poate schimba această opțiune.
-- Formula matematică rămâne aceeași în ambele variante.
+7. Buton „Continuă către luna următoare”
 """
     )
 
@@ -666,7 +646,9 @@ elif st.session_state.page == "done":
 
     st.title("Mulțumim pentru participare!")
     st.metric("Scor final simulare", f"{st.session_state.final_score:.2f}")
-    st.markdown(framing_summary(st.session_state.final_score))
+    st.markdown(
+        f"Ai acumulat {st.session_state.final_score:.2f} puncte din 24. Valoare câștigată: {st.session_state.final_score:.2f} euro."
+    )
     st.markdown(
         f"""
 Puncte lunare brute: **{st.session_state.total_score:.2f}**
