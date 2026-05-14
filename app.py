@@ -93,24 +93,17 @@ def scroll_top_anchor():
     var win = window.parent;
     var doc = win.document;
     var anchor = doc.getElementById('sim-top');
-    try {{
-      if (win.history && 'scrollRestoration' in win.history) {{
-        win.history.scrollRestoration = 'manual';
-      }}
-    }} catch(e) {{}}
-    var tries = 0;
     function doScroll() {{
       win.scrollTo(0, 0);
       doc.documentElement.scrollTop = 0;
       doc.body.scrollTop = 0;
       if (anchor) anchor.scrollIntoView(true);
-      if (tries++ < 24) {{
-        win.requestAnimationFrame(doScroll);
-      }}
     }}
     doScroll();
     setTimeout(doScroll, 100);
-    setTimeout(doScroll, 400);
+    setTimeout(doScroll, 300);
+    setTimeout(doScroll, 700);
+    setTimeout(doScroll, 1300);
   }} catch(e) {{}}
 }})();
 </script>
