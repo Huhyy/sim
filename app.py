@@ -602,6 +602,11 @@ elif st.session_state.page == "simulation":
     overdraft_remaining = money(max(0.0, overdraft.limit - min(overdraft_after_charges, overdraft.limit)))
     max_payment = money(liquidity_after_charges + overdraft_remaining)
     blocked = overdraft_after_charges > overdraft.limit
+    opening_balance_line = (
+        f"Sold inițial disponibil: **{opening_balance:.2f} €**\n\n"
+        if month == 1
+        else ""
+    )
 
     col_title, col_score = st.columns([5, 1])
     with col_title:
@@ -637,7 +642,7 @@ elif st.session_state.page == "simulation":
     st.info(
         f"""**Decizie privind plata creditului**
 
-Sold inițial disponibil: **{opening_balance:.2f} €**
+{opening_balance_line}
 
 Venituri totale: **{income_total:.2f} €**
 
