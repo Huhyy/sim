@@ -736,23 +736,22 @@ elif st.session_state.page == "simulation":
         )
     auto_open_context_narrativ(month)
 
-    st.subheader("Buget lunar")
+    with st.expander("Buget lunar"):
+        st.markdown("**Venituri**")
+        st.table(pd.DataFrame(list(data["income"].items()), columns=["Categoria", "Valoare (€)"]))
+        st.write(f"**Total venituri:** {income_total:.2f}")
 
-    st.markdown("**Venituri**")
-    st.table(pd.DataFrame(list(data["income"].items()), columns=["Categoria", "Valoare (€)"]))
-    st.write(f"**Total venituri:** {income_total:.2f}")
+        st.markdown("**Cheltuieli curente**")
+        st.table(pd.DataFrame(list(data["expenses"].items()), columns=["Categoria", "Valoare (€)"]))
+        st.write(f"**Total cheltuieli:** {expenses_total:.2f}")
 
-    st.markdown("**Cheltuieli curente**")
-    st.table(pd.DataFrame(list(data["expenses"].items()), columns=["Categoria", "Valoare (€)"]))
-    st.write(f"**Total cheltuieli:** {expenses_total:.2f}")
-
-    st.markdown("**Obligații lunare**")
-    st.table(
-        pd.DataFrame(
-            list(obligations.items()),
-            columns=["Categoria", "Valoare (€)"],
+        st.markdown("**Obligații lunare**")
+        st.table(
+            pd.DataFrame(
+                list(obligations.items()),
+                columns=["Categoria", "Valoare (€)"],
+            )
         )
-    )
 
     opening_balance_html = (
         f'<div style="margin-bottom: 0.9rem; color: #8fd18f;"><strong>+ Sold inițial disponibil:</strong> {opening_balance:.2f} €</div>'
