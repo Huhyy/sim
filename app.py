@@ -504,24 +504,99 @@ soldul overdraftului utilizat.
 
     st.info("""**Instrucțiuni pentru participant**
 
+În această simulare vei lua rolul lui Andrei, o persoană care are un credit de nevoi personale și trebuie să ia decizii lunare de rambursare.
+Simularea durează 24 de luni.
 În fiecare lună vei vedea:
-- veniturile disponibile
-- cheltuielile lunare
-- suma rămasă în cont
-- soldul creditului și al overdraftului
-- dobânzile sau penalitățile acumulate
+veniturile lunii;
+cheltuielile lunii;
+suma disponibilă înainte de plata creditului;
+soldul creditului;
+soldul overdraftului;
+dobânzile sau penalitățile, dacă există.
 
-**La fiecare lună vei decide ce sumă dorești să plătești din credit.**
-Decizia ta poate influența evoluția soldului creditului, utilizarea overdraftului și rezultatul financiar final.
+După ce citești informațiile lunii, trebuie să introduci suma pe care dorești să o rambursezi din credit în acea lună.
+Tu decizi doar suma plătită la credit.
+Nu trebuie să rambursezi separat overdraftul.
+Creditul este obligația de bază a simulării. Overdraftul este o sursă suplimentară de finanțare care poate ajuta temporar, dar care indică fragilitate financiară. De aceea, participanții sunt penalizați mai puternic dacă acumulează overdraft sau dacă încheie simularea cu overdraft nerambursat.
+📊Cum funcționează decizia lunară
+În fiecare lună, vei introduce o singură sumă:
+Suma pe care vrei să o plătești din credit
+Apoi apeși:
+Confirmă decizia
+După confirmare, decizia nu mai poate fi modificată.
+Platforma va calcula automat:
+dacă plata poate fi realizată;
+cât scade soldul creditului;
+dacă se folosește overdraftul;
+care este soldul final al lunii;
+ce scor primești pentru luna respectivă.
 
-**Notă privind câștigul experimental**
+După confirmare, vei vedea un ecran de feedback pentru luna curentă. Acolo vei vedea rezultatul deciziei tale. Apoi vei apăsa:
+Continuă către luna următoare
+Overdraftul este o linie de credit atașată contului curent.
+În această simulare, limita maximă de overdraft este: 1.000 euro
+Overdraftul funcționează ca o rezervă de bani împrumutați.
+Dacă banii disponibili nu ajung pentru cheltuielile lunii și pentru plata introdusă de tine, platforma va folosi overdraftul, în limita disponibilă.
+😃Ce se întâmplă dacă introduci o sumă posibilă
+Dacă suma introdusă poate fi acoperită din banii disponibili și din overdraftul rămas, plata este acceptată.
+În acest caz:
+plata se înregistrează;
+soldul creditului scade;
+soldurile lunii se actualizează;
+primești scorul lunii.
 
-Câștigul participantului nu este stabilit pe baza unei singure luni și nici exclusiv pe baza plății integrale a ratei. La finalul simulării se iau în calcul performanța acumulată pe parcursul celor 24 de luni, soldul rămas al creditului, soldul overdraftului utilizat și dobânzile sau penalitățile acumulate. Rezultatul final reflectă, așadar, consecințele cumulate ale deciziilor financiare luate în întregul parcurs al simulării.
+🤔Ce se întâmplă dacă introduci o sumă imposibilă
+Dacă introduci o sumă mai mare decât banii disponibili plus overdraftul rămas, plata nu poate fi realizată.
+În acest caz:
+plata este respinsă;
+creditul nu scade;
+nu se depășește limita de overdraft;
+scorul lunii este 0;
+simularea continuă cu luna următoare.
 
-Participantul câștigă **1 punct** dacă decizia lui nu conduce la o situație financiară inconsistentă, adică:
-- nu depășește limita maximă a overdraftului,
-- nu introduce o plată imposibilă raportat la resursele lunii.
-""")
+După ce ai confirmat o sumă imposibilă, nu vei putea reveni pentru a o corecta. De aceea, trebuie să verifici atent informațiile înainte de confirmare.
+👍Ce poți corecta înainte de confirmare
+Înainte să apeși „Confirmă decizia”, poți corecta suma introdusă.
+Dacă introduci din greșeală litere, semne sau o valoare negativă, platforma îți va cere să introduci o valoare numerică validă.
+🏆Cum se acordă scorul lunar
+În fiecare lună poți primi:
+1 punct sau 0 puncte
+
+Primești 1 punct dacă suma introdusă este posibilă și plata poate fi executată.
+Primești 0 puncte dacă suma introdusă este imposibilă.
+Pe scurt:
+Plată posibilă = 1 punct
+Plată imposibilă = 0 puncte
+
+Scorul lunar nu înseamnă că ai ales perfect. El arată doar dacă decizia ta a putut fi executată în condițiile financiare ale lunii respective.
+🪙Cum se calculează scorul final
+La finalul celor 24 de luni, se adună punctele obținute în fiecare lună.
+Scorul maxim lunar total este: 24 puncte
+Apoi, scorul final este ajustat în funcție de situația financiară rămasă la finalul simulării.
+Se ține cont de:
+creditul rămas;
+overdraftul rămas;
+dobânzile și penalitățile acumulate.
+
+Cu cât rămân datorii mai mari la final, cu atât scorul final poate scădea.
+Overdraftul rămas scade scorul mai mult, deoarece arată că s-au folosit bani împrumutați suplimentar.
+Creditul ramas, dobânzile și penalitățile scad și ele scorul, deoarece sunt costuri acumulate pe parcursul jocului.
+🖥️Regula generală a simulării
+Scopul nu este să plătești mereu aceeași sumă.
+Scopul este să iei o decizie lunară care poate fi susținută de situația financiară a lunii respective.
+În unele luni poate fi ușor să plătești rata recomandată. În alte luni, din cauza cheltuielilor și veniturilor, decizia poate fi mai dificilă.
+Trebuie să alegi suma pe care o consideri potrivită, ținând cont de:
+venituri;
+cheltuieli;
+credit;
+overdraft;
+riscul de a introduce o plată imposibilă.
+
+Mesaj important înainte de începerea simulării
+Te rugăm să citești cu atenție informațiile fiecărei luni înainte de a introduce suma de rambursat.
+După ce apeși „Confirmă decizia”, suma introdusă nu mai poate fi modificată.
+Dacă suma introdusă depășește resursele disponibile și limita de overdraft, plata nu va fi executată, iar scorul lunii va fi 0.
+Simularea continuă până la finalul celor 24 de luni.""")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
