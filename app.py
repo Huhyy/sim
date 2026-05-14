@@ -780,7 +780,7 @@ elif st.session_state.page == "done":
     st.title("Mulțumim pentru participare!")
     st.metric("Scor final simulare", f"{st.session_state.final_score:.2f}")
     st.markdown(
-        f"Ai acumulat {st.session_state.final_score:.2f} puncte din 24. Valoare câștigată: {st.session_state.final_score:.2f} euro."
+        f"Ai păstrat {st.session_state.final_score:.2f} puncte din 24. Valoare rămasă: {st.session_state.final_score:.2f} euro din 24 euro."
     )
     st.markdown(
         f"""
