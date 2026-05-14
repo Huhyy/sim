@@ -112,8 +112,6 @@ def attach_payment_keyboard_bridge():
 <script>
 (function() {
   var root = window.parent;
-  if (root.__paymentKeyboardBridgeInstalled) return;
-  root.__paymentKeyboardBridgeInstalled = true;
 
   function isEditableTarget(target) {
     if (!target) return false;
@@ -142,7 +140,11 @@ def attach_payment_keyboard_bridge():
     input.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  root.addEventListener('keydown', function(event) {
+  if (root.__paymentKeyboardBridgeHandler) {
+    root.removeEventListener('keydown', root.__paymentKeyboardBridgeHandler, true);
+  }
+
+  root.__paymentKeyboardBridgeHandler = function(event) {
     if (isEditableTarget(event.target)) return;
 
     var input = findPaymentInput();
@@ -180,7 +182,9 @@ def attach_payment_keyboard_bridge():
       input.focus({ preventScroll: true });
       return;
     }
-  }, true);
+  };
+
+  root.addEventListener('keydown', root.__paymentKeyboardBridgeHandler, true);
 })();
 </script>
 """,
