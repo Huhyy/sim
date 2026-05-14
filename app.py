@@ -1,4 +1,4 @@
-import re
+﻿import re
 import random
 import uuid
 import streamlit as st
@@ -557,46 +557,7 @@ simularea continuă cu luna următoare.
 După ce ai confirmat o sumă imposibilă, nu vei putea reveni pentru a o corecta. De aceea, trebuie să verifici atent informațiile înainte de confirmare.
 👍Ce poți corecta înainte de confirmare
 Înainte să apeși „Confirmă decizia”, poți corecta suma introdusă.
-Dacă introduci din greșeală litere, semne sau o valoare negativă, platforma îți va cere să introduci o valoare numerică validă.
-🏆Cum se acordă scorul lunar
-În fiecare lună poți primi:
-1 punct sau 0 puncte
-
-Primești 1 punct dacă suma introdusă este posibilă și plata poate fi executată.
-Primești 0 puncte dacă suma introdusă este imposibilă.
-Pe scurt:
-Plată posibilă = 1 punct
-Plată imposibilă = 0 puncte
-
-Scorul lunar nu înseamnă că ai ales perfect. El arată doar dacă decizia ta a putut fi executată în condițiile financiare ale lunii respective.
-🪙Cum se calculează scorul final
-La finalul celor 24 de luni, se adună punctele obținute în fiecare lună.
-Scorul maxim lunar total este: 24 puncte
-Apoi, scorul final este ajustat în funcție de situația financiară rămasă la finalul simulării.
-Se ține cont de:
-creditul rămas;
-overdraftul rămas;
-dobânzile și penalitățile acumulate.
-
-Cu cât rămân datorii mai mari la final, cu atât scorul final poate scădea.
-Overdraftul rămas scade scorul mai mult, deoarece arată că s-au folosit bani împrumutați suplimentar.
-Creditul ramas, dobânzile și penalitățile scad și ele scorul, deoarece sunt costuri acumulate pe parcursul jocului.
-🖥️Regula generală a simulării
-Scopul nu este să plătești mereu aceeași sumă.
-Scopul este să iei o decizie lunară care poate fi susținută de situația financiară a lunii respective.
-În unele luni poate fi ușor să plătești rata recomandată. În alte luni, din cauza cheltuielilor și veniturilor, decizia poate fi mai dificilă.
-Trebuie să alegi suma pe care o consideri potrivită, ținând cont de:
-venituri;
-cheltuieli;
-credit;
-overdraft;
-riscul de a introduce o plată imposibilă.
-
-Mesaj important înainte de începerea simulării
-Te rugăm să citești cu atenție informațiile fiecărei luni înainte de a introduce suma de rambursat.
-După ce apeși „Confirmă decizia”, suma introdusă nu mai poate fi modificată.
-Dacă suma introdusă depășește resursele disponibile și limita de overdraft, plata nu va fi executată, iar scorul lunii va fi 0.
-Simularea continuă până la finalul celor 24 de luni.""")
+Dacă introduci din greșeală litere, semne sau o valoare negativă, platforma îți va cere să introduci o valoare numerică validă.""")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -820,3 +781,4 @@ Răspunsurile tale au fost înregistrate. Rezultatele studiului vor fi disponibi
 Contact: coita.iflorina@gmail.com
 """
     )
+
