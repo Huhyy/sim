@@ -345,102 +345,185 @@ elif st.session_state.page == "pre_questions":
     if DEV:
         if st.button("⚡ DEV: Randomizează și continuă", type="secondary"):
             randomize_sections(PRE_SECTIONS)
-            goto("instructions")
+            goto("profile")
 
     if not all_answered(PRE_SECTIONS):
         st.warning("Te rugăm să răspunzi la toate întrebările înainte de a continua.")
     if st.button("Continuă →", type="primary"):
         if all_answered(PRE_SECTIONS):
-            goto("instructions")
+            goto("profile")
         else:
             st.error("Sunt întrebări fără răspuns.")
 
 
-# ==================== INSTRUCTIONS ====================
-elif st.session_state.page == "instructions":
+# ==================== PROFILE ====================
+elif st.session_state.page == "profile":
     scroll_top_anchor()
-    st.title("Instrucțiuni pentru participant")
-    st.info(
-        """
-În această simulare vei lua rolul lui Andrei, o persoană care are un credit de nevoi personale și trebuie să ia decizii lunare de rambursare.
+    st.markdown("""
+<style>
+.profile-text { text-align: justify; }
+div[data-testid="stAppViewBlockContainer"] > div:first-child { padding-top: 0.5rem; }
+h1:first-of-type { margin-top: 0; }
+h3 { margin-top: 0.5rem; }
+</style>
+""", unsafe_allow_html=True)
 
-**Simularea durează 24 de luni.**
+    st.title("Profilul participantului")
+    st.markdown("Înainte de a începe simularea, citește cu atenție profilul personajului pe care îl vei reprezenta.")
+
+    st.markdown('<div class="profile-text">', unsafe_allow_html=True)
+
+    st.subheader("Profil general – Andrei")
+    st.markdown("""
+| | |
+|---|---|
+| **Nume** | Andrei |
+| **Vârstă** | 34 de ani |
+| **Oraș** | Locuiește într-un oraș mare (ex. București / Cluj / Timișoara) |
+| **Locuință** | Împreună cu soția, în chirie, apartament de 2 camere |
+| **Chirie** | 330 euro / lună (nu include utilitățile) |
+""")
+
+    st.subheader("Situație profesională")
+    st.markdown("""
+Andrei lucrează de aproximativ 6 ani în aceeași companie, într-o firmă din zona de servicii / corporație
+(de exemplu: suport tehnic, operațiuni, back-office, project coordinator junior).
+Nu este la început de drum, dar nici într-o poziție foarte bine plătită.
+
+| | |
+|---|---|
+| **Contract** | Perioadă nedeterminată |
+| **Venit lunar net** | Aproximativ 880 euro |
+
+Venitul este relativ stabil, dar:
+- fără bonusuri garantate
+- creșteri salariale mici și rare
+- uneori apar întârzieri administrative
+
+Andrei se percepe ca având un job „sigur".
+""")
+
+    st.subheader("Situație personală și emoțională")
+    st.markdown("""
+- **Status relațional:** căsătorit cu Maria. Maria are un venit net lunar în jur de 600 euro.
+- Are un cerc restrâns de prieteni, mulți dintre ei deja căsătoriți, cu copii, cu rate la casă.
+
+Andrei nu este impulsiv emoțional, dar:
+- evită conflictele
+- evită să spună „nu" în contexte sociale
+- preferă soluții pe termen scurt care reduc stresul imediat
+""")
+
+    st.subheader("Stil de viață și hobby-uri")
+    st.markdown("""
+- Iese de 1–2 ori pe săptămână în oraș (mâncare, cafea).
+- Merge ocazional la sală.
+- Are mașină (nu foarte nouă), pe care o folosește zilnic.
+- Îi place să plece din oraș de câteva ori pe an.
+- Nu cheltuie extravagant, dar nici nu ține un buget strict.
+- Cheltuielile „mici, dar dese" sunt o constantă.
+""")
+
+    st.subheader("Obiceiuri financiare")
+    st.markdown("""
+Andrei:
+- nu ține un buget scris
+- știe aproximativ cât câștigă, cât este chiria și cât este rata
+- restul banilor sunt gestionați „din mers"
+
+Are următoarele obiceiuri:
+- plătește facturile la timp, de obicei
+- evită restanțele, pentru că îl stresează
+- când apare o problemă, taie mai întâi din economii
+- abia la final reduce din cheltuieli
+""")
+
+    st.subheader("Economii")
+    st.markdown("""
+La începutul simulării:
+- are aproximativ **350 euro** economii
+- ținute în cont curent, nu separat
+- nu are un „fond de urgență" clar definit
+
+Aceste economii:
+- nu sunt rezultatul unei discipline
+- sunt mai degrabă „ce a rămas" din ultimele luni mai bune
+""")
+
+    st.subheader("Creditul")
+    st.markdown("""
+| | |
+|---|---|
+| **Tip credit** | Credit de nevoi personale |
+| **Valoare inițială** | Aproximativ 7.000 euro |
+| **Durată** | 24 luni |
+| **Rată lunară** | Aproximativ 318 euro |
+| **Dobândă** | 8,35% |
+
+De ce a luat creditul:
+- mobilă și electrocasnice pentru apartament
+- o parte din bani au mers pe mutare
+- reparații minore
+- câteva cheltuieli „de confort"
+
+Creditul nu a fost luat într-o criză, ci:
+- într-o perioadă relativ stabilă
+- cu convingerea că „mă descurc fără probleme"
+""")
+
+    st.subheader("Cum se raportează Andrei la credit")
+    st.markdown("""
+Nu vede creditul ca pe un pericol. Îl vede ca pe „o obligație fixă". Nu se gândește la ce se întâmplă dacă:
+- venitul întârzie
+- apar 2–3 luni proaste la rând
+
+Are mentalitatea: **„Dacă apare ceva, rezolv atunci."**
+
+Creditul îl plătește Andrei, dar cheltuielile lunare sunt suportate împreună.
+""")
+
+    st.subheader("Overdraft")
+    st.markdown("""
+| | |
+|---|---|
+| **Tip instrument** | Linie de credit de tip overdraft atașată contului curent |
+| **Limită maximă** | Aproximativ 1.000 euro |
+
+**Rolul overdraftului:** funcționează ca o rezervă de lichiditate care poate fi utilizată atunci când cheltuielile
+lunare depășesc suma disponibilă în cont.
+
+**Mod de utilizare:** dacă totalul cheltuielilor lunare și al sumei introduse pentru plata creditului depășește
+lichiditatea disponibilă, diferența este acoperită automat din overdraft, în limita disponibilă.
+Participanții nu activează manual overdraftul, dar decizia lor de plată poate conduce la utilizarea lui.
+
+**Dobândă overdraft:** sumele utilizate generează dobândă lunară, care se adaugă la datoria acumulată.
+
+**Rambursarea overdraftului:** orice sumă rămasă în cont după efectuarea plăților lunare reduce automat
+soldul overdraftului utilizat.
+""")
+
+    st.info("""**Instrucțiuni pentru participant**
 
 În fiecare lună vei vedea:
-- veniturile lunii;
-- cheltuielile lunii;
-- suma disponibilă înainte de plata creditului;
-- soldul creditului;
-- soldul overdraftului;
-- dobânzile sau penalitățile, dacă există.
+- veniturile disponibile
+- cheltuielile lunare
+- suma rămasă în cont
+- soldul creditului și al overdraftului
+- dobânzile sau penalitățile acumulate
 
-După ce citești informațiile lunii, trebuie să introduci suma pe care dorești să o rambursezi din credit în acea lună.
-Tu decizi doar suma plătită la credit. Nu trebuie să rambursezi separat overdraftul.
+**La fiecare lună vei decide ce sumă dorești să plătești din credit.**
+Decizia ta poate influența evoluția soldului creditului, utilizarea overdraftului și rezultatul financiar final.
 
-Creditul este obligația de bază a simulării. Overdraftul este o sursă suplimentară de finanțare care poate ajuta temporar, dar care indică fragilitate financiară.
+**Notă privind câștigul experimental**
 
-**Cum funcționează decizia lunară**
-- În fiecare lună introduci o singură sumă.
-- Apoi apeși **Confirmă decizia**.
-- După confirmare, decizia nu mai poate fi modificată.
-- Platforma calculează automat dacă plata poate fi realizată, cât scade soldul creditului, dacă se folosește overdraftul, care este soldul final al lunii și ce scor primești.
-- După confirmare, vei vedea un ecran de feedback pentru luna curentă, apoi vei apăsa **Continuă către luna următoare**.
+Câștigul participantului nu este stabilit pe baza unei singure luni și nici exclusiv pe baza plății integrale a ratei. La finalul simulării se iau în calcul performanța acumulată pe parcursul celor 24 de luni, soldul rămas al creditului, soldul overdraftului utilizat și dobânzile sau penalitățile acumulate. Rezultatul final reflectă, așadar, consecințele cumulate ale deciziilor financiare luate în întregul parcurs al simulării.
 
-Overdraftul este o linie de credit atașată contului curent.
-În această simulare, limita maximă de overdraft este de **1.000 euro**.
-Dacă banii disponibili nu ajung pentru cheltuielile lunii și pentru plata introdusă de tine, platforma va folosi overdraftul, în limita disponibilă.
+Participantul câștigă **1 punct** dacă decizia lui nu conduce la o situație financiară inconsistentă, adică:
+- nu depășește limita maximă a overdraftului,
+- nu introduce o plată imposibilă raportat la resursele lunii.
+""")
 
-**Ce se întâmplă dacă introduci o sumă posibilă**
-- plata se înregistrează;
-- soldul creditului scade;
-- soldurile lunii se actualizează;
-- primești scorul lunii.
-
-**Ce se întâmplă dacă introduci o sumă imposibilă**
-- plata este respinsă;
-- creditul nu scade;
-- nu se depășește limita de overdraft;
-- scorul lunii este 0;
-- simularea continuă cu luna următoare.
-
-Înainte să apeși „Confirmă decizia”, poți corecta suma introdusă.
-Dacă introduci din greșeală litere, semne sau o valoare negativă, platforma îți va cere să introduci o valoare numerică validă.
-
-**Cum se acordă scorul lunar**
-- 1 punct sau 0 puncte
-- Primești 1 punct dacă suma introdusă este posibilă și plata poate fi executată.
-- Primești 0 puncte dacă suma introdusă este imposibilă.
-
-**Cum se calculează scorul final**
-- La finalul celor 24 de luni se adună punctele obținute în fiecare lună.
-- Scorul final este ajustat în funcție de creditul rămas, overdraftul rămas, dobânzile și penalitățile acumulate.
-- În ambele cazuri, 1 punct = 1 euro.
-
-**Regula generală a simulării**
-- Scopul nu este să plătești mereu aceeași sumă.
-- Scopul este să iei o decizie lunară care poate fi susținută de situația financiară a lunii respective.
-- Trebuie să alegi suma pe care o consideri potrivită, ținând cont de venituri, cheltuieli, credit, overdraft și riscul de a introduce o plată imposibilă.
-
-**Mesaj important înainte de începerea simulării**
-- Citește cu atenție informațiile fiecărei luni înainte de a introduce suma de rambursat.
-- După ce apeși „Confirmă decizia”, suma introdusă nu mai poate fi modificată.
-- Dacă suma introdusă depășește resursele disponibile și limita de overdraft, plata nu va fi executată, iar scorul lunii va fi 0.
-- Simularea continuă până la finalul celor 24 de luni.
-
-**Feedback**
-- Decizia a fost acceptată. Plata a fost înregistrată, iar soldurile au fost actualizate.
-- Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. Plata nu a fost executată. Pentru această lună, scorul este 0.
-
-**Fluxul fiecărei luni**
-1. Pagina lunii curente
-2. Context narativ al lunii
-3. Tabel bugetar lunar
-4. Câmp pentru suma de rambursat din credit
-5. Buton „Confirmă decizia”
-6. Ecran de feedback lunar
-7. Buton „Continuă către luna următoare”
-"""
-    )
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button("Începe simularea →", type="primary"):
         goto("simulation")
