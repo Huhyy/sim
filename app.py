@@ -106,6 +106,88 @@ def scroll_top_anchor():
         st.session_state.scroll_to_top = False
 
 
+def attach_payment_keyboard_bridge():
+    st.components.v1.html(
+        """
+<script>
+(function() {
+  var root = window.parent;
+  if (root.__paymentKeyboardBridgeInstalled) return;
+  root.__paymentKeyboardBridgeInstalled = true;
+
+  function isEditableTarget(target) {
+    if (!target) return false;
+    var tag = (target.tagName || '').toLowerCase();
+    return tag === 'input' || tag === 'textarea' || target.isContentEditable;
+  }
+
+  function findPaymentInput() {
+    var selectors = [
+      'input[aria-label="Sumă de rambursat din credit (€)"]',
+      'input[aria-label^="Sumă de rambursat din credit"]',
+      'input[type="number"]'
+    ];
+
+    for (var i = 0; i < selectors.length; i++) {
+      var el = root.document.querySelector(selectors[i]);
+      if (el && el.offsetParent !== null) return el;
+    }
+    return null;
+  }
+
+  function setNativeValue(input, value) {
+    var setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input), 'value').set;
+    setter.call(input, value);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  root.addEventListener('keydown', function(event) {
+    if (isEditableTarget(event.target)) return;
+
+    var input = findPaymentInput();
+    if (!input) return;
+
+    var key = event.key;
+    var current = input.value || '';
+
+    if (/^[0-9]$/.test(key)) {
+      event.preventDefault();
+      setNativeValue(input, current + key);
+      input.focus({ preventScroll: true });
+      return;
+    }
+
+    if (key === ',' || key === '.') {
+      event.preventDefault();
+      if (current.indexOf('.') === -1) {
+        setNativeValue(input, current ? current + '.' : '0.');
+        input.focus({ preventScroll: true });
+      }
+      return;
+    }
+
+    if (key === 'Backspace') {
+      event.preventDefault();
+      setNativeValue(input, current.slice(0, -1));
+      input.focus({ preventScroll: true });
+      return;
+    }
+
+    if (key === 'Delete') {
+      event.preventDefault();
+      setNativeValue(input, '');
+      input.focus({ preventScroll: true });
+      return;
+    }
+  }, true);
+})();
+</script>
+""",
+        height=0,
+    )
+
+
 def randomize_sections(sections):
     for section in sections:
         for i in range(len(section["questions"])):
@@ -655,6 +737,7 @@ elif st.session_state.page == "simulation":
         placeholder="Introduceți o sumă numerică...",
         key=f"payment_{month}",
     )
+    attach_payment_keyboard_bridge()
     st.caption("Introduceți o sumă numerică mai mare sau egală cu 0.")
     st.caption("După confirmare, decizia nu mai poate fi modificată.")
 
