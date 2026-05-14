@@ -125,28 +125,26 @@ def auto_open_context_narrativ(month):
         """
 <script>
 (function() {
+  if (window.parent.__contextNarrativAutoOpenMonth === %MONTH%) return;
+  window.parent.__contextNarrativAutoOpenMonth = %MONTH%;
+
   function openNarrative() {
     try {
       var doc = window.parent.document;
-      var expander = Array.from(doc.querySelectorAll('details, [data-testid="stExpander"]')).find(function(el) {
+      var expander = Array.from(doc.querySelectorAll('details')).find(function(el) {
         return (el.textContent || '').includes('Context narativ');
       });
       if (!expander) return;
       if (expander.open) return;
       var summary = expander.querySelector('summary');
       if (summary) summary.click();
-      else {
-        var button = expander.querySelector('button');
-        if (button) button.click();
-      }
     } catch (e) {}
   }
 
-  openNarrative();
-  setTimeout(openNarrative, 120);
+  setTimeout(openNarrative, 80);
 })();
 </script>
-""",
+""".replace("%MONTH%", str(month)),
         height=0,
     )
     st.session_state.context_narrativ_auto_opened_for = month
