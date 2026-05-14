@@ -10,18 +10,14 @@ class Loan:
         self.months = months
         self.arrears = 0.0
 
-        # -------------------------
-        # FIXED PAYMENT (SCENARIO)
-        # -------------------------
-        self.fixed_payment = 317.71
+        # Monthly reference value shown to the participant.
+        self.fixed_payment = 330.0
 
     # -------------------------
     # INTEREST
     # -------------------------
     def apply_interest(self):
-        if self.balance <= 0:
-            return 0.0
-        return r2(self.balance * self.monthly_rate)
+        return 0.0
 
     # -------------------------
     # REQUIRED PAYMENT (FIXED)
@@ -35,29 +31,17 @@ class Loan:
     # APPLY PAYMENT
     # -------------------------
     def apply_payment(self, amount):
-
         if self.balance <= 0:
             return {"interest": 0.0, "principal": 0.0}
 
-        interest = self.apply_interest()
-        required = self.fixed_payment
+        principal_paid = min(r2(max(amount, 0.0)), self.balance)
 
-        # arrears
-        if amount < required:
-            self.arrears = r2(self.arrears + (required - amount))
-
-        # payment split
-        principal_paid = r2(amount - interest)
-        if principal_paid < 0:
-            principal_paid = 0.0
-
-        # reduce balance
         self.balance = r2(self.balance - principal_paid)
         if self.balance < 0:
             self.balance = 0.0
 
         return {
-            "interest": interest,
+            "interest": 0.0,
             "principal": principal_paid
         }
 
@@ -67,6 +51,5 @@ class Loan:
     def get_state(self):
         return {
             "balance": self.balance,
-            "arrears": self.arrears,
             "required_payment": self.get_required_payment()
         }

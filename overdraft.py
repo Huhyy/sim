@@ -19,23 +19,17 @@ class Overdraft:
 
         if self.balance + needed > self.limit:
             self.exceeded = True
-            return cash
+            self.balance = r2(self.limit)
+            return 0.0
 
         self.balance = r2(self.balance + needed)
         return 0.0
 
     def repay(self, cash):
-        if cash <= 0 or self.balance <= 0:
-            return cash
-
-        repay_amount = min(cash, self.balance)
-        self.balance = r2(self.balance - repay_amount)
-        return r2(cash - repay_amount)
+        return r2(cash)
 
     def apply_interest(self):
-        interest = r2(self.balance * self.monthly_rate)
-        self.balance = r2(self.balance + interest)
-        return interest
+        return 0.0
 
     def get_state(self):
         return {

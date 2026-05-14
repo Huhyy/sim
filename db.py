@@ -15,11 +15,11 @@ def _parse(value):
         return None
 
 
-def save_participant(session_id: str, answers: dict, final_score: int):
+def save_participant(session_id: str, answers: dict, final_score: float):
     row = {
         "id": session_id,
         "completed": True,
-        "final_score": final_score,
+        "final_score": float(final_score),
         "feedback": answers.get("feedback") or None,
     }
     for key, value in answers.items():
