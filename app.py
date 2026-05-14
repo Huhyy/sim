@@ -486,10 +486,10 @@ elif st.session_state.page == "simulation":
     loan_obligation = money(obligations.get("loan", 0))
     overdraft_interest = money(obligations.get("overdraft_interest", 0))
     penalties = money(obligations.get("penalties", 0))
-    available_before_credit = money(opening_balance + income_total)
+    available_total = money(opening_balance + income_total)
     outflows_before_credit = money(expenses_total + overdraft_interest + penalties)
-    liquidity_after_charges = money(max(0.0, available_before_credit - outflows_before_credit))
-    deficit_before_credit = money(max(0.0, outflows_before_credit - available_before_credit))
+    liquidity_after_charges = money(max(0.0, available_total - outflows_before_credit))
+    deficit_before_credit = money(max(0.0, outflows_before_credit - available_total))
     overdraft_after_charges = money(overdraft.balance + deficit_before_credit)
     overdraft_remaining = money(max(0.0, overdraft.limit - min(overdraft_after_charges, overdraft.limit)))
     max_payment = money(liquidity_after_charges + overdraft_remaining)
@@ -537,7 +537,7 @@ Cheltuieli curente: **{expenses_total:.2f} €**
 
 Dobândă overdraft: **{overdraft_interest:.2f} €** | Penalități: **{penalties:.2f} €**
 
-Suma disponibilă înainte de plata creditului: **{available_before_credit:.2f} €**
+Sold disponibil după cheltuieli și costuri: **{liquidity_after_charges:.2f} €**
 
 Sold credit rămas: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.2f} €**
 
