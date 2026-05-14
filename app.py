@@ -637,7 +637,7 @@ Dobândă overdraft: **{overdraft_interest:.2f} €** | Penalități: **{penalti
 
 Sold disponibil după cheltuieli și costuri: **{liquidity_after_charges:.2f} €**
 
-Sold credit rămas: **{loan.balance:.2f} €** | Sold overdraft: **{overdraft.balance:.2f} €**
+Sold credit rămas: **{loan.balance:.2f} €** | Overdraft utilizat: **{overdraft.balance:.2f} €**
 
 Plata orientativă a creditului în această lună: **{loan_obligation:.2f} €**
 """
@@ -688,7 +688,7 @@ elif st.session_state.page == "month_feedback":
     st.write(f"**Plata acceptată la credit:** {result['accepted_payment']:.2f} €")
     st.write(f"**Sold final disponibil:** {result['cash_final']:.2f} €")
     st.write(f"**Sold credit rămas:** {result['credit_final']:.2f} €")
-    st.write(f"**Sold overdraft final:** {result['overdraft_final']:.2f} €")
+    st.write(f"**Overdraft utilizat final:** {result['overdraft_final']:.2f} €")
     st.write(f"**Dobânzi și penalități luna aceasta:** {result['costs_this_month']:.2f} €")
     st.metric("Puncte acumulate", st.session_state.total_score + result["monthly_score"])
 
@@ -773,7 +773,7 @@ Puncte lunare brute: **{st.session_state.total_score:.2f}**
 
 Credit rămas: **{st.session_state.loan.balance:.2f} €**
 
-Overdraft rămas: **{st.session_state.overdraft.balance:.2f} €**
+Overdraft utilizat: **{st.session_state.overdraft.balance:.2f} €**
 
 Răspunsurile tale au fost înregistrate. Rezultatele studiului vor fi disponibile după finalizarea colectării datelor.
 
