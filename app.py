@@ -700,7 +700,7 @@ elif st.session_state.page == "month_feedback":
     st.write(f"**Sold credit rămas:** {result['credit_final']:.2f} €")
     st.write(f"**Sold overdraft final:** {result['overdraft_final']:.2f} €")
     st.write(f"**Dobânzi și penalități luna aceasta:** {result['costs_this_month']:.2f} €")
-    st.metric("Scorul lunii", result["monthly_score"])
+    st.metric("Puncte acumulate", st.session_state.total_score + result["monthly_score"])
 
     if result["pre_credit_impossible"]:
         st.error(result["feedback_message"])
