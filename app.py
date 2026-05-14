@@ -109,12 +109,8 @@ def scroll_top_anchor():
       if (anchor) anchor.scrollIntoView({{behavior:'instant', block:'start'}});
     }} catch(e) {{}}
   }}
-  [0, 50, 150, 300, 600, 1000, 1500, 2500].forEach(function(t){{ setTimeout(tryScroll, t); }});
-  try {{
-    var obs = new MutationObserver(tryScroll);
-    obs.observe(window.parent.document.body, {{childList: true, subtree: true}});
-    setTimeout(function() {{ obs.disconnect(); }}, 2500);
-  }} catch(e) {{}}
+  tryScroll();
+  setTimeout(tryScroll, 120);
 }})();
 </script>
 """, height=0)
