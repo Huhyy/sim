@@ -93,12 +93,17 @@ def scroll_top_anchor():
     var win = window.parent;
     var doc = win.document;
     var anchor = doc.getElementById('sim-top');
-    setTimeout(function() {{
-      win.scrollTo({{ top: 0, left: 0, behavior: 'instant' }});
+    function doScroll() {{
+      win.scrollTo(0, 0);
       doc.documentElement.scrollTop = 0;
       doc.body.scrollTop = 0;
-      if (anchor) anchor.scrollIntoView({{ behavior: 'instant', block: 'start' }});
-    }}, 60);
+      if (anchor) anchor.scrollIntoView(true);
+    }}
+    doScroll();
+    setTimeout(doScroll, 100);
+    setTimeout(doScroll, 300);
+    setTimeout(doScroll, 700);
+    setTimeout(doScroll, 1300);
   }} catch(e) {{}}
 }})();
 </script>
@@ -401,6 +406,7 @@ procesul decizional în situații economice riscante.
     st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button("Începe simularea →", type="primary"):
+        st.session_state.scroll_to_top = True
         goto("pre_questions")
 
 
@@ -416,12 +422,14 @@ elif st.session_state.page == "pre_questions":
     if DEV:
         if st.button("⚡ DEV: Randomizează și continuă", type="secondary"):
             randomize_sections(PRE_SECTIONS)
+            st.session_state.scroll_to_top = True
             goto("profile")
 
     if not all_answered(PRE_SECTIONS):
         st.warning("Te rugăm să răspunzi la toate întrebările înainte de a continua.")
     if st.button("Continuă →", type="primary"):
         if all_answered(PRE_SECTIONS):
+            st.session_state.scroll_to_top = True
             goto("profile")
         else:
             st.error("Sunt întrebări fără răspuns.")
@@ -642,6 +650,7 @@ De aceea, trebuie să verifici atent informațiile înainte de confirmare.
     st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button("Începe simularea →", type="primary"):
+        st.session_state.scroll_to_top = True
         goto("simulation")
 
 
@@ -818,6 +827,7 @@ elif st.session_state.page == "post_questions":
     if DEV:
         if st.button("⚡ DEV: Randomizează și finalizează", type="secondary"):
             randomize_sections(POST_SECTIONS)
+            st.session_state.scroll_to_top = True
             goto("done")
 
     if not all_answered(POST_SECTIONS):
@@ -825,6 +835,7 @@ elif st.session_state.page == "post_questions":
 
     if st.button("Finalizează →", type="primary"):
         if all_answered(POST_SECTIONS):
+            st.session_state.scroll_to_top = True
             goto("done")
         else:
             st.error("Sunt întrebări fără răspuns.")
