@@ -117,6 +117,41 @@ def scroll_top_anchor():
         st.session_state.scroll_to_top = False
 
 
+def auto_open_context_narrativ(month):
+    if st.session_state.get("context_narrativ_auto_opened_for") == month:
+        return
+
+    st.components.v1.html(
+        """
+<script>
+(function() {
+  function openNarrative() {
+    try {
+      var doc = window.parent.document;
+      var expander = Array.from(doc.querySelectorAll('details, [data-testid="stExpander"]')).find(function(el) {
+        return (el.textContent || '').includes('Context narativ');
+      });
+      if (!expander) return;
+      if (expander.open) return;
+      var summary = expander.querySelector('summary');
+      if (summary) summary.click();
+      else {
+        var button = expander.querySelector('button');
+        if (button) button.click();
+      }
+    } catch (e) {}
+  }
+
+  openNarrative();
+  setTimeout(openNarrative, 120);
+})();
+</script>
+""",
+        height=0,
+    )
+    st.session_state.context_narrativ_auto_opened_for = month
+
+
 def attach_payment_keyboard_bridge():
     st.components.v1.html(
         """
@@ -701,6 +736,7 @@ elif st.session_state.page == "simulation":
             f'<div style="text-align: justify">{narrative}</div>',
             unsafe_allow_html=True,
         )
+    auto_open_context_narrativ(month)
 
     st.subheader("Buget lunar")
 
