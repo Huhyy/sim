@@ -821,6 +821,7 @@ elif st.session_state.page == "simulation":
     obligations = data.get("obligations", {})
     opening_balance = money(data["position"]["initial"])
     loan_obligation = money(loan.get_required_payment())
+    credit_interest = money(loan.apply_interest())
     overdraft_interest = money(obligations.get("overdraft_interest", 0))
     penalties = money(obligations.get("penalties", 0))
     available_total = money(opening_balance + income_total)
@@ -876,7 +877,7 @@ elif st.session_state.page == "simulation":
   {opening_balance_html}
   <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Venituri totale:</strong> {income_total:.2f} €</div>
   <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Cheltuieli curente:</strong> {expenses_total:.2f} €</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Dobândă overdraft:</strong> {overdraft_interest:.2f} € | <strong>Dobândă credit:</strong> {result['credit_interest']:.2f} €</div>
+  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Dobândă overdraft:</strong> {overdraft_interest:.2f} € | <strong>Dobândă credit:</strong> {credit_interest:.2f} €</div>
   <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Sold final înainte de plata ratei creditului:</strong> {liquidity_after_charges:.2f} €</div>
   <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Sold credit rămas:</strong> {loan.balance:.2f} € | <strong>Overdraft utilizat:</strong> {overdraft.balance:.2f} €</div>
   <div style="color: #d8e9ff;"><strong>Plata orientativă a creditului în această lună:</strong> {loan_obligation:.2f} €</div>
