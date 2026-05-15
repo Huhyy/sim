@@ -862,7 +862,7 @@ elif st.session_state.page == "simulation":
         )
 
     opening_balance_html = (
-        f'<div style="margin-bottom: 0.9rem; color: #8fd18f;"><strong>+ Sold inițial disponibil:</strong> {opening_balance:.2f} €</div>'
+        f'<div style="margin-bottom: 0.9rem; color: #8fd18f;"><strong>Sold inițial disponibil:</strong> {opening_balance:.2f} €</div>'
         if month == 1
         else ""
     )
@@ -872,11 +872,11 @@ elif st.session_state.page == "simulation":
 <div style="background-color: #1f3b5b; padding: 1rem 1.2rem; border-radius: 0.5rem; color: #d8e9ff; line-height: 1.6;">
   <div style="font-weight: 700; margin-bottom: 0.85rem;">Decizie privind plata creditului</div>
   {opening_balance_html}
-  <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>+ Venituri totale:</strong> {income_total:.2f} €</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>- Cheltuieli curente:</strong> {expenses_total:.2f} €</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>- Dobândă overdraft:</strong> {overdraft_interest:.2f} € | <strong>- Penalități:</strong> {penalties:.2f} €</div>
-  <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>+ Sold disponibil după cheltuieli și costuri:</strong> {liquidity_after_charges:.2f} €</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>- Sold credit rămas:</strong> {loan.balance:.2f} € | <strong>- Overdraft utilizat:</strong> {overdraft.balance:.2f} €</div>
+  <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Venituri totale:</strong> {income_total:.2f} €</div>
+  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Cheltuieli curente:</strong> {expenses_total:.2f} €</div>
+  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Dobândă overdraft:</strong> {overdraft_interest:.2f} € | <strong>Penalități:</strong> {penalties:.2f} €</div>
+  <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Sold disponibil după cheltuieli și costuri:</strong> {liquidity_after_charges:.2f} €</div>
+  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Sold credit rămas:</strong> {loan.balance:.2f} € | <strong>Overdraft utilizat:</strong> {overdraft.balance:.2f} €</div>
   <div style="color: #d8e9ff;"><strong>Plata orientativă a creditului în această lună:</strong> {loan_obligation:.2f} €</div>
 </div>
 """,
