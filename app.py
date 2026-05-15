@@ -250,7 +250,7 @@ if "page" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
     st.session_state.month = 1
     st.session_state.loan = Loan(balance=7000.0, annual_interest=0.0835, months=24)
-    st.session_state.overdraft = Overdraft(limit=2000.0, annual_interest=0.24)
+    st.session_state.overdraft = Overdraft(limit=3000.0, annual_interest=0.24)
     st.session_state.savings = None
     st.session_state.total_score = 0
     st.session_state.monthly_points = 0.0
@@ -540,7 +540,7 @@ După confirmare, vei vedea un ecran de feedback pentru luna curentă. Acolo vei
 
 Overdraftul este o linie de credit atașată contului curent.
 
-În această simulare, limita maximă de overdraft este: **2.000 euro**
+În această simulare, limita maximă de overdraft este: **3.000 euro**
 
 Overdraftul funcționează ca o rezervă de bani împrumutați.
 
@@ -779,7 +779,7 @@ Creditul îl plătește Andrei, dar cheltuielile lunare sunt suportate împreun�
 | | |
 |---|---|
 | **Tip instrument** | Linie de credit de tip overdraft atașată contului curent |
-| **Limită maximă** | Aproximativ 2.000 euro |
+| **Limită maximă** | Aproximativ 3.000 euro |
 
 **Rolul overdraftului:** funcționează ca o rezervă de lichiditate care poate fi utilizată atunci când cheltuielile
 lunare depășesc suma disponibilă în cont.
