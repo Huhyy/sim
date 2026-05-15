@@ -687,7 +687,7 @@ Nu este la început de drum, dar nici într-o poziție foarte bine plătită.
 | | |
 |---|---|
 | **Contract** | Perioadă nedeterminată |
-| **Venit lunar net** | Aproximativ 880 euro |
+| **Venit lunar net** | Aproximativ 1.500 euro |
 
 Venitul este relativ stabil, dar:
 - fără bonusuri garantate
@@ -699,7 +699,7 @@ Andrei se percepe ca având un job „sigur".
 
     st.subheader("Situație personală și emoțională")
     st.markdown("""
-- **Status relațional:** căsătorit cu Maria. Maria are un venit net lunar în jur de 600 euro.
+- **Status relațional:** căsătorit cu Maria. Maria are un venit net lunar în jur de 1.000 euro.
 - Are un cerc restrâns de prieteni, mulți dintre ei deja căsătoriți, cu copii, cu rate la casă.
 
 Andrei nu este impulsiv emoțional, dar:

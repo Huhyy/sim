@@ -1,146 +1,630 @@
 {
   "1": {
-    "income": {"andrei": 880, "maria": 600, "other": 0},
-    "expenses": {"rent": 330, "utilities": 110, "food": 320, "transport": 120, "car": 90, "phone": 45, "social": 120, "other": 85},
-    "obligations": {"loan": 330, "overdraft_interest": 0, "penalties": 0},
-    "position": {"initial": 350}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 1000.0,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 110,
+      "food": 320,
+      "transport": 120,
+      "car": 90,
+      "phone": 45,
+      "social": 120,
+      "other": 85
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 0,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 350
+    }
   },
   "2": {
-    "income": {"andrei": 880, "maria": 600, "other": 0},
-    "expenses": {"rent": 330, "utilities": 150, "food": 320, "transport": 120, "car": 90, "phone": 45, "social": 90, "other": 85, "medical": 220},
-    "obligations": {"loan": 330, "overdraft_interest": 0, "penalties": 0},
-    "position": {"initial": 350}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 1000.0,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 150,
+      "food": 320,
+      "transport": 120,
+      "car": 90,
+      "phone": 45,
+      "social": 90,
+      "other": 85,
+      "medical": 220
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 0,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 350
+    }
   },
   "3": {
-    "income": {"andrei": 880, "maria": 600, "other": 0},
-    "expenses": {"rent": 330, "utilities": 150, "food": 310, "transport": 120, "car": 100, "phone": 45, "social": 60, "other": 80, "medical": 350},
-    "obligations": {"loan": 330, "overdraft_interest": 0, "penalties": 0},
-    "position": {"initial": 50}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 1000.0,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 150,
+      "food": 310,
+      "transport": 120,
+      "car": 100,
+      "phone": 45,
+      "social": 60,
+      "other": 80,
+      "medical": 350
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 0,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 50
+    }
   },
   "4": {
-    "income": {"andrei": 880, "maria": 520, "other": 0},
-    "expenses": {"rent": 330, "utilities": 150, "food": 300, "transport": 120, "car": 100, "phone": 45, "social": 40, "other": 80, "medical": 300},
-    "obligations": {"loan": 330, "overdraft_interest": 5, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 866.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 150,
+      "food": 300,
+      "transport": 120,
+      "car": 100,
+      "phone": 45,
+      "social": 40,
+      "other": 80,
+      "medical": 300
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 5,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "5": {
-    "income": {"andrei": 880, "maria": 520, "other": 0},
-    "expenses": {"rent": 330, "utilities": 135, "food": 300, "transport": 115, "car": 85, "phone": 45, "social": 55, "other": 75, "medical": 80},
-    "obligations": {"loan": 330, "overdraft_interest": 14, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 866.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 135,
+      "food": 300,
+      "transport": 115,
+      "car": 85,
+      "phone": 45,
+      "social": 55,
+      "other": 75,
+      "medical": 80
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 14,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "6": {
-    "income": {"andrei": 880, "maria": 520, "other": 0},
-    "expenses": {"rent": 330, "utilities": 130, "food": 300, "transport": 115, "car": 85, "phone": 45, "social": 60, "other": 70, "vacation": 200},
-    "obligations": {"loan": 330, "overdraft_interest": 22, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 866.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 130,
+      "food": 300,
+      "transport": 115,
+      "car": 85,
+      "phone": 45,
+      "social": 60,
+      "other": 70,
+      "vacation": 200
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 22,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "7": {
-    "income": {"andrei": 880, "maria": 520, "other": 0},
-    "expenses": {"rent": 330, "utilities": 125, "food": 300, "transport": 120, "car": 85, "phone": 45, "social": 60, "other": 70, "event": 350},
-    "obligations": {"loan": 330, "overdraft_interest": 32, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 866.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 125,
+      "food": 300,
+      "transport": 120,
+      "car": 85,
+      "phone": 45,
+      "social": 60,
+      "other": 70,
+      "event": 350
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 32,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "8": {
-    "income": {"andrei": 880, "bonus_andrei": 300, "maria": 520, "other": 0},
-    "expenses": {"rent": 330, "utilities": 120, "food": 300, "transport": 115, "car": 80, "phone": 45, "social": 80, "other": 70},
-    "obligations": {"loan": 330, "overdraft_interest": 45, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "bonus_andrei": 511.36,
+      "maria": 866.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 120,
+      "food": 300,
+      "transport": 115,
+      "car": 80,
+      "phone": 45,
+      "social": 80,
+      "other": 70
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 45,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "9": {
-    "income": {"andrei": 880, "maria": 520, "other": 0},
-    "expenses": {"rent": 330, "utilities": 120, "food": 300, "transport": 120, "car": 80, "repair": 450, "phone": 45, "social": 60, "other": 70},
-    "obligations": {"loan": 330, "overdraft_interest": 38, "penalties": 0},
-    "position": {"initial": 185}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 866.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 120,
+      "food": 300,
+      "transport": 120,
+      "car": 80,
+      "repair": 450,
+      "phone": 45,
+      "social": 60,
+      "other": 70
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 38,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 185
+    }
   },
   "10": {
-    "income": {"andrei": 880, "maria": 520, "other": 0},
-    "expenses": {"rent": 330, "utilities": 125, "food": 300, "transport": 115, "car": 80, "phone": 45, "social": 60, "other": 70, "home": 300},
-    "obligations": {"loan": 330, "overdraft_interest": 55, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 866.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 125,
+      "food": 300,
+      "transport": 115,
+      "car": 80,
+      "phone": 45,
+      "social": 60,
+      "other": 70,
+      "home": 300
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 55,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "11": {
-    "income": {"andrei": 880, "maria": 520, "other": 0},
-    "expenses": {"rent": 330, "utilities": 135, "food": 300, "transport": 115, "car": 80, "phone": 45, "social": 50, "other": 70},
-    "obligations": {"loan": 330, "overdraft_interest": 70, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 866.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 135,
+      "food": 300,
+      "transport": 115,
+      "car": 80,
+      "phone": 45,
+      "social": 50,
+      "other": 70
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 70,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "12": {
-    "income": {"andrei": 880, "bonus_andrei": 200, "maria": 520, "bonus_maria": 200, "other": 0},
-    "expenses": {"rent": 330, "utilities": 150, "food": 350, "transport": 130, "car": 80, "phone": 45, "social": 120, "other": 90, "holiday": 300, "vacation": 300},
-    "obligations": {"loan": 330, "overdraft_interest": 85, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "bonus_andrei": 340.91,
+      "maria": 866.67,
+      "bonus_maria": 333.33,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 150,
+      "food": 350,
+      "transport": 130,
+      "car": 80,
+      "phone": 45,
+      "social": 120,
+      "other": 90,
+      "holiday": 300,
+      "vacation": 300
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 85,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "13": {
-    "income": {"andrei": 880, "maria": 520, "other": 0},
-    "expenses": {"rent": 330, "utilities": 200, "food": 320, "transport": 115, "car": 80, "phone": 45, "social": 40, "other": 70},
-    "obligations": {"loan": 330, "overdraft_interest": 95, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 866.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 200,
+      "food": 320,
+      "transport": 115,
+      "car": 80,
+      "phone": 45,
+      "social": 40,
+      "other": 70
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 95,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "14": {
-    "income": {"andrei": 880, "maria": 450, "other": 0},
-    "expenses": {"rent": 330, "utilities": 180, "food": 320, "transport": 110, "car": 80, "phone": 45, "social": 30, "other": 70, "medical": 180},
-    "obligations": {"loan": 330, "overdraft_interest": 105, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 750.0,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 180,
+      "food": 320,
+      "transport": 110,
+      "car": 80,
+      "phone": 45,
+      "social": 30,
+      "other": 70,
+      "medical": 180
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 105,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "15": {
-    "income": {"andrei": 880, "maria": 430, "other": 0},
-    "expenses": {"rent": 330, "utilities": 170, "food": 300, "transport": 105, "car": 70, "phone": 45, "social": 20, "other": 60, "medical": 160},
-    "obligations": {"loan": 330, "overdraft_interest": 100, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 716.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 170,
+      "food": 300,
+      "transport": 105,
+      "car": 70,
+      "phone": 45,
+      "social": 20,
+      "other": 60,
+      "medical": 160
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 100,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "16": {
-    "income": {"andrei": 880, "maria": 430, "other": 0},
-    "expenses": {"rent": 330, "utilities": 165, "food": 300, "transport": 100, "car": 70, "phone": 45, "social": 20, "other": 60, "medical": 150, "home": 180},
-    "obligations": {"loan": 330, "overdraft_interest": 95, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 716.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 165,
+      "food": 300,
+      "transport": 100,
+      "car": 70,
+      "phone": 45,
+      "social": 20,
+      "other": 60,
+      "medical": 150,
+      "home": 180
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 95,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "17": {
-    "income": {"andrei": 880, "maria": 420, "other": 0},
-    "expenses": {"rent": 330, "utilities": 160, "food": 310, "transport": 100, "car": 70, "phone": 45, "social": 15, "other": 60, "medical": 150, "baby": 220},
-    "obligations": {"loan": 330, "overdraft_interest": 100, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 700.0,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 160,
+      "food": 310,
+      "transport": 100,
+      "car": 70,
+      "phone": 45,
+      "social": 15,
+      "other": 60,
+      "medical": 150,
+      "baby": 220
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 100,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "18": {
-    "income": {"andrei": 1000, "maria": 300, "other": 0},
-    "expenses": {"rent": 330, "utilities": 150, "food": 320, "transport": 110, "car": 70, "phone": 45, "social": 10, "other": 60, "medical": 140, "baby": 200},
-    "obligations": {"loan": 330, "overdraft_interest": 105, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1704.55,
+      "maria": 500.0,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 150,
+      "food": 320,
+      "transport": 110,
+      "car": 70,
+      "phone": 45,
+      "social": 10,
+      "other": 60,
+      "medical": 140,
+      "baby": 200
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 105,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "19": {
-    "income": {"andrei": 900, "maria": 100, "other": 0},
-    "expenses": {"rent": 330, "utilities": 150, "food": 320, "transport": 100, "car": 70, "phone": 45, "social": 5, "other": 60, "medical": 280, "baby": 180},
-    "obligations": {"loan": 330, "overdraft_interest": 115, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1534.09,
+      "maria": 166.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 150,
+      "food": 320,
+      "transport": 100,
+      "car": 70,
+      "phone": 45,
+      "social": 5,
+      "other": 60,
+      "medical": 280,
+      "baby": 180
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 115,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "20": {
-    "income": {"andrei": 900, "maria": 250, "other": 0},
-    "expenses": {"rent": 330, "utilities": 150, "food": 320, "transport": 90, "car": 70, "phone": 45, "other": 60, "medical": 200, "baby": 400},
-    "obligations": {"loan": 330, "overdraft_interest": 130, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1534.09,
+      "maria": 416.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 150,
+      "food": 320,
+      "transport": 90,
+      "car": 70,
+      "phone": 45,
+      "other": 60,
+      "medical": 200,
+      "baby": 400
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 130,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "21": {
-    "income": {"andrei": 900, "maria": 250, "other": 0},
-    "expenses": {"rent": 330, "utilities": 150, "food": 320, "transport": 90, "car": 70, "phone": 45, "other": 60, "medical": 240, "baby": 120},
-    "obligations": {"loan": 330, "overdraft_interest": 140, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1534.09,
+      "maria": 416.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 150,
+      "food": 320,
+      "transport": 90,
+      "car": 70,
+      "phone": 45,
+      "other": 60,
+      "medical": 240,
+      "baby": 120
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 140,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "22": {
-    "income": {"andrei": 1020, "maria": 250, "other": 0},
-    "expenses": {"rent": 330, "utilities": 155, "food": 320, "transport": 95, "car": 70, "phone": 45, "other": 60, "medical": 260, "baby": 160},
-    "obligations": {"loan": 330, "overdraft_interest": 150, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1738.64,
+      "maria": 416.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 155,
+      "food": 320,
+      "transport": 95,
+      "car": 70,
+      "phone": 45,
+      "other": 60,
+      "medical": 260,
+      "baby": 160
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 150,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "23": {
-    "income": {"andrei": 880, "maria": 250, "other": 0},
-    "expenses": {"rent": 330, "utilities": 160, "food": 350, "transport": 80, "car": 60, "phone": 45, "other": 70, "medical": 350, "baby": 200},
-    "obligations": {"loan": 330, "overdraft_interest": 165, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 416.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 160,
+      "food": 350,
+      "transport": 80,
+      "car": 60,
+      "phone": 45,
+      "other": 70,
+      "medical": 350,
+      "baby": 200
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 165,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   },
   "24": {
-    "income": {"andrei": 880, "maria": 250, "other": 0},
-    "expenses": {"rent": 330, "utilities": 165, "food": 350, "transport": 85, "car": 60, "phone": 45, "other": 70, "baby": 220, "medical": 120},
-    "obligations": {"loan": 330, "overdraft_interest": 180, "penalties": 0},
-    "position": {"initial": 0}
+    "income": {
+      "andrei": 1500.0,
+      "maria": 416.67,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 330,
+      "utilities": 165,
+      "food": 350,
+      "transport": 85,
+      "car": 60,
+      "phone": 45,
+      "other": 70,
+      "baby": 220,
+      "medical": 120
+    },
+    "obligations": {
+      "loan": 330,
+      "overdraft_interest": 180,
+      "penalties": 0
+    },
+    "position": {
+      "initial": 0
+    }
   }
 }
