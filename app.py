@@ -930,7 +930,9 @@ elif st.session_state.page == "month_feedback":
     st.markdown("### Rezultatul deciziei")
     st.write(f"**Suma introdusă:** {result['payment_input']:.2f} €")
     st.write(f"**Plata acceptată la credit:** {result['accepted_payment']:.2f} €")
-    st.write(f"**Sold final disponibil:** {result['cash_final']:.2f} €")
+    st.write(
+        f"**Sold disponibil după plata ratei = Sold inițial + Venituri − Cheltuieli curente − Dobândă overdraft − Rata − Dobânda credit:** {result['cash_final']:.2f} €"
+    )
     st.write(f"**Sold credit rămas:** {result['credit_final']:.2f} €")
     st.write(f"**Overdraft utilizat final:** {result['overdraft_final']:.2f} €")
     st.write(f"**Dobândă credit luna aceasta:** {result['credit_interest']:.2f} €")
