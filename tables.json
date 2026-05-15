@@ -1,8 +1,8 @@
 {
   "1": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 1000.0,
+      "andrei": 1100.0,
+      "maria": 800.0,
       "other": 0
     },
     "expenses": {
@@ -26,8 +26,8 @@
   },
   "2": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 1000.0,
+      "andrei": 1100.0,
+      "maria": 800.0,
       "other": 0
     },
     "expenses": {
@@ -52,8 +52,8 @@
   },
   "3": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 1000.0,
+      "andrei": 1100.0,
+      "maria": 800.0,
       "other": 0
     },
     "expenses": {
@@ -78,8 +78,8 @@
   },
   "4": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 866.67,
+      "andrei": 1100.0,
+      "maria": 693.34,
       "other": 0
     },
     "expenses": {
@@ -104,8 +104,8 @@
   },
   "5": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 866.67,
+      "andrei": 1100.0,
+      "maria": 693.34,
       "other": 0
     },
     "expenses": {
@@ -130,8 +130,8 @@
   },
   "6": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 866.67,
+      "andrei": 1100.0,
+      "maria": 693.34,
       "other": 0
     },
     "expenses": {
@@ -156,8 +156,8 @@
   },
   "7": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 866.67,
+      "andrei": 1100.0,
+      "maria": 693.34,
       "other": 0
     },
     "expenses": {
@@ -182,9 +182,9 @@
   },
   "8": {
     "income": {
-      "andrei": 1500.0,
-      "bonus_andrei": 511.36,
-      "maria": 866.67,
+      "andrei": 1100.0,
+      "bonus_andrei": 375.0,
+      "maria": 693.34,
       "other": 0
     },
     "expenses": {
@@ -208,8 +208,8 @@
   },
   "9": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 866.67,
+      "andrei": 1100.0,
+      "maria": 693.34,
       "other": 0
     },
     "expenses": {
@@ -234,8 +234,8 @@
   },
   "10": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 866.67,
+      "andrei": 1100.0,
+      "maria": 693.34,
       "other": 0
     },
     "expenses": {
@@ -260,8 +260,8 @@
   },
   "11": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 866.67,
+      "andrei": 1100.0,
+      "maria": 693.34,
       "other": 0
     },
     "expenses": {
@@ -285,10 +285,10 @@
   },
   "12": {
     "income": {
-      "andrei": 1500.0,
-      "bonus_andrei": 340.91,
-      "maria": 866.67,
-      "bonus_maria": 333.33,
+      "andrei": 1100.0,
+      "bonus_andrei": 250.0,
+      "maria": 693.34,
+      "bonus_maria": 266.66,
       "other": 0
     },
     "expenses": {
@@ -314,8 +314,8 @@
   },
   "13": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 866.67,
+      "andrei": 1100.0,
+      "maria": 693.34,
       "other": 0
     },
     "expenses": {
@@ -339,8 +339,8 @@
   },
   "14": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 750.0,
+      "andrei": 1100.0,
+      "maria": 600.0,
       "other": 0
     },
     "expenses": {
@@ -365,8 +365,8 @@
   },
   "15": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 716.67,
+      "andrei": 1100.0,
+      "maria": 573.34,
       "other": 0
     },
     "expenses": {
@@ -391,8 +391,8 @@
   },
   "16": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 716.67,
+      "andrei": 1100.0,
+      "maria": 573.34,
       "other": 0
     },
     "expenses": {
@@ -418,8 +418,8 @@
   },
   "17": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 700.0,
+      "andrei": 1100.0,
+      "maria": 560.0,
       "other": 0
     },
     "expenses": {
@@ -445,8 +445,8 @@
   },
   "18": {
     "income": {
-      "andrei": 1704.55,
-      "maria": 500.0,
+      "andrei": 1250.0,
+      "maria": 400.0,
       "other": 0
     },
     "expenses": {
@@ -472,8 +472,8 @@
   },
   "19": {
     "income": {
-      "andrei": 1534.09,
-      "maria": 166.67,
+      "andrei": 1125.0,
+      "maria": 133.34,
       "other": 0
     },
     "expenses": {
@@ -499,8 +499,8 @@
   },
   "20": {
     "income": {
-      "andrei": 1534.09,
-      "maria": 416.67,
+      "andrei": 1125.0,
+      "maria": 333.34,
       "other": 0
     },
     "expenses": {
@@ -525,8 +525,8 @@
   },
   "21": {
     "income": {
-      "andrei": 1534.09,
-      "maria": 416.67,
+      "andrei": 1125.0,
+      "maria": 333.34,
       "other": 0
     },
     "expenses": {
@@ -551,8 +551,8 @@
   },
   "22": {
     "income": {
-      "andrei": 1738.64,
-      "maria": 416.67,
+      "andrei": 1275.0,
+      "maria": 333.34,
       "other": 0
     },
     "expenses": {
@@ -577,8 +577,8 @@
   },
   "23": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 416.67,
+      "andrei": 1100.0,
+      "maria": 333.34,
       "other": 0
     },
     "expenses": {
@@ -603,8 +603,8 @@
   },
   "24": {
     "income": {
-      "andrei": 1500.0,
-      "maria": 416.67,
+      "andrei": 1100.0,
+      "maria": 333.34,
       "other": 0
     },
     "expenses": {
