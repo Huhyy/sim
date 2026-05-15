@@ -493,66 +493,394 @@ elif st.session_state.page == "instructions":
         """**Instrucțiuni pentru participant**
 
 În această simulare vei lua rolul lui Andrei, o persoană care are un credit de nevoi personale și trebuie să ia decizii lunare de rambursare.
-
-Simularea durează **24 de luni**.
-
-**În fiecare lună vei vedea:**
-- veniturile lunii
-- cheltuielile lunii
-- suma disponibilă înainte de plata creditului
-- soldul creditului
-- soldul overdraftului
-- dobânzile sau penalitățile, dacă există
+Simularea durează 24 de luni.
+În fiecare lună vei vedea:
+veniturile lunii;
+cheltuielile lunii;
+suma disponibilă înainte de plata creditului;
+soldul creditului;
+soldul overdraftului;
+dobânzile sau penalitățile, dacă există.
 
 După ce citești informațiile lunii, trebuie să introduci suma pe care dorești să o rambursezi din credit în acea lună.
 Tu decizi doar suma plătită la credit.
-Nu trebuie să rambursezi separat overdraftul.
+Nu trebuie să rambursezi separat overdraftul. 
+Creditul este obligația de bază a simulării. Overdraftul este o sursă suplimentară de finanțare care poate ajuta temporar, dar care indică fragilitate financiară. De aceea, participanții sunt penalizați mai puternic dacă acumulează overdraft sau dacă încheie simularea cu overdraft nerambursat.
+📊Cum funcționează decizia lunară
+În fiecare lună, vei introduce o singură sumă:
+Suma pe care vrei să o plătești din credit
+Apoi apeși:
+Confirmă decizia
+După confirmare, decizia nu mai poate fi modificată.
+Platforma va calcula automat:
+dacă plata poate fi realizată;
+cât scade soldul creditului;
+dacă se folosește overdraftul;
+care este soldul final al lunii;
+ce scor primești pentru luna respectivă.
 
-Creditul este obligația de bază a simulării. Overdraftul este o sursă suplimentară de finanțare care poate ajuta temporar, dar care indică fragilitate financiară.
-De aceea, participanții sunt penalizați mai puternic dacă acumulează overdraft sau dacă încheie simularea cu overdraft nerambursat.
-
-**Cum funcționează decizia lunară**
-- În fiecare lună, vei introduce o singură sumă.
-- Apoi apeși **Confirmă decizia**.
-- După confirmare, decizia nu mai poate fi modificată.
-- Platforma va calcula automat:
-  - dacă plata poate fi realizată
-  - cât scade soldul creditului
-  - dacă se folosește overdraftul
-  - care este soldul final al lunii
-  - ce scor primești pentru luna respectivă
-
-După confirmare, vei vedea un ecran de feedback pentru luna curentă. Acolo vei vedea rezultatul deciziei tale.
-Apoi vei apăsa **Continuă către luna următoare**.
-
+După confirmare, vei vedea un ecran de feedback pentru luna curentă. Acolo vei vedea rezultatul deciziei tale. Apoi vei apăsa:
+Continuă către luna următoare
 Overdraftul este o linie de credit atașată contului curent.
-În această simulare, limita maximă de overdraft este: **1.000 euro**
+În această simulare, limita maximă de overdraft este: 1.000 euro
 Overdraftul funcționează ca o rezervă de bani împrumutați.
 Dacă banii disponibili nu ajung pentru cheltuielile lunii și pentru plata introdusă de tine, platforma va folosi overdraftul, în limita disponibilă.
+😃Ce se întâmplă dacă introduci o sumă posibilă
+Dacă suma introdusă poate fi acoperită din banii disponibili și din overdraftul rămas, plata este acceptată.
+În acest caz:
+plata se înregistrează;
+soldul creditului scade;
+soldurile lunii se actualizează;
+primești scorul lunii.
 
-**Ce se întâmplă dacă introduci o sumă posibilă**
-- Dacă suma introdusă poate fi acoperită din banii disponibili și din overdraftul rămas, plata este acceptată.
-- În acest caz:
-  - plata se înregistrează
-  - soldul creditului scade
-  - soldurile lunii se actualizează
-  - primești scorul lunii
+🤔Ce se întâmplă dacă introduci o sumă imposibilă
+Dacă introduci o sumă mai mare decât banii disponibili plus overdraftul rămas, plata nu poate fi realizată.
+În acest caz:
+plata este respinsă;
+creditul nu scade;
+nu se depășește limita de overdraft;
+scorul lunii este 0;
+simularea continuă cu luna următoare.
 
-**Ce se întâmplă dacă introduci o sumă imposibilă**
-- Dacă introduci o sumă mai mare decât banii disponibili plus overdraftul rămas, plata nu poate fi realizată.
-- În acest caz:
-  - plata este respinsă
-  - creditul nu scade
-  - nu se depășește limita de overdraft
-  - scorul lunii este 0
-  - simularea continuă cu luna următoare
+După ce ai confirmat o sumă imposibilă, nu vei putea reveni pentru a o corecta. De aceea, trebuie să verifici atent informațiile înainte de confirmare.
+👍Ce poți corecta înainte de confirmare
+Înainte să apeși „Confirmă decizia”, poți corecta suma introdusă.
+Dacă introduci din greșeală litere, semne sau o valoare negativă, platforma îți va cere să introduci o valoare numerică validă.
+🏆Cum se acordă scorul lunar
+În fiecare lună poți primi:
+1 punct sau 0 puncte
 
-După ce ai confirmat o sumă imposibilă, nu vei putea reveni pentru a o corecta.
-De aceea, trebuie să verifici atent informațiile înainte de confirmare.
+Primești 1 punct dacă suma introdusă este posibilă și plata poate fi executată.
+Primești 0 puncte dacă suma introdusă este imposibilă.
+Pe scurt:
+Plată posibilă = 1 punct
+Plată imposibilă = 0 puncte
 
-**Ce poți corecta înainte de confirmare**
-- Înainte să apeși „Confirmă decizia”, poți corecta suma introdusă.
-- Dacă introduci din greșeală litere, semne sau o valoare negativă, platforma îți va cere să introduci o valoare numerică validă.
+Scorul lunar nu înseamnă că ai ales perfect. El arată doar dacă decizia ta a putut fi executată în condițiile financiare ale lunii respective.
+🪙Cum se calculează scorul final
+La finalul celor 24 de luni, se adună punctele obținute în fiecare lună.
+Scorul maxim lunar total este: 24 puncte
+Apoi, scorul final este ajustat în funcție de situația financiară rămasă la finalul simulării.
+Se ține cont de:
+creditul rămas;
+overdraftul rămas;
+dobânzile și penalitățile acumulate.
+
+Cu cât rămân datorii mai mari la final, cu atât scorul final poate scădea.
+Overdraftul rămas scade scorul mai mult, deoarece arată că s-au folosit bani împrumutați suplimentar.
+Creditul ramas, dobânzile și penalitățile scad și ele scorul, deoarece sunt costuri acumulate pe parcursul jocului.
+🖥️Regula generală a simulării
+Scopul nu este să plătești mereu aceeași sumă.
+Scopul este să iei o decizie lunară care poate fi susținută de situația financiară a lunii respective.
+În unele luni poate fi ușor să plătești rata recomandată. În alte luni, din cauza cheltuielilor și veniturilor, decizia poate fi mai dificilă.
+Trebuie să alegi suma pe care o consideri potrivită, ținând cont de:
+venituri;
+cheltuieli;
+credit;
+overdraft;
+riscul de a introduce o plată imposibilă.
+
+Mesaj important înainte de începerea simulării
+Te rugăm să citești cu atenție informațiile fiecărei luni înainte de a introduce suma de rambursat.
+După ce apeși „Confirmă decizia”, suma introdusă nu mai poate fi modificată.
+Dacă suma introdusă depășește resursele disponibile și limita de overdraft, plata nu va fi executată, iar scorul lunii va fi 0.
+Simularea continuă până la finalul celor 24 de luni.
+Text pentru butonul de confirmare
+Lângă butonul „Confirmă decizia” aș pune acest avertisment scurt:
+După confirmare, decizia nu mai poate fi modificată.
+
+Iar sub câmpul de introducere a sumei:
+Introduceți o sumă numerică mai mare sau egală cu 0.
+
+Pentru feedback după o decizie validă:
+Decizia a fost acceptată. Plata a fost înregistrată, iar soldurile au fost actualizate.
+
+Pentru feedback după o decizie imposibilă:
+Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. Plata nu a fost executată. Pentru această lună, scorul este 0.
+
+
+
+Fluxul fiecărei luni trebuie să fie:
+
+1. Pagina lunii curente
+2. Context narativ al lunii
+3. Tabel bugetar lunar
+4. Câmp pentru suma de rambursat din credit
+5. Buton „Confirmă decizia”
+6. Ecran de feedback lunar
+7. Buton „Continuă către luna următoare”
+
+Nu dorim ca după „Confirmă decizia” să se actualizeze luna curenta, de feedback, iar participantul apasă separat „Continuă către luna următoare”.
+Participantul nu trebuie să poată modifica suma după ce a apăsat „Confirmă decizia”.
+3. Calculul banilor disponibili înainte de plata creditului
+Sold disponibil după cheltuieli = Sold inițial + Venituri − Cheltuieli curente − Dobândă overdraft − Penalități.
+4. Acoperirea automată a deficitului curent prin overdraft
+Înainte de plata creditului, dacă luna are deficit, deficitul trebuie acoperit automat din overdraft.
+Formula:
+Deficit_inainte_credit =
+MAX(0, Iesiri_inainte_credit - Bani_disponibili_total)
+
+Apoi:
+Overdraft_dupa_cheltuieli =
+Sold_overdraft_initial + Deficit_inainte_credit
+
+Dacă:
+Overdraft_dupa_cheltuieli > Limita_overdraft
+
+atunci luna este deja într-o situație financiar imposibilă, chiar înainte de plata creditului. În acest caz:
+Plata_acceptata_credit = 0
+Scor_lunar = 0
+Sold_credit_final = Sold_credit_initial
+Sold_overdraft_final = Limita_overdraft
+Sold_final_disponibil = 0
+
+Trebuie afișat mesaj de eroare/feedback:
+Cheltuielile lunii depășesc lichiditatea disponibilă și limita de overdraft. Plata creditului nu poate fi executată. Pentru această lună, scorul este 0.
+
+Dacă overdraftul după cheltuieli nu depășește limita, se merge mai departe la verificarea plății introduse de participant.
+
+5. Verificarea plății introduse pentru credit
+După ce participantul introduce suma și apasă „Confirmă decizia”, sistemul verifică dacă plata este posibilă.
+Mai întâi se calculează lichiditatea disponibilă după acoperirea cheltuielilor:
+Lichiditate_dupa_cheltuieli =
+MAX(0, Bani_disponibili_total - Iesiri_inainte_credit)
+
+Se calculează overdraftul rămas disponibil:
+Overdraft_disponibil_ramas =
+Limita_overdraft - Overdraft_dupa_cheltuieli
+
+Apoi se calculează suma maximă pe care participantul o poate plăti la credit:
+Suma_maxima_platibila =
+Lichiditate_dupa_cheltuieli + Overdraft_disponibil_ramas
+
+Plata introdusă este validă doar dacă:
+Plata_introdusa_credit >= 0
+Plata_introdusa_credit <= Suma_maxima_platibila
+Plata_introdusa_credit <= Sold_credit_initial
+
+Dacă toate condițiile sunt îndeplinite:
+Plata_acceptata_credit = Plata_introdusa_credit
+
+Dacă una dintre condiții nu este îndeplinită:
+Plata_acceptata_credit = 0
+Scor_lunar = 0
+
+Important: dacă plata este imposibilă, creditul nu trebuie să scadă. Nu se reportează artificial diferența în lunile următoare. Nu se permite depășirea limitei de overdraft.
+
+6. Calculul overdraftului generat de plata creditului
+Dacă plata este validă, sistemul calculează cât din plată este acoperit din lichiditate și cât intră în overdraft.
+Formula:
+Overdraft_nou_din_plata_credit =
+MAX(0, Plata_acceptata_credit - Lichiditate_dupa_cheltuieli)
+
+Apoi:
+Sold_overdraft_final =
+Overdraft_dupa_cheltuieli + Overdraft_nou_din_plata_credit
+
+Soldul final disponibil este:
+Sold_final_disponibil =
+MAX(0, Lichiditate_dupa_cheltuieli - Plata_acceptata_credit)
+
+Creditul final este:
+Sold_credit_final =
+MAX(0, Sold_credit_initial - Plata_acceptata_credit)
+
+
+7. Regula pentru plata imposibilă
+Dacă participantul introduce o sumă mai mare decât suma maximă posibilă, plata trebuie respinsă.
+Nu se face plata.
+Nu scade creditul.
+Nu crește overdraftul peste limită.
+Nu se scade diferența din lunile viitoare.
+Nu se permite corectarea după confirmare.
+Rezultatul este:
+Plata_acceptata_credit = 0
+Scor_lunar = 0
+Sold_credit_final = Sold_credit_initial
+Sold_overdraft_final = Overdraft_dupa_cheltuieli
+Sold_final_disponibil = Lichiditate_dupa_cheltuieli
+
+Mesaj afișat participantului:
+Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. Plata nu poate fi executată. Pentru această lună, decizia este considerată invalidă, scorul lunar este 0, iar simularea continuă cu luna următoare.
+
+Participantul apasă apoi:
+Continuă către luna următoare
+
+
+8. Corectarea erorilor de format
+Trebuie făcută diferența între eroare tehnică și decizie financiar imposibilă.
+Dacă participantul introduce:
+text
+câmp gol
+valoare negativă
+simboluri nepermise
+
+atunci nu se consideră decizie financiară. Platforma trebuie să îi ceară să corecteze înainte de confirmare.
+Mesaj:
+Vă rugăm să introduceți o sumă numerică validă, mai mare sau egală cu 0.
+
+Dar dacă participantul introduce o sumă numerică validă, dar financiar imposibilă, atunci decizia este evaluată, primește scor 0 și luna se închide.
+
+9. Scorul lunar
+Scorul lunar este binar:
+1 punct = decizie validă
+0 puncte = decizie invalidă
+
+Formula:
+Scor_lunar = 1 dacă:
+Plata_introdusa_credit >= 0
+și Plata_introdusa_credit <= Suma_maxima_platibila
+și Plata_introdusa_credit <= Sold_credit_initial
+și Sold_overdraft_final <= Limita_overdraft
+
+Altfel:
+Scor_lunar = 0
+
+În formă simplă:
+Dacă plata poate fi executată fără depășirea limitei de overdraft, scorul lunar este 1.
+Dacă plata nu poate fi executată, scorul lunar este 0.
+
+
+10. Ecranul de feedback lunar
+După ce participantul apasă „Confirmă decizia”, trebuie afișat un ecran de feedback.
+Acest ecran trebuie să includă:
+Luna curentă
+Suma introdusă de participant
+Plata acceptată la credit
+Sold final disponibil
+Sold credit rămas
+Sold overdraft final
+Dobândă/penalități acumulate
+Scor lunar
+Mesaj de feedback
+Buton „Continuă către luna următoare”
+
+Pentru decizie validă:
+Decizia a fost acceptată. Plata a fost înregistrată, iar soldurile au fost actualizate.
+
+Pentru decizie imposibilă:
+Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. Plata nu a fost executată. Pentru această lună, scorul este 0.
+
+Feedbackul trebuie să fie neutru. Evităm mesaje moralizatoare precum „decizie proastă” sau „decizie iresponsabilă”.
+
+11. Scorul final
+La finalul celor 24 de luni, se calculează scorul final.
+Mai întâi:
+Total_puncte_lunare =
+SUM(Scor_lunar_luna_1 : Scor_lunar_luna_24)
+
+Apoi se aplică penalizări pentru datoriile rămase.
+Formula propusă:
+Scor_final =
+Total_puncte_lunare
+- Sold_credit_final_luna_24 / 1000
+- Sold_overdraft_final_luna_24 / 100
+- Dobanzi_si_penalitati_acumulate / 50
+
+Scorul final trebuie limitat între 0 și 24:
+Scor_final = MAX(0, MIN(24, Scor_final_calculat))
+
+Formula completă:
+Scor_final =
+MAX(
+  0,
+  MIN(
+    24,
+    Total_puncte_lunare
+    - Sold_credit_final_luna_24 / 1000
+    - Sold_overdraft_final_luna_24 / 100
+    - Dobanzi_si_penalitati_acumulate / 50
+  )
+)
+
+Logica penalizării:
+Creditul rămas este penalizat moderat.
+Overdraftul rămas este penalizat mai dur.
+Dobânzile și penalitățile sunt penalizate separat.
+
+Motivul este că creditul există de la începutul simulării, în timp ce overdraftul reflectă presiunea financiară acumulată pe parcursul jocului.
+Reguli simple:
+1 punct scăzut pentru fiecare 1.000 euro credit rămas.
+1 punct scăzut pentru fiecare 100 euro overdraft rămas.
+1 punct scăzut pentru fiecare 50 euro dobânzi/penalități acumulate.
+
+
+12. Variantele monetare A și B
+Trebuie să existe în admin panel o opțiune de tip:
+Framing monetar:
+A. Gain frame
+B. Loss frame
+
+Participantul nu trebuie să poată schimba această opțiune.
+Această opțiune trebuie setată de cercetător sau randomizată automat.
+Formula matematică rămâne aceeași în ambele variante. Se schimbă doar mesajul afișat participantului.
+Varianta A, gain frame:
+Ai acumulat X puncte din 24.
+Valoare câștigată: X euro.
+
+Varianta B, loss frame:
+Ai păstrat X puncte din 24.
+Valoare rămasă: X euro din 24 euro.
+
+În ambele cazuri:
+1 punct = 1 euro
+
+13. Rezumat tehnic al formulelor
+Pentru fiecare lună:
+Bani_disponibili_total =
+Sold_initial_disponibil + Venituri_totale
+
+Iesiri_inainte_credit =
+Cheltuieli_curente_totale + Dobanda_overdraft_lunara + Penalitati_lunare
+
+Deficit_inainte_credit =
+MAX(0, Iesiri_inainte_credit - Bani_disponibili_total)
+
+Overdraft_dupa_cheltuieli =
+Sold_overdraft_initial + Deficit_inainte_credit
+
+Lichiditate_dupa_cheltuieli =
+MAX(0, Bani_disponibili_total - Iesiri_inainte_credit)
+
+Overdraft_disponibil_ramas =
+Limita_overdraft - Overdraft_dupa_cheltuieli
+
+Suma_maxima_platibila =
+Lichiditate_dupa_cheltuieli + Overdraft_disponibil_ramas
+
+Dacă plata este validă:
+Plata_acceptata_credit = Plata_introdusa_credit
+
+Overdraft_nou_din_plata_credit =
+MAX(0, Plata_acceptata_credit - Lichiditate_dupa_cheltuieli)
+
+Sold_overdraft_final =
+Overdraft_dupa_cheltuieli + Overdraft_nou_din_plata_credit
+
+Sold_final_disponibil =
+MAX(0, Lichiditate_dupa_cheltuieli - Plata_acceptata_credit)
+
+Sold_credit_final =
+MAX(0, Sold_credit_initial - Plata_acceptata_credit)
+
+Scor_lunar = 1
+
+Dacă plata este imposibilă:
+Plata_acceptata_credit = 0
+Sold_credit_final = Sold_credit_initial
+Sold_overdraft_final = Overdraft_dupa_cheltuieli
+Sold_final_disponibil = Lichiditate_dupa_cheltuieli
+Scor_lunar = 0
+
+
+14. Cerință importantă de design experimental
+După confirmarea deciziei:
+Participantul nu poate reveni asupra sumei introduse.
+Participantul nu poate testa mai multe valori în aceeași lună.
+Participantul primește feedback doar după confirmare.
+
+Înainte de confirmare, pot fi corectate doar erorile de format, nu deciziile financiar imposibile.
+Această regulă este importantă pentru că vrem să măsurăm prima decizie financiară, nu un proces de încercare și eroare.
 """
     )
     st.markdown('</div>', unsafe_allow_html=True)
