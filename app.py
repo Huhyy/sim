@@ -671,7 +671,7 @@ h3 { margin-top: 0.5rem; }
 |---|---|
 | **Nume** | Andrei |
 | **Vârstă** | 34 de ani |
-| **Oraș** | Locuiește într-un oraș mare (ex. București / Cluj / Timișoara) |
+| **Oraș** | Locuiește într-un oraș mare |
 | **Locuință** | Împreună cu soția, în chirie, apartament de 2 camere |
 | **Chirie** | 330 euro / lună (nu include utilitățile) |
 """)
