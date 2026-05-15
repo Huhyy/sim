@@ -687,7 +687,7 @@ Nu este la început de drum, dar nici într-o poziție foarte bine plătită.
 | | |
 |---|---|
 | **Contract** | Perioadă nedeterminată |
-| **Venit lunar net** | Aproximativ 1.100 euro |
+| **Venit lunar net** | Aproximativ 1.150 euro |
 
 Venitul este relativ stabil, dar:
 - fără bonusuri garantate
