@@ -299,12 +299,13 @@ def compute_month_result(month, data, loan, overdraft, payment):
     expenses_total = month_sum(data["expenses"])
     obligations = data.get("obligations", {})
     loan_obligation = money(loan.get_required_payment())
+    credit_interest = money(loan.apply_interest())
     overdraft_interest = money(obligations.get("overdraft_interest", 0))
     penalties = money(obligations.get("penalties", 0))
     opening_balance = money(data["position"]["initial"])
 
     available_total = money(opening_balance + income_total)
-    outflows_before_credit = money(expenses_total + overdraft_interest + penalties)
+    outflows_before_credit = money(expenses_total + overdraft_interest + credit_interest + penalties)
     deficit_before_credit = money(max(0.0, outflows_before_credit - available_total))
     liquidity_after_charges = money(max(0.0, available_total - outflows_before_credit))
     overdraft_after_charges = money(overdraft.balance + deficit_before_credit)
@@ -377,6 +378,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
         "income_total": income_total,
         "expenses_total": expenses_total,
         "loan_obligation": loan_obligation,
+        "credit_interest": credit_interest,
         "overdraft_interest": overdraft_interest,
         "penalties": penalties,
         "available_total": available_total,
@@ -393,7 +395,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
         "cash_final": cash_final,
         "credit_final": credit_final,
         "monthly_score": monthly_score,
-        "costs_this_month": money(overdraft_interest + penalties),
+        "costs_this_month": money(credit_interest + overdraft_interest + penalties),
         "feedback_message": feedback_message,
         "invalid_reason": invalid_reason,
         "pre_credit_impossible": pre_credit_impossible,
@@ -874,7 +876,7 @@ elif st.session_state.page == "simulation":
   {opening_balance_html}
   <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Venituri totale:</strong> {income_total:.2f} €</div>
   <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Cheltuieli curente:</strong> {expenses_total:.2f} €</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Dobândă overdraft:</strong> {overdraft_interest:.2f} € | <strong>Penalități:</strong> {penalties:.2f} €</div>
+  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Dobândă overdraft:</strong> {overdraft_interest:.2f} € | <strong>Dobândă credit:</strong> {result['credit_interest']:.2f} €</div>
   <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Sold disponibil după cheltuieli și costuri:</strong> {liquidity_after_charges:.2f} €</div>
   <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Sold credit rămas:</strong> {loan.balance:.2f} € | <strong>Overdraft utilizat:</strong> {overdraft.balance:.2f} €</div>
   <div style="color: #d8e9ff;"><strong>Plata orientativă a creditului în această lună:</strong> {loan_obligation:.2f} €</div>
@@ -930,7 +932,10 @@ elif st.session_state.page == "month_feedback":
     st.write(f"**Sold final disponibil:** {result['cash_final']:.2f} €")
     st.write(f"**Sold credit rămas:** {result['credit_final']:.2f} €")
     st.write(f"**Overdraft utilizat final:** {result['overdraft_final']:.2f} €")
-    st.write(f"**Dobânzi și penalități luna aceasta:** {result['costs_this_month']:.2f} €")
+    st.write(f"**Dobândă credit luna aceasta:** {result['credit_interest']:.2f} €")
+    st.write(f"**Dobândă overdraft luna aceasta:** {result['overdraft_interest']:.2f} €")
+    if result["penalties"] > 0:
+        st.write(f"**Penalități luna aceasta:** {result['penalties']:.2f} €")
     st.metric("Puncte acumulate", st.session_state.total_score + result["monthly_score"])
 
     if result["pre_credit_impossible"]:

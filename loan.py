@@ -17,7 +17,8 @@ class Loan:
     # INTEREST
     # -------------------------
     def apply_interest(self):
-        return 0.0
+        # Returns the current month's due interest without mutating the balance.
+        return r2(self.balance * self.monthly_rate)
 
     # -------------------------
     # REQUIRED PAYMENT (FIXED)
