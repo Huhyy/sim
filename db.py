@@ -1,10 +1,29 @@
 import streamlit as st
 from supabase import create_client
 from datetime import datetime, timezone
+import os
+
+
+def _get_secret(name: str):
+    try:
+        value = st.secrets.get(name)
+        if value:
+            return value
+    except Exception:
+        pass
+    return os.getenv(name)
 
 @st.cache_resource
 def get_client():
-    return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
+    url = _get_secret("SUPABASE_URL")
+    key = _get_secret("SUPABASE_KEY")
+    if not url or not key:
+        return None
+
+    try:
+        return create_client(url, key)
+    except Exception:
+        return None
 
 
 def _parse(value):
@@ -17,6 +36,10 @@ def _parse(value):
 
 
 def save_participant(session_id: str, answers: dict, final_score: float):
+    client = get_client()
+    if client is None:
+        return
+
     row = {
         "id": session_id,
         "completed": True,
@@ -28,7 +51,7 @@ def save_participant(session_id: str, answers: dict, final_score: float):
             continue
         row[key] = _parse(value)
 
-    get_client().table("participants").upsert(row).execute()
+    client.table("participants").upsert(row).execute()
 
 
 def _utcnow():
@@ -36,8 +59,12 @@ def _utcnow():
 
 
 def load_session_row(session_id: str):
+    client = get_client()
+    if client is None:
+        return None
+
     response = (
-        get_client()
+        client
         .table("participant_sessions")
         .select("*")
         .eq("id", session_id)
@@ -61,6 +88,10 @@ def load_session_checkpoint(session_id: str):
 
 
 def save_session_checkpoint(session_id: str, checkpoint: dict, status: str = "in_progress"):
+    client = get_client()
+    if client is None:
+        return
+
     row = {
         "id": session_id,
         "status": status,
@@ -72,4 +103,4 @@ def save_session_checkpoint(session_id: str, checkpoint: dict, status: str = "in
     if status == "completed":
         row["completed_at"] = _utcnow()
 
-    get_client().table("participant_sessions").upsert(row).execute()
+    client.table("participant_sessions").upsert(row).execute()
