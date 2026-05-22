@@ -118,16 +118,10 @@ def scroll_top_anchor():
 
 
 def auto_open_context_narrativ(month):
-    if st.session_state.get("context_narrativ_auto_opened_for") == month:
-        return
-
     st.components.v1.html(
         """
 <script>
 (function() {
-  if (window.parent.__contextNarrativAutoOpenMonth === %MONTH%) return;
-  window.parent.__contextNarrativAutoOpenMonth = %MONTH%;
-
   function openNarrative() {
     try {
       var doc = window.parent.document;
@@ -142,12 +136,12 @@ def auto_open_context_narrativ(month):
   }
 
   setTimeout(openNarrative, 80);
+  setTimeout(openNarrative, 300);
 })();
 </script>
-""".replace("%MONTH%", str(month)),
+""",
         height=0,
     )
-    st.session_state.context_narrativ_auto_opened_for = month
 
 
 def attach_payment_keyboard_bridge():
@@ -290,7 +284,7 @@ def all_answered(sections):
     return True
 
 
-def render_quiz_chapter(section, chapter_index, total_chapters, next_page, dev_label, title):
+def render_quiz_chapter(section, chapter_index, total_chapters, next_page, dev_label, title, skip_page=None):
     st.title(title)
     st.caption(f"Capitolul {chapter_index + 1} din {total_chapters}")
     st.markdown("Răspunde la capitolul curent, apoi apasă **Continuă** pentru a trece mai departe.")
@@ -302,6 +296,11 @@ def render_quiz_chapter(section, chapter_index, total_chapters, next_page, dev_l
             randomize_section(section)
             st.session_state.scroll_to_top = True
             goto(next_page)
+
+    if skip_page is not None:
+        if st.button("Skip all chapters", type="secondary", key=f"skip_{section['key_prefix']}_{chapter_index}"):
+            st.session_state.scroll_to_top = True
+            goto(skip_page)
 
     if not all_answered([section]):
         st.warning("Te rugăm să răspunzi la toate întrebările din acest capitol înainte de a continua.")
@@ -501,6 +500,7 @@ elif st.session_state.page.startswith("pre_question_"):
         next_page,
         "⚡ DEV: Randomizează acest capitol și continuă",
         "Chestionar – înainte de simulare",
+        skip_page="instructions",
     )
 
 
@@ -867,7 +867,7 @@ elif st.session_state.page == "simulation":
     with col_score:
         st.metric("Puncte acumulate", st.session_state.total_score)
 
-    with st.expander("Context narativ"):
+    with st.expander("Context narativ", expanded=True):
         narrative = re.sub(r'^(\S+)', r'<strong>\1</strong>', get_narrative(month))
         st.markdown(
             f'<div style="text-align: justify">{narrative}</div>',
@@ -1011,6 +1011,10 @@ elif st.session_state.page.startswith("post_question_"):
         "Ce parte a simulării ți s-a părut cea mai provocatoare sau realistă?",
         value=st.session_state.answers.get("feedback", ""),
     )
+
+    if st.button("Skip all chapters", type="secondary", key="skip_post_question"):
+        st.session_state.scroll_to_top = True
+        goto("done")
 
     if DEV:
         if st.button("⚡ DEV: Randomizează acest capitol și finalizează", type="secondary"):
