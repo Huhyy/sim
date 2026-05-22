@@ -37,3 +37,57 @@ def test_hydrate_preserves_existing_session_id(monkeypatch):
     assert dummy_state.page == "simulation"
     assert dummy_state.month == 3
 
+
+def test_persist_recovers_session_id_from_url(monkeypatch):
+    dummy_state = DummySessionState(
+        session_id=None,
+        page="simulation",
+        month=2,
+        loan=Loan(balance=6500.0, annual_interest=0.0835, months=24),
+        overdraft=Overdraft(limit=3000.0, annual_interest=0.24),
+    )
+    saved = {}
+    monkeypatch.setattr(state_manager.st, "session_state", dummy_state)
+    monkeypatch.setattr(state_manager, "get_query_param", lambda name: "session-456" if name == "sid" else None)
+    monkeypatch.setattr(
+        state_manager,
+        "save_session_checkpoint",
+        lambda session_id, checkpoint, status="in_progress": saved.update(
+            session_id=session_id,
+            checkpoint=checkpoint,
+            status=status,
+        ),
+    )
+
+    assert state_manager.persist_checkpoint()
+    assert dummy_state.session_id == "session-456"
+    assert dummy_state.checkpoint_last_save["ok"] is True
+    assert saved["session_id"] == "session-456"
+
+
+def test_save_participant_recovers_session_id_before_final_save(monkeypatch):
+    dummy_state = DummySessionState(
+        session_id=None,
+        checkpoint_last_load={"session_id": "session-789"},
+    )
+    saved = {}
+    monkeypatch.setattr(state_manager.st, "session_state", dummy_state)
+    monkeypatch.setattr(state_manager, "get_query_param", lambda _name: None)
+    monkeypatch.setattr(
+        state_manager,
+        "db_save_participant",
+        lambda session_id, answers, final_score: saved.update(
+            session_id=session_id,
+            answers=answers,
+            final_score=final_score,
+        ),
+    )
+
+    state_manager.save_participant(None, {"q_1": 5}, 18.25)
+
+    assert dummy_state.session_id == "session-789"
+    assert saved == {
+        "session_id": "session-789",
+        "answers": {"q_1": 5},
+        "final_score": 18.25,
+    }

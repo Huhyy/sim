@@ -10,7 +10,7 @@ import db as db_module
 
 db_module = importlib.reload(db_module)
 load_session_checkpoint = getattr(db_module, "load_session_checkpoint", lambda *_args, **_kwargs: None)
-save_participant = getattr(db_module, "save_participant")
+db_save_participant = getattr(db_module, "save_participant")
 save_session_checkpoint = getattr(db_module, "save_session_checkpoint", lambda *_args, **_kwargs: None)
 
 
@@ -47,6 +47,31 @@ def set_query_param(name, value):
 </script>
 """
     st.components.v1.html(script, height=1)
+
+
+def resolve_session_id():
+    session_id = st.session_state.get("session_id")
+    if session_id:
+        return session_id
+
+    candidates = [
+        get_query_param("sid"),
+        (st.session_state.get("checkpoint_last_load") or {}).get("session_id"),
+        (st.session_state.get("checkpoint_last_save") or {}).get("session_id"),
+    ]
+    for candidate in candidates:
+        if candidate:
+            st.session_state.session_id = candidate
+            return candidate
+
+    return None
+
+
+def save_participant(session_id, answers, final_score):
+    resolved_session_id = session_id or resolve_session_id()
+    if not resolved_session_id:
+        raise ValueError("Missing session_id")
+    return db_save_participant(resolved_session_id, answers, final_score)
 
 
 
@@ -96,7 +121,7 @@ def collect_checkpoint():
 
 
 def persist_checkpoint(status=None):
-    session_id = st.session_state.get("session_id")
+    session_id = resolve_session_id()
     if not session_id:
         st.session_state.checkpoint_last_save = {
             "ok": False,
@@ -111,6 +136,7 @@ def persist_checkpoint(status=None):
         save_session_checkpoint(session_id, checkpoint, status=resolved_status)
         st.session_state.checkpoint_last_save = {
             "ok": True,
+            "session_id": session_id,
             "status": resolved_status,
             "page": checkpoint.get("page"),
             "month": checkpoint.get("month"),
@@ -120,6 +146,7 @@ def persist_checkpoint(status=None):
     except Exception as e:
         st.session_state.checkpoint_last_save = {
             "ok": False,
+            "session_id": session_id,
             "status": resolved_status,
             "page": checkpoint.get("page"),
             "month": checkpoint.get("month"),
@@ -192,6 +219,7 @@ def bootstrap_anonymous_session():
 
     if checkpoint:
         hydrate_from_checkpoint(checkpoint)
+        st.session_state.session_id = session_id
         st.session_state.checkpoint_last_load = {
             "ok": True,
             "source": "supabase",
