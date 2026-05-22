@@ -13,17 +13,20 @@ def _get_secret(name: str):
         pass
     return os.getenv(name)
 
-@st.cache_resource
+def _build_client(url: str, key: str):
+    try:
+        return create_client(url, key)
+    except Exception:
+        return None
+
+
 def get_client():
     url = _get_secret("SUPABASE_URL")
     key = _get_secret("SUPABASE_KEY")
     if not url or not key:
         return None
 
-    try:
-        return create_client(url, key)
-    except Exception:
-        return None
+    return _build_client(url, key)
 
 
 def _parse(value):
