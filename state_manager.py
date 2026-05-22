@@ -133,7 +133,7 @@ def persist_checkpoint(status=None):
 def hydrate_from_checkpoint(checkpoint):
     defaults = runtime_defaults()
     for key, value in defaults.items():
-        if key not in ("loan", "overdraft"):
+        if key not in ("loan", "overdraft", "session_id"):
             st.session_state[key] = value
 
     page = checkpoint.get("page", "home")
