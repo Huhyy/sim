@@ -202,8 +202,9 @@ def bootstrap_anonymous_session():
     else:
         defaults = runtime_defaults()
         for key, value in defaults.items():
-            if key not in ("loan", "overdraft"):
+            if key not in ("loan", "overdraft", "session_id"):
                 st.session_state[key] = value
+        st.session_state.session_id = session_id
         st.session_state.loan = defaults["loan"]
         st.session_state.overdraft = defaults["overdraft"]
         persist_checkpoint()
