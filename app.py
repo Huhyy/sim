@@ -106,6 +106,19 @@ def set_query_param(name, value):
     except Exception:
         st.experimental_set_query_params(**{name: value})
 
+    script = f"""
+<script>
+(function() {{
+  try {{
+    var url = new URL(window.parent.location.href);
+    url.searchParams.set({json.dumps(str(name))}, {json.dumps(str(value))});
+    window.parent.history.replaceState({{}}, "", url.toString());
+  }} catch (e) {{}}
+}})();
+</script>
+"""
+    st.components.v1.html(script, height=0)
+
 
 def encode_checkpoint_to_query_param(checkpoint):
     try:
