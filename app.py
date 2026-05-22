@@ -9,7 +9,11 @@ from overdraft import Overdraft
 from narratives import get_narrative
 from tables import get_month
 from questions import PRE_SECTIONS, POST_SECTIONS
-from db import save_participant
+from db import (
+    load_session_checkpoint,
+    save_participant,
+    save_session_checkpoint,
+)
 
 DEV = True
 
@@ -77,9 +81,151 @@ st.components.v1.html("""
 """, height=0)
 
 
+def get_query_param(name):
+    try:
+        value = st.query_params.get(name)
+        if isinstance(value, list):
+            return value[0] if value else None
+        return value
+    except Exception:
+        params = st.experimental_get_query_params()
+        value = params.get(name)
+        if isinstance(value, list):
+            return value[0] if value else None
+        return value
+
+
+def set_query_param(name, value):
+    try:
+        st.query_params[name] = value
+    except Exception:
+        st.experimental_set_query_params(**{name: value})
+
+
+def runtime_defaults():
+    return {
+        "page": "home",
+        "session_id": None,
+        "month": 1,
+        "loan": Loan(balance=7000.0, annual_interest=0.0835, months=24),
+        "overdraft": Overdraft(limit=3000.0, annual_interest=0.24),
+        "savings": None,
+        "total_score": 0,
+        "monthly_points": 0.0,
+        "accumulated_costs": 0.0,
+        "monthly_results": [],
+        "pending_month_result": None,
+        "final_score": None,
+        "answers": {},
+        "scroll_to_top": False,
+    }
+
+
+def collect_checkpoint():
+    payment_values = {
+        key: value
+        for key, value in st.session_state.items()
+        if key.startswith("payment_")
+    }
+
+    return {
+        "page": st.session_state.get("page", "home"),
+        "month": st.session_state.get("month", 1),
+        "loan_balance": st.session_state.loan.balance,
+        "overdraft_balance": st.session_state.overdraft.balance,
+        "savings": st.session_state.get("savings"),
+        "total_score": st.session_state.get("total_score", 0),
+        "monthly_points": st.session_state.get("monthly_points", 0.0),
+        "accumulated_costs": st.session_state.get("accumulated_costs", 0.0),
+        "monthly_results": st.session_state.get("monthly_results", []),
+        "pending_month_result": st.session_state.get("pending_month_result"),
+        "final_score": st.session_state.get("final_score"),
+        "answers": st.session_state.get("answers", {}),
+        "payment_values": payment_values,
+    }
+
+
+def persist_checkpoint(status=None):
+    session_id = st.session_state.get("session_id")
+    if not session_id:
+        return False
+
+    checkpoint = collect_checkpoint()
+    resolved_status = status or ("completed" if checkpoint.get("page") == "done" else "in_progress")
+
+    try:
+        save_session_checkpoint(session_id, checkpoint, status=resolved_status)
+        return True
+    except Exception as e:
+        st.session_state.checkpoint_save_error = str(e)
+        return False
+
+
+def hydrate_from_checkpoint(checkpoint):
+    defaults = runtime_defaults()
+    for key, value in defaults.items():
+        if key not in ("loan", "overdraft"):
+            st.session_state[key] = value
+
+    page = checkpoint.get("page", "home")
+    if page == "pre_questions":
+        page = "pre_question_0"
+    elif page == "post_questions":
+        page = "post_question_0"
+    elif page == "month_feedback" and not checkpoint.get("pending_month_result"):
+        page = "simulation"
+
+    st.session_state.page = page
+    st.session_state.month = int(checkpoint.get("month", 1))
+    st.session_state.session_id = st.session_state.get("session_id")
+    st.session_state.loan = Loan(
+        balance=float(checkpoint.get("loan_balance", 7000.0)),
+        annual_interest=0.0835,
+        months=24,
+    )
+    st.session_state.overdraft = Overdraft(
+        limit=3000.0,
+        annual_interest=0.24,
+    )
+    st.session_state.overdraft.balance = round(float(checkpoint.get("overdraft_balance", 0.0)), 2)
+    st.session_state.savings = checkpoint.get("savings")
+    st.session_state.total_score = checkpoint.get("total_score", 0)
+    st.session_state.monthly_points = checkpoint.get("monthly_points", 0.0)
+    st.session_state.accumulated_costs = checkpoint.get("accumulated_costs", 0.0)
+    st.session_state.monthly_results = checkpoint.get("monthly_results", [])
+    st.session_state.pending_month_result = checkpoint.get("pending_month_result")
+    st.session_state.final_score = checkpoint.get("final_score")
+    st.session_state.answers = checkpoint.get("answers", {})
+
+    for key, value in (checkpoint.get("payment_values") or {}).items():
+        st.session_state[key] = value
+
+
+def bootstrap_anonymous_session():
+    session_id = get_query_param("sid")
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        set_query_param("sid", session_id)
+
+    st.session_state.session_id = session_id
+
+    checkpoint = load_session_checkpoint(session_id)
+    if checkpoint:
+        hydrate_from_checkpoint(checkpoint)
+    else:
+        defaults = runtime_defaults()
+        for key, value in defaults.items():
+            if key not in ("loan", "overdraft"):
+                st.session_state[key] = value
+        st.session_state.loan = defaults["loan"]
+        st.session_state.overdraft = defaults["overdraft"]
+        persist_checkpoint()
+
+
 def goto(page):
     st.session_state.page = page
     st.session_state.scroll_to_top = True
+    persist_checkpoint()
     st.rerun()
 
 
@@ -243,20 +389,9 @@ def randomize_section(section):
 # -------------------------
 # INIT STATE
 # -------------------------
-if "page" not in st.session_state:
-    st.session_state.page = "home"
-    st.session_state.session_id = str(uuid.uuid4())
-    st.session_state.month = 1
-    st.session_state.loan = Loan(balance=7000.0, annual_interest=0.0835, months=24)
-    st.session_state.overdraft = Overdraft(limit=3000.0, annual_interest=0.24)
-    st.session_state.savings = None
-    st.session_state.total_score = 0
-    st.session_state.monthly_points = 0.0
-    st.session_state.accumulated_costs = 0.0
-    st.session_state.monthly_results = []
-    st.session_state.pending_month_result = None
-    st.session_state.final_score = None
-    st.session_state.answers = {}
+if not st.session_state.get("_bootstrap_done"):
+    bootstrap_anonymous_session()
+    st.session_state._bootstrap_done = True
 
 
 def render_question_section(section):
@@ -939,9 +1074,7 @@ elif st.session_state.page == "simulation":
 
         result = compute_month_result(month, data, loan, overdraft, payment)
         st.session_state.pending_month_result = result
-        st.session_state.page = "month_feedback"
-        st.session_state.scroll_to_top = True
-        st.rerun()
+        goto("month_feedback")
 
 
 # ==================== MONTH FEEDBACK ====================
@@ -987,9 +1120,7 @@ elif st.session_state.page == "month_feedback":
         st.session_state.monthly_results.append(result)
         st.session_state.pending_month_result = None
         st.session_state.month += 1
-        st.session_state.page = "simulation"
-        st.session_state.scroll_to_top = True
-        st.rerun()
+        goto("simulation")
 
 
 # ==================== POST-SIMULATION QUESTIONS ====================
@@ -1065,4 +1196,6 @@ Răspunsurile tale au fost înregistrate. Rezultatele studiului vor fi disponibi
 Contact: coita.iflorina@gmail.com
 """
     )
+
+persist_checkpoint()
 

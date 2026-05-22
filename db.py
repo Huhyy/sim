@@ -1,5 +1,6 @@
 import streamlit as st
 from supabase import create_client
+from datetime import datetime, timezone
 
 @st.cache_resource
 def get_client():
@@ -28,3 +29,47 @@ def save_participant(session_id: str, answers: dict, final_score: float):
         row[key] = _parse(value)
 
     get_client().table("participants").upsert(row).execute()
+
+
+def _utcnow():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def load_session_row(session_id: str):
+    response = (
+        get_client()
+        .table("participant_sessions")
+        .select("*")
+        .eq("id", session_id)
+        .limit(1)
+        .execute()
+    )
+    data = getattr(response, "data", None) or []
+    return data[0] if data else None
+
+
+def load_session_checkpoint(session_id: str):
+    row = load_session_row(session_id)
+    if not row:
+        return None
+
+    checkpoint = row.get("checkpoint") or {}
+    if row.get("current_page") and "page" not in checkpoint:
+        checkpoint["page"] = row["current_page"]
+
+    return checkpoint
+
+
+def save_session_checkpoint(session_id: str, checkpoint: dict, status: str = "in_progress"):
+    row = {
+        "id": session_id,
+        "status": status,
+        "current_page": checkpoint.get("page") or "home",
+        "checkpoint": checkpoint,
+        "updated_at": _utcnow(),
+    }
+
+    if status == "completed":
+        row["completed_at"] = _utcnow()
+
+    get_client().table("participant_sessions").upsert(row).execute()
