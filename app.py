@@ -439,6 +439,23 @@ def compute_final_score():
     return money(max(0.0, min(24.0, raw)))
 
 
+def get_final_score_breakdown():
+    monthly_points = money(st.session_state.get("monthly_points", 0.0))
+    remaining_credit = money(st.session_state.loan.balance)
+    remaining_overdraft = money(st.session_state.overdraft.balance)
+    accumulated_costs = money(st.session_state.get("accumulated_costs", 0.0))
+    raw_score = monthly_points - (remaining_credit / 1000.0) - (remaining_overdraft / 100.0) - (accumulated_costs / 50.0)
+    final_score = money(max(0.0, min(24.0, raw_score)))
+    return {
+        "monthly_points": monthly_points,
+        "remaining_credit": remaining_credit,
+        "remaining_overdraft": remaining_overdraft,
+        "accumulated_costs": accumulated_costs,
+        "raw_score": money(raw_score),
+        "final_score": final_score,
+    }
+
+
 # ==================== HOME ====================
 if st.session_state.page == "home":
     scroll_top_anchor()
@@ -1009,20 +1026,54 @@ elif st.session_state.page.startswith("post_question_"):
 
     if st.button("Skip all chapters", type="secondary", key="skip_post_question"):
         st.session_state.scroll_to_top = True
-        goto("done")
+        goto("final_score")
 
     if DEV:
         if st.button("⚡ DEV: Randomizează acest capitol și finalizează", type="secondary"):
             randomize_section(section)
             st.session_state.scroll_to_top = True
-            goto("done")
+            goto("final_score")
 
     if st.button("Finalizează →", type="primary"):
         if all_answered([section]):
             st.session_state.scroll_to_top = True
-            goto("done")
+            goto("final_score")
         else:
             st.error("Sunt întrebări fără răspuns.")
+
+
+# ==================== FINAL SCORE ====================
+elif st.session_state.page == "final_score":
+    scroll_top_anchor()
+
+    if st.session_state.final_score is None:
+        st.session_state.final_score = compute_final_score()
+
+    breakdown = get_final_score_breakdown()
+
+    st.title("Scor final")
+    st.markdown("### Formula de calcul")
+    st.markdown(
+        f"""
+**Puncte lunare brute:** {breakdown["monthly_points"]:.2f}
+
+**Credit rămas:** {breakdown["remaining_credit"]:.2f} €  → penalizare: -{breakdown["remaining_credit"] / 1000.0:.2f}
+
+**Overdraft utilizat:** {breakdown["remaining_overdraft"]:.2f} €  → penalizare: -{breakdown["remaining_overdraft"] / 100.0:.2f}
+
+**Costuri acumulate:** {breakdown["accumulated_costs"]:.2f} €  → penalizare: -{breakdown["accumulated_costs"] / 50.0:.2f}
+
+**Scor brut după formulă:** {breakdown["raw_score"]:.2f}
+
+**Scor final ajustat:** **{breakdown["final_score"]:.2f} / 24**
+"""
+    )
+    st.metric("Scor final", f"{breakdown['final_score']:.2f} / 24")
+    st.info("Acesta este scorul tău după aplicarea formulei finale de ajustare.")
+
+    if st.button("Continuă →", type="primary"):
+        st.session_state.scroll_to_top = True
+        goto("done")
 
 
 # ==================== DONE ====================
