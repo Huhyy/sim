@@ -1,5 +1,6 @@
 ﻿import re
 import random
+import importlib
 import uuid
 import streamlit as st
 import pandas as pd
@@ -9,11 +10,12 @@ from overdraft import Overdraft
 from narratives import get_narrative
 from tables import get_month
 from questions import PRE_SECTIONS, POST_SECTIONS
-from db import (
-    load_session_checkpoint,
-    save_participant,
-    save_session_checkpoint,
-)
+import db as db_module
+
+db_module = importlib.reload(db_module)
+load_session_checkpoint = getattr(db_module, "load_session_checkpoint", lambda *_args, **_kwargs: None)
+save_participant = getattr(db_module, "save_participant")
+save_session_checkpoint = getattr(db_module, "save_session_checkpoint", lambda *_args, **_kwargs: None)
 
 DEV = True
 
