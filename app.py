@@ -2,6 +2,9 @@
 import random
 import importlib
 import uuid
+import base64
+import json
+import zlib
 import streamlit as st
 import pandas as pd
 
@@ -104,6 +107,28 @@ def set_query_param(name, value):
         st.experimental_set_query_params(**{name: value})
 
 
+def encode_checkpoint_to_query_param(checkpoint):
+    try:
+        payload = json.dumps(checkpoint, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        compressed = zlib.compress(payload, level=9)
+        return base64.urlsafe_b64encode(compressed).decode("ascii").rstrip("=")
+    except Exception:
+        return None
+
+
+def decode_checkpoint_from_query_param(token):
+    if not token:
+        return None
+
+    try:
+        padded = token + "=" * (-len(token) % 4)
+        compressed = base64.urlsafe_b64decode(padded.encode("ascii"))
+        payload = zlib.decompress(compressed)
+        return json.loads(payload.decode("utf-8"))
+    except Exception:
+        return None
+
+
 def runtime_defaults():
     return {
         "page": "home",
@@ -154,6 +179,10 @@ def persist_checkpoint(status=None):
 
     checkpoint = collect_checkpoint()
     resolved_status = status or ("completed" if checkpoint.get("page") == "done" else "in_progress")
+    token = encode_checkpoint_to_query_param(checkpoint)
+
+    if token and get_query_param("cp") != token:
+        set_query_param("cp", token)
 
     try:
         save_session_checkpoint(session_id, checkpoint, status=resolved_status)
@@ -211,7 +240,9 @@ def bootstrap_anonymous_session():
 
     st.session_state.session_id = session_id
 
-    checkpoint = load_session_checkpoint(session_id)
+    checkpoint = decode_checkpoint_from_query_param(get_query_param("cp"))
+    if not checkpoint:
+        checkpoint = load_session_checkpoint(session_id)
     if checkpoint:
         hydrate_from_checkpoint(checkpoint)
     else:
