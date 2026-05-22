@@ -238,9 +238,13 @@ def attach_payment_keyboard_bridge():
 
 def randomize_sections(sections):
     for section in sections:
-        for i in range(len(section["questions"])):
-            key = f"{section['key_prefix']}_{i}"
-            st.session_state.answers[key] = random.choice(section["scale"])
+        randomize_section(section)
+
+
+def randomize_section(section):
+    for i in range(len(section["questions"])):
+        key = f"{section['key_prefix']}_{i}"
+        st.session_state.answers[key] = random.choice(section["scale"])
 
 # -------------------------
 # INIT STATE
@@ -284,6 +288,30 @@ def all_answered(sections):
             if st.session_state.answers.get(key) is None:
                 return False
     return True
+
+
+def render_quiz_chapter(section, chapter_index, total_chapters, next_page, dev_label, title):
+    st.title(title)
+    st.caption(f"Capitolul {chapter_index + 1} din {total_chapters}")
+    st.markdown("Răspunde la capitolul curent, apoi apasă **Continuă** pentru a trece mai departe.")
+    st.progress((chapter_index + 1) / total_chapters)
+    render_question_section(section)
+
+    if DEV:
+        if st.button(dev_label, type="secondary", key=f"dev_{section['key_prefix']}_{chapter_index}"):
+            randomize_section(section)
+            st.session_state.scroll_to_top = True
+            goto(next_page)
+
+    if not all_answered([section]):
+        st.warning("Te rugăm să răspunzi la toate întrebările din acest capitol înainte de a continua.")
+
+    if st.button("Continuă →", type="primary", key=f"continue_{section['key_prefix']}_{chapter_index}"):
+        if all_answered([section]):
+            st.session_state.scroll_to_top = True
+            goto(next_page)
+        else:
+            st.error("Sunt întrebări fără răspuns.")
 
 
 def money(value):
@@ -448,32 +476,32 @@ procesul decizional în situații economice riscante.
 
     if st.button("Începe simularea →", type="primary"):
         st.session_state.scroll_to_top = True
-        goto("pre_questions")
+        goto("pre_question_0")
 
 
 # ==================== PRE-SIMULATION QUESTIONS ====================
 elif st.session_state.page == "pre_questions":
+    goto("pre_question_0")
+
+elif st.session_state.page.startswith("pre_question_"):
     scroll_top_anchor()
-    st.title("Chestionar – înainte de simulare")
-    st.markdown("Te rugăm să citești cu atenție fiecare afirmație și să indici răspunsul potrivit.")
+    try:
+        pre_index = int(st.session_state.page.rsplit("_", 1)[1])
+    except Exception:
+        goto("pre_question_0")
 
-    for section in PRE_SECTIONS:
-        render_question_section(section)
+    if pre_index >= len(PRE_SECTIONS):
+        goto("instructions")
 
-    if DEV:
-        if st.button("⚡ DEV: Randomizează și continuă", type="secondary"):
-            randomize_sections(PRE_SECTIONS)
-            st.session_state.scroll_to_top = True
-            goto("instructions")
-
-    if not all_answered(PRE_SECTIONS):
-        st.warning("Te rugăm să răspunzi la toate întrebările înainte de a continua.")
-    if st.button("Continuă →", type="primary"):
-        if all_answered(PRE_SECTIONS):
-            st.session_state.scroll_to_top = True
-            goto("instructions")
-        else:
-            st.error("Sunt întrebări fără răspuns.")
+    next_page = "instructions" if pre_index + 1 >= len(PRE_SECTIONS) else f"pre_question_{pre_index + 1}"
+    render_quiz_chapter(
+        PRE_SECTIONS[pre_index],
+        pre_index,
+        len(PRE_SECTIONS),
+        next_page,
+        "⚡ DEV: Randomizează acest capitol și continuă",
+        "Chestionar – înainte de simulare",
+    )
 
 
 # ==================== PARTICIPANT INSTRUCTIONS ====================
@@ -751,7 +779,7 @@ Aceste economii:
 | **Tip credit** | Credit de nevoi personale |
 | **Valoare inițială** | Aproximativ 7.000 euro |
 | **Durată** | 24 luni |
-| **Rată lunară** | Aproximativ 318 euro |
+| **Rată lunară** | 317.71 euro |
 | **Dobândă** | 8,35% |
 
 De ce a luat creditul:
@@ -807,7 +835,7 @@ soldul overdraftului utilizat.
 elif st.session_state.page == "simulation":
 
     if st.session_state.month > 24:
-        goto("post_questions")
+        goto("post_question_0")
 
     scroll_top_anchor()
 
@@ -965,13 +993,18 @@ elif st.session_state.page == "month_feedback":
 
 
 # ==================== POST-SIMULATION QUESTIONS ====================
-elif st.session_state.page == "post_questions":
+elif st.session_state.page.startswith("post_question_"):
     scroll_top_anchor()
+    post_index = 0
+    section = POST_SECTIONS[post_index]
     st.title("Chestionar – după simulare")
+    st.caption("Capitolul 1 din 1")
     st.markdown("Indicați cât de mult sunteți de acord cu fiecare afirmație, în funcție de cum vă simțiți **acum**.")
+    st.progress(1.0)
+    render_question_section(section)
 
-    for section in POST_SECTIONS:
-        render_question_section(section)
+    if not all_answered([section]):
+        st.warning("Te rugăm să răspunzi la toate întrebările înainte de a finaliza.")
 
     st.markdown("### Feedback opțional")
     st.session_state.answers["feedback"] = st.text_area(
@@ -980,16 +1013,13 @@ elif st.session_state.page == "post_questions":
     )
 
     if DEV:
-        if st.button("⚡ DEV: Randomizează și finalizează", type="secondary"):
-            randomize_sections(POST_SECTIONS)
+        if st.button("⚡ DEV: Randomizează acest capitol și finalizează", type="secondary"):
+            randomize_section(section)
             st.session_state.scroll_to_top = True
             goto("done")
 
-    if not all_answered(POST_SECTIONS):
-        st.warning("Te rugăm să răspunzi la toate întrebările înainte de a finaliza.")
-
     if st.button("Finalizează →", type="primary"):
-        if all_answered(POST_SECTIONS):
+        if all_answered([section]):
             st.session_state.scroll_to_top = True
             goto("done")
         else:
