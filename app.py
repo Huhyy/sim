@@ -8,16 +8,8 @@ from tables import get_month
 from questions import PRE_SECTIONS, POST_SECTIONS
 from state_manager import (
     bootstrap_anonymous_session,
-    collect_checkpoint,
-    decode_checkpoint_from_query_param,
-    encode_checkpoint_to_query_param,
-    get_query_param,
-    hydrate_from_checkpoint,
     persist_checkpoint,
-    runtime_defaults,
     save_participant,
-    save_session_checkpoint,
-    set_query_param,
 )
 
 DEV = True
@@ -256,6 +248,14 @@ def randomize_section(section):
 if not st.session_state.get("_bootstrap_done"):
     bootstrap_anonymous_session()
     st.session_state._bootstrap_done = True
+
+if DEV:
+    with st.sidebar.expander("Checkpoint debug", expanded=True):
+        st.write("Session ID:", st.session_state.get("session_id"))
+        st.write("Last load:", st.session_state.get("checkpoint_last_load"))
+        st.write("Last save:", st.session_state.get("checkpoint_last_save"))
+        if st.session_state.get("checkpoint_last_error"):
+            st.error(st.session_state.get("checkpoint_last_error"))
 
 
 def render_question_section(section):

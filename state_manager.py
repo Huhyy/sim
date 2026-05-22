@@ -1,14 +1,12 @@
-import base64
 import importlib
-import json
 import uuid
-import zlib
 
 import streamlit as st
 
 from loan import Loan
 from overdraft import Overdraft
 import db as db_module
+
 
 db_module = importlib.reload(db_module)
 load_session_checkpoint = getattr(db_module, "load_session_checkpoint", lambda *_args, **_kwargs: None)
@@ -42,37 +40,13 @@ def set_query_param(name, value):
 (function() {{
   try {{
     var url = new URL(window.top.location.href);
-    url.searchParams.set({json.dumps(str(name))}, {json.dumps(str(value))});
+    url.searchParams.set({name!r}, {value!r});
     window.top.history.replaceState({{}}, "", url.toString());
   }} catch (e) {{}}
 }})();
 </script>
 """
     st.components.v1.html(script, height=1)
-
-
-
-def encode_checkpoint_to_query_param(checkpoint):
-    try:
-        payload = json.dumps(checkpoint, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-        compressed = zlib.compress(payload, level=9)
-        return base64.urlsafe_b64encode(compressed).decode("ascii").rstrip("=")
-    except Exception:
-        return None
-
-
-
-def decode_checkpoint_from_query_param(token):
-    if not token:
-        return None
-
-    try:
-        padded = token + "=" * (-len(token) % 4)
-        compressed = base64.urlsafe_b64decode(padded.encode("ascii"))
-        payload = zlib.decompress(compressed)
-        return json.loads(payload.decode("utf-8"))
-    except Exception:
-        return None
 
 
 
@@ -124,20 +98,34 @@ def collect_checkpoint():
 def persist_checkpoint(status=None):
     session_id = st.session_state.get("session_id")
     if not session_id:
+        st.session_state.checkpoint_last_save = {
+            "ok": False,
+            "error": "Missing session_id",
+        }
         return False
 
     checkpoint = collect_checkpoint()
     resolved_status = status or ("completed" if checkpoint.get("page") == "done" else "in_progress")
-    token = encode_checkpoint_to_query_param(checkpoint)
-
-    if token and get_query_param("cp") != token:
-        set_query_param("cp", token)
 
     try:
         save_session_checkpoint(session_id, checkpoint, status=resolved_status)
+        st.session_state.checkpoint_last_save = {
+            "ok": True,
+            "status": resolved_status,
+            "page": checkpoint.get("page"),
+            "month": checkpoint.get("month"),
+        }
+        st.session_state.checkpoint_last_error = None
         return True
     except Exception as e:
-        st.session_state.checkpoint_save_error = str(e)
+        st.session_state.checkpoint_last_save = {
+            "ok": False,
+            "status": resolved_status,
+            "page": checkpoint.get("page"),
+            "month": checkpoint.get("month"),
+            "error": str(e),
+        }
+        st.session_state.checkpoint_last_error = str(e)
         return False
 
 
@@ -158,7 +146,6 @@ def hydrate_from_checkpoint(checkpoint):
 
     st.session_state.page = page
     st.session_state.month = int(checkpoint.get("month", 1))
-    st.session_state.session_id = st.session_state.get("session_id")
     st.session_state.loan = Loan(
         balance=float(checkpoint.get("loan_balance", 7000.0)),
         annual_interest=0.0835,
@@ -190,12 +177,28 @@ def bootstrap_anonymous_session():
         set_query_param("sid", session_id)
 
     st.session_state.session_id = session_id
+    st.session_state.checkpoint_last_load = {"ok": False, "source": "supabase", "session_id": session_id}
 
-    checkpoint = decode_checkpoint_from_query_param(get_query_param("cp"))
-    if not checkpoint:
+    try:
         checkpoint = load_session_checkpoint(session_id)
+    except Exception as e:
+        st.session_state.checkpoint_last_load = {
+            "ok": False,
+            "source": "supabase",
+            "session_id": session_id,
+            "error": str(e),
+        }
+        checkpoint = None
+
     if checkpoint:
         hydrate_from_checkpoint(checkpoint)
+        st.session_state.checkpoint_last_load = {
+            "ok": True,
+            "source": "supabase",
+            "session_id": session_id,
+            "page": checkpoint.get("page"),
+            "month": checkpoint.get("month"),
+        }
     else:
         defaults = runtime_defaults()
         for key, value in defaults.items():

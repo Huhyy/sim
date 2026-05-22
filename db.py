@@ -1,7 +1,9 @@
+import os
+from datetime import datetime, timezone
+
 import streamlit as st
 from supabase import create_client
-from datetime import datetime, timezone
-import os
+
 
 
 def _get_secret(name: str):
@@ -13,20 +15,39 @@ def _get_secret(name: str):
         pass
     return os.getenv(name)
 
+
+
+def _first_secret(*names):
+    for name in names:
+        value = _get_secret(name)
+        if value:
+            return value
+    return None
+
+
+
 def _build_client(url: str, key: str):
-    try:
-        return create_client(url, key)
-    except Exception:
-        return None
+    return create_client(url, key)
+
 
 
 def get_client():
-    url = _get_secret("SUPABASE_URL")
-    key = _get_secret("SUPABASE_KEY")
+    url = _first_secret("SUPABASE_URL", "SUPABASE_PROJECT_URL")
+    key = _first_secret("SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_KEY", "SUPABASE_ANON_KEY")
     if not url or not key:
         return None
-
     return _build_client(url, key)
+
+
+
+def _require_client():
+    client = get_client()
+    if client is None:
+        raise RuntimeError(
+            "Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_KEY / SUPABASE_ANON_KEY)."
+        )
+    return client
+
 
 
 def _parse(value):
@@ -38,10 +59,9 @@ def _parse(value):
         return None
 
 
+
 def save_participant(session_id: str, answers: dict, final_score: float):
-    client = get_client()
-    if client is None:
-        return
+    client = _require_client()
 
     row = {
         "id": session_id,
@@ -57,14 +77,14 @@ def save_participant(session_id: str, answers: dict, final_score: float):
     client.table("participants").upsert(row).execute()
 
 
+
 def _utcnow():
     return datetime.now(timezone.utc).isoformat()
 
 
+
 def load_session_row(session_id: str):
-    client = get_client()
-    if client is None:
-        return None
+    client = _require_client()
 
     response = (
         client
@@ -76,6 +96,7 @@ def load_session_row(session_id: str):
     )
     data = getattr(response, "data", None) or []
     return data[0] if data else None
+
 
 
 def load_session_checkpoint(session_id: str):
@@ -90,10 +111,9 @@ def load_session_checkpoint(session_id: str):
     return checkpoint
 
 
+
 def save_session_checkpoint(session_id: str, checkpoint: dict, status: str = "in_progress"):
-    client = get_client()
-    if client is None:
-        return
+    client = _require_client()
 
     row = {
         "id": session_id,
