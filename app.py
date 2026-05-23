@@ -263,18 +263,6 @@ if not st.session_state.get("_bootstrap_done"):
     bootstrap_authenticated_session()
     st.session_state._bootstrap_done = True
 
-if DEV:
-    with st.sidebar.expander("Checkpoint debug", expanded=True):
-        st.write("Session ID:", st.session_state.get("session_id"))
-        st.write("Last load:", st.session_state.get("checkpoint_last_load"))
-        st.write("Last save:", st.session_state.get("checkpoint_last_save"))
-        if st.session_state.get("checkpoint_last_error"):
-            st.error(st.session_state.get("checkpoint_last_error"))
-
-with st.sidebar:
-    if st.button("Ieși din cont"):
-        st.logout()
-
 
 def render_question_section(section):
     st.markdown(f"### {section['title']}")
