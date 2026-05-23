@@ -17,10 +17,10 @@ The migration:
 
 ## 2. Configure Google OIDC
 
-In Google Auth Platform, create a Web application OAuth client and add the deployed Streamlit callback URL as an authorized redirect URI:
+In Google Auth Platform, create a Web application OAuth client and add the deployed Streamlit callback URL as an authorized redirect URI. On Streamlit Community Cloud, use the hosted callback route:
 
 ```text
-https://<your-app-domain>/oauth2callback
+https://<your-app-domain>/~/+/oauth2callback
 ```
 
 For local testing, additionally allow:
@@ -39,7 +39,7 @@ SUPABASE_SECRET_KEY = "sb_secret_<server-only-key>"
 ACCOUNT_KEY_PEPPER = "<long-random-secret-generated-once>"
 
 [auth]
-redirect_uri = "https://<your-app-domain>/oauth2callback"
+redirect_uri = "https://<your-app-domain>/~/+/oauth2callback"
 cookie_secret = "<long-random-cookie-secret>"
 client_id = "<google-oauth-client-id>"
 client_secret = "<google-oauth-client-secret>"
