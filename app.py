@@ -489,7 +489,7 @@ procesul decizional în situații economice riscante.
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("Începe simularea →", type="primary"):
+    if st.button("Începe scenariul →", type="primary"):
         st.session_state.scroll_to_top = True
         goto("pre_question_0")
 
@@ -515,7 +515,7 @@ elif st.session_state.page.startswith("pre_question_"):
         len(PRE_SECTIONS),
         next_page,
         "⚡ DEV: Randomizează acest capitol și continuă",
-        "Chestionar – înainte de simulare",
+        "Chestionar – înainte de scenariu",
         skip_page="instructions",
     )
 
@@ -539,9 +539,9 @@ elif st.session_state.page == "instructions":
         """
 **Instrucțiuni pentru participant**
 
-În această simulare vei lua rolul lui Andrei, o persoană care are un credit de nevoi personale și trebuie să ia decizii lunare de rambursare.
+În acest scenariu vei lua rolul lui Andrei, o persoană care are un credit de nevoi personale și trebuie să ia decizii lunare de rambursare.
 
-Simularea durează 24 de luni.
+Scenariul durează 24 de luni.
 
 În fiecare lună vei vedea:
 
@@ -558,7 +558,7 @@ Tu decizi doar suma plătită la credit.
 
 Nu trebuie să rambursezi separat overdraftul.
 
-Creditul este obligația de bază a simulării. Overdraftul este o sursă suplimentară de finanțare care poate ajuta temporar, dar care indică fragilitate financiară. De aceea, participanții sunt penalizați mai puternic dacă acumulează overdraft sau dacă încheie simularea cu overdraft nerambursat.
+Creditul este obligația de bază a scenariului. Overdraftul este o sursă suplimentară de finanțare care poate ajuta temporar, dar care indică fragilitate financiară. De aceea, participanții sunt penalizați mai puternic dacă acumulează overdraft sau dacă încheie scenariul cu overdraft nerambursat.
 
 ### 📊 Cum funcționează decizia lunară
 
@@ -586,7 +586,7 @@ După confirmare, vei vedea un ecran de feedback pentru luna curentă. Acolo vei
 
 Overdraftul este o linie de credit atașată contului curent.
 
-În această simulare, limita maximă de overdraft este: **3.000 euro**
+În acest scenariu, limita maximă de overdraft este: **3.000 euro**
 
 Overdraftul funcționează ca o rezervă de bani împrumutați.
 
@@ -613,7 +613,7 @@ Dacă introduci o sumă mai mare decât banii disponibili plus overdraftul răma
 - creditul nu scade;
 - nu se depășește limita de overdraft;
 - scorul lunii este 0;
-- simularea continuă cu luna următoare.
+- scenariul continuă cu luna următoare.
 
 După ce ai confirmat o sumă imposibilă, nu vei putea reveni pentru a o corecta. De aceea, trebuie să verifici atent informațiile înainte de confirmare.
 
@@ -646,7 +646,7 @@ La finalul celor 24 de luni, se adună punctele obținute în fiecare lună.
 
 Scorul maxim lunar total este: **24 puncte**
 
-Apoi, scorul final este ajustat în funcție de situația financiară rămasă la finalul simulării.
+Apoi, scorul final este ajustat în funcție de situația financiară rămasă la finalul scenariului.
 
 Se ține cont de:
 
@@ -660,7 +660,7 @@ Overdraftul rămas scade scorul mai mult, deoarece arată că s-au folosit bani 
 
 Creditul ramas, dobânzile și penalitățile scad și ele scorul, deoarece sunt costuri acumulate pe parcursul jocului.
 
-### 🖥️ Regula generală a simulării
+### 🖥️ Regula generală a scenariului
 
 Scopul nu este să plătești mereu aceeași sumă.
 
@@ -676,7 +676,7 @@ Trebuie să alegi suma pe care o consideri potrivită, ținând cont de:
 - overdraft;
 - riscul de a introduce o plată imposibilă.
 
-### Mesaj important înainte de începerea simulării
+### Mesaj important înainte de începerea scenariului
 
 Te rugăm să citești cu atenție informațiile fiecărei luni înainte de a introduce suma de rambursat.
 
@@ -684,7 +684,7 @@ După ce apeși „Confirmă decizia”, suma introdusă nu mai poate fi modific
 
 Dacă suma introdusă depășește resursele disponibile și limita de overdraft, plata nu va fi executată, iar scorul lunii va fi 0.
 
-Simularea continuă până la finalul celor 24 de luni.
+Scenariul continuă până la finalul celor 24 de luni.
 """
     )
     st.markdown('</div>', unsafe_allow_html=True)
@@ -707,7 +707,7 @@ h3 { margin-top: 0.5rem; }
 """, unsafe_allow_html=True)
 
     st.title("Profilul participantului")
-    st.markdown("Înainte de a începe simularea, citește cu atenție profilul personajului pe care îl vei reprezenta.")
+    st.markdown("Înainte de a începe scenariul, citește cu atenție profilul personajului pe care îl vei reprezenta.")
 
     st.markdown('<div class="profile-text">', unsafe_allow_html=True)
 
@@ -778,7 +778,7 @@ Are următoarele obiceiuri:
 
     st.subheader("Economii")
     st.markdown("""
-La începutul simulării:
+La începutul scenariului:
 - are aproximativ **350 euro** economii
 - ținute în cont curent, nu separat
 - nu are un „fond de urgență" clar definit
@@ -842,7 +842,7 @@ soldul overdraftului utilizat.
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("Începe simularea →", type="primary"):
+    if st.button("Începe scenariul →", type="primary"):
         st.session_state.scroll_to_top = True
         goto("simulation")
 
@@ -1009,7 +1009,7 @@ elif st.session_state.page.startswith("post_question_"):
     scroll_top_anchor()
     post_index = 0
     section = POST_SECTIONS[post_index]
-    st.title("Chestionar – după simulare")
+    st.title("Chestionar – după scenariu")
     st.caption("Capitolul 1 din 1")
     st.markdown("Indicați cât de mult sunteți de acord cu fiecare afirmație, în funcție de cum vă simțiți **acum**.")
     st.progress(1.0)
@@ -1020,7 +1020,7 @@ elif st.session_state.page.startswith("post_question_"):
 
     st.markdown("### Feedback opțional")
     st.session_state.answers["feedback"] = st.text_area(
-        "Ce parte a simulării ți s-a părut cea mai provocatoare sau realistă?",
+        "Ce parte a scenariului ți s-a părut cea mai provocatoare sau realistă?",
         value=st.session_state.answers.get("feedback", ""),
     )
 
@@ -1094,7 +1094,7 @@ elif st.session_state.page == "done":
             st.error(f"Eroare la salvarea datelor: {e}")
 
     st.title("Mulțumim pentru participare!")
-    st.metric("Scor final simulare", f"{st.session_state.final_score:.2f}")
+    st.metric("Scor final scenariu", f"{st.session_state.final_score:.2f}")
     st.markdown(
         f"Ai acumulat {st.session_state.final_score:.2f} puncte din 24. Valoare câștigată: {st.session_state.final_score:.2f} euro."
     )

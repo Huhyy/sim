@@ -399,7 +399,7 @@ PRE_SECTIONS = [
 
 POST_SECTIONS = [
     {
-        "title": "Stare psihologică după simulare",
+        "title": "Stare psihologică după scenariu",
         "instruction": "Indicați cât de mult sunteți de acord cu fiecare afirmație, în funcție de cum vă simțiți acum.",
         "scale": SCALE_5_POST,
         "key_prefix": "post",
