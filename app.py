@@ -1,18 +1,20 @@
 ﻿import re
 import random
+import os
 import streamlit as st
 import pandas as pd
 
+from auth_manager import is_logged_in
 from narratives import get_narrative
 from tables import get_month
 from questions import PRE_SECTIONS, POST_SECTIONS
 from state_manager import (
-    bootstrap_anonymous_session,
+    bootstrap_authenticated_session,
+    finalize_participant,
     persist_checkpoint,
-    save_participant,
 )
 
-DEV = True
+DEV = os.getenv("SCENARIO_DEV", "").lower() == "true"
 
 st.markdown("""
 <style>
@@ -242,11 +244,23 @@ def randomize_section(section):
     for i in range(len(section["questions"])):
         key = f"{section['key_prefix']}_{i}"
         st.session_state.answers[key] = random.choice(section["scale"])
-# INIT STATE
+# AUTHENTICATION AND INIT STATE
 
 # -------------------------
+if not is_logged_in():
+    st.title("Continuă cu Google")
+    st.markdown(
+        "Autentificarea este folosită doar pentru a relua progresul și pentru a preveni participările multiple. "
+        "După finalizare, legătura dintre cont și răspunsuri este eliminată. "
+        "Se păstrează doar un identificator tehnic criptografic separat, fără răspunsuri sau scor, "
+        "pentru a bloca o a doua participare."
+    )
+    if st.button("Continuă cu Google", type="primary"):
+        st.login()
+    st.stop()
+
 if not st.session_state.get("_bootstrap_done"):
-    bootstrap_anonymous_session()
+    bootstrap_authenticated_session()
     st.session_state._bootstrap_done = True
 
 if DEV:
@@ -256,6 +270,10 @@ if DEV:
         st.write("Last save:", st.session_state.get("checkpoint_last_save"))
         if st.session_state.get("checkpoint_last_error"):
             st.error(st.session_state.get("checkpoint_last_error"))
+
+with st.sidebar:
+    if st.button("Ieși din cont"):
+        st.logout()
 
 
 def render_question_section(section):
@@ -456,8 +474,17 @@ def get_final_score_breakdown():
     }
 
 
+# ==================== COMPLETED ACCOUNT ====================
+if st.session_state.page == "already_completed":
+    scroll_top_anchor()
+    st.title("Participare deja finalizată")
+    st.info("Acest cont a finalizat deja scenariul. Nu poate fi trimis un al doilea răspuns.")
+    if st.button("Ieși din cont", key="completed_logout"):
+        st.logout()
+
+
 # ==================== HOME ====================
-if st.session_state.page == "home":
+elif st.session_state.page == "home":
     scroll_top_anchor()
     st.markdown("""
 <style>
@@ -1084,7 +1111,7 @@ elif st.session_state.page == "done":
 
     if not st.session_state.get("saved"):
         try:
-            save_participant(
+            finalize_participant(
                 st.session_state.session_id,
                 st.session_state.answers,
                 st.session_state.final_score,

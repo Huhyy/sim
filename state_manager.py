@@ -3,6 +3,7 @@ import uuid
 
 import streamlit as st
 
+from auth_manager import current_account_key
 from loan import Loan
 from overdraft import Overdraft
 import db as db_module
@@ -10,8 +11,11 @@ import db as db_module
 
 db_module = importlib.reload(db_module)
 load_session_checkpoint = getattr(db_module, "load_session_checkpoint", lambda *_args, **_kwargs: None)
-db_save_participant = getattr(db_module, "save_participant")
 save_session_checkpoint = getattr(db_module, "save_session_checkpoint", lambda *_args, **_kwargs: None)
+account_has_completed = getattr(db_module, "account_has_completed", lambda *_args, **_kwargs: False)
+load_linked_session_id = getattr(db_module, "load_linked_session_id", lambda *_args, **_kwargs: None)
+save_resume_link = getattr(db_module, "save_resume_link", lambda *_args, **_kwargs: None)
+db_finalize_participation = getattr(db_module, "finalize_participation")
 
 
 def get_query_param(name):
@@ -49,6 +53,16 @@ def set_query_param(name, value):
     st.components.v1.html(script, height=1)
 
 
+def clear_query_param(name):
+    try:
+        if name in st.query_params:
+            del st.query_params[name]
+    except Exception:
+        params = st.experimental_get_query_params()
+        params.pop(name, None)
+        st.experimental_set_query_params(**params)
+
+
 def resolve_session_id():
     session_id = st.session_state.get("session_id")
     if session_id:
@@ -67,11 +81,19 @@ def resolve_session_id():
     return None
 
 
-def save_participant(session_id, answers, final_score):
+def finalize_participant(session_id, answers, final_score):
     resolved_session_id = session_id or resolve_session_id()
     if not resolved_session_id:
         raise ValueError("Missing session_id")
-    return db_save_participant(resolved_session_id, answers, final_score)
+
+    account_key = current_account_key()
+    if not account_key:
+        raise ValueError("Missing authenticated account")
+
+    response = db_finalize_participation(account_key, resolved_session_id, answers, final_score)
+    st.session_state.submission_finalized = True
+    clear_query_param("sid")
+    return response
 
 
 
@@ -91,6 +113,8 @@ def runtime_defaults():
         "final_score": None,
         "answers": {},
         "scroll_to_top": False,
+        "submission_finalized": False,
+        "already_completed": False,
     }
 
 
@@ -121,6 +145,9 @@ def collect_checkpoint():
 
 
 def persist_checkpoint(status=None):
+    if st.session_state.get("submission_finalized") or st.session_state.get("already_completed"):
+        return True
+
     session_id = resolve_session_id()
     if not session_id:
         st.session_state.checkpoint_last_save = {
@@ -197,10 +224,34 @@ def hydrate_from_checkpoint(checkpoint):
 
 
 
-def bootstrap_anonymous_session():
-    session_id = get_query_param("sid")
-    if not session_id:
+def bootstrap_authenticated_session():
+    account_key = current_account_key()
+    if not account_key:
+        raise RuntimeError("Authentication is required before starting the scenario.")
+
+    if account_has_completed(account_key):
+        defaults = runtime_defaults()
+        for key, value in defaults.items():
+            st.session_state[key] = value
+        st.session_state.page = "already_completed"
+        st.session_state.already_completed = True
+        clear_query_param("sid")
+        return
+
+    linked_session_id = load_linked_session_id(account_key)
+    url_session_id = get_query_param("sid")
+    is_new_session = not linked_session_id and not url_session_id
+
+    if linked_session_id:
+        session_id = linked_session_id
+    elif url_session_id:
+        session_id = url_session_id
+        # Claim an existing URL checkpoint before loading any sensitive answers.
+        save_resume_link(account_key, session_id)
+    else:
         session_id = str(uuid.uuid4())
+
+    if get_query_param("sid") != session_id:
         set_query_param("sid", session_id)
 
     st.session_state.session_id = session_id
@@ -236,3 +287,6 @@ def bootstrap_anonymous_session():
         st.session_state.loan = defaults["loan"]
         st.session_state.overdraft = defaults["overdraft"]
         persist_checkpoint()
+
+    if is_new_session:
+        save_resume_link(account_key, session_id)
