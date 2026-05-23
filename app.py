@@ -244,19 +244,208 @@ def randomize_section(section):
     for i in range(len(section["questions"])):
         key = f"{section['key_prefix']}_{i}"
         st.session_state.answers[key] = random.choice(section["scale"])
+
+
+def render_login_page():
+    st.markdown(
+        """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&family=Roboto:wght@500&display=swap');
+
+[data-testid="stAppViewContainer"] {
+    background:
+        radial-gradient(circle at 12% 18%, rgba(213, 155, 60, 0.20), transparent 31rem),
+        radial-gradient(circle at 84% 72%, rgba(20, 104, 98, 0.24), transparent 30rem),
+        linear-gradient(132deg, #101c21 0%, #152b2d 46%, #0c181a 100%);
+}
+
+[data-testid="stMainBlockContainer"] {
+    max-width: none;
+    padding: clamp(1.1rem, 3.5vh, 2.4rem) 1.25rem;
+}
+
+.st-key-auth_card {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    width: min(calc(100vw - 1.8rem), 29.5rem);
+    max-height: calc(100vh - 2rem);
+    margin: 0;
+    overflow-y: auto;
+    transform: translate(-50%, -50%);
+    padding: clamp(1.7rem, 5vw, 2.35rem);
+    border: 1px solid rgba(223, 211, 181, 0.62);
+    border-radius: 1.75rem;
+    background: #fbf8f0;
+    box-shadow:
+        0 28px 72px rgba(0, 0, 0, 0.34),
+        0 2px 0 rgba(255, 255, 255, 0.75) inset;
+}
+
+.auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.72rem;
+    color: #1d4a46;
+    font: 700 0.82rem/1 'Manrope', sans-serif;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+.auth-brand-mark {
+    display: grid;
+    place-items: center;
+    width: 2.05rem;
+    height: 2.05rem;
+    border-radius: 0.75rem;
+    color: #fbf8f0;
+    background: #174b47;
+    letter-spacing: 0;
+    font-size: 1rem;
+}
+
+.auth-rule {
+    width: 100%;
+    height: 1px;
+    margin: 1.45rem 0 1.35rem;
+    background: #e5decc;
+}
+
+.auth-title {
+    margin: 0 0 0.75rem;
+    color: #172b29 !important;
+    font: 600 clamp(1.75rem, 4vw, 2.12rem)/1.13 'Fraunces', serif;
+    letter-spacing: -0.03em;
+}
+
+.auth-copy {
+    margin: 0 0 1.35rem;
+    color: #586564;
+    font: 500 0.95rem/1.6 'Manrope', sans-serif;
+}
+
+.auth-signals {
+    display: flex;
+    gap: 0.48rem;
+    flex-wrap: wrap;
+    margin: 0 0 1.55rem;
+}
+
+.auth-chip {
+    padding: 0.42rem 0.65rem;
+    border-radius: 999px;
+    color: #2e5753;
+    background: #e8efea;
+    font: 600 0.73rem/1 'Manrope', sans-serif;
+}
+
+.st-key-google_login button {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.68rem;
+    width: 100%;
+    min-height: 3.15rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #747775 !important;
+    border-radius: 999px !important;
+    color: #1f1f1f !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    transition: background 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.st-key-google_login button::before {
+    content: "";
+    width: 1.18rem;
+    height: 1.18rem;
+    flex: 0 0 1.18rem;
+    background: url("https://developers.google.com/static/identity/images/g-logo.png") center / contain no-repeat;
+}
+
+.st-key-google_login button p {
+    color: #1f1f1f !important;
+    font: 500 0.9rem/1.25 'Roboto', sans-serif !important;
+}
+
+.st-key-google_login button:hover {
+    background: #f8faff !important;
+    border-color: #5f6368 !important;
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.18) !important;
+}
+
+.st-key-google_login button:focus-visible {
+    outline: 2px solid #1a73e8 !important;
+    outline-offset: 2px;
+}
+
+.auth-privacy {
+    margin: 1.45rem 0 0;
+    padding-top: 1.15rem;
+    border-top: 1px solid #e5decc;
+    color: #687472;
+    font: 500 0.76rem/1.55 'Manrope', sans-serif;
+}
+
+.auth-privacy strong {
+    color: #304c49;
+}
+
+@media (max-width: 520px) {
+    [data-testid="stMainBlockContainer"] {
+        padding: 1.1rem 0.9rem;
+    }
+
+    .st-key-auth_card {
+        padding: 1.45rem 1.25rem;
+        border-radius: 1.4rem;
+    }
+}
+
+@media (max-height: 655px) {
+    .st-key-auth_card {
+        top: 1rem;
+        transform: translateX(-50%);
+    }
+}
+</style>
+""",
+        unsafe_allow_html=True,
+    )
+
+    with st.container(key="auth_card"):
+        st.markdown(
+            """
+<div class="auth-brand">
+  <span class="auth-brand-mark">S</span>
+  <span>ScenariuCredit</span>
+</div>
+<div class="auth-rule"></div>
+<h1 class="auth-title">Decizii financiare sub presiune</h1>
+<p class="auth-copy">Autentifică-te pentru a începe sau relua scenariul exact din punctul în care ai rămas.</p>
+<div class="auth-signals">
+  <span class="auth-chip">Progres salvat</span>
+  <span class="auth-chip">O singură participare</span>
+  <span class="auth-chip">Răspunsuri separate</span>
+</div>
+""",
+            unsafe_allow_html=True,
+        )
+        if st.button("Continuă cu Google", key="google_login", use_container_width=True):
+            st.login()
+        st.markdown(
+            """
+<p class="auth-privacy"><strong>Confidențialitate:</strong> Google este folosit doar pentru reluarea progresului și prevenirea participărilor multiple. La final, legătura dintre cont și răspunsurile tale este eliminată; rămâne doar un identificator tehnic separat, fără răspunsuri sau scor.</p>
+""",
+            unsafe_allow_html=True,
+        )
 # AUTHENTICATION AND INIT STATE
 
 # -------------------------
 if not is_logged_in():
-    st.title("Continuă cu Google")
-    st.markdown(
-        "Autentificarea este folosită doar pentru a relua progresul și pentru a preveni participările multiple. "
-        "După finalizare, legătura dintre cont și răspunsuri este eliminată. "
-        "Se păstrează doar un identificator tehnic criptografic separat, fără răspunsuri sau scor, "
-        "pentru a bloca o a doua participare."
-    )
-    if st.button("Continuă cu Google", type="primary"):
-        st.login()
+    render_login_page()
     st.stop()
 
 if not st.session_state.get("_bootstrap_done"):
