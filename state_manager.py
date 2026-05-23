@@ -1,4 +1,5 @@
 import importlib
+import os
 import uuid
 
 import streamlit as st
@@ -16,6 +17,17 @@ account_has_completed = getattr(db_module, "account_has_completed", lambda *_arg
 load_linked_session_id = getattr(db_module, "load_linked_session_id", lambda *_args, **_kwargs: None)
 save_resume_link = getattr(db_module, "save_resume_link", lambda *_args, **_kwargs: None)
 db_finalize_participation = getattr(db_module, "finalize_participation")
+
+
+def _feature_flag(name, default):
+    try:
+        value = st.secrets.get(name, default)
+    except Exception:
+        value = os.getenv(name, default)
+    return str(value).lower() == "true"
+
+
+REPEAT_SCENARIO_DEV_MODE = _feature_flag("ALLOW_REPEAT_PARTICIPATION", "true")
 
 
 def get_query_param(name):
@@ -90,7 +102,13 @@ def finalize_participant(session_id, answers, final_score):
     if not account_key:
         raise ValueError("Missing authenticated account")
 
-    response = db_finalize_participation(account_key, resolved_session_id, answers, final_score)
+    response = db_finalize_participation(
+        account_key,
+        resolved_session_id,
+        answers,
+        final_score,
+        allow_repeat=REPEAT_SCENARIO_DEV_MODE,
+    )
     st.session_state.submission_finalized = True
     clear_query_param("sid")
     return response
@@ -115,6 +133,7 @@ def runtime_defaults():
         "scroll_to_top": False,
         "submission_finalized": False,
         "already_completed": False,
+        "saved": False,
     }
 
 
@@ -229,7 +248,7 @@ def bootstrap_authenticated_session():
     if not account_key:
         raise RuntimeError("Authentication is required before starting the scenario.")
 
-    if account_has_completed(account_key):
+    if not REPEAT_SCENARIO_DEV_MODE and account_has_completed(account_key):
         defaults = runtime_defaults()
         for key, value in defaults.items():
             st.session_state[key] = value
@@ -290,3 +309,22 @@ def bootstrap_authenticated_session():
 
     if is_new_session:
         save_resume_link(account_key, session_id)
+
+
+def start_new_scenario():
+    if not REPEAT_SCENARIO_DEV_MODE:
+        raise RuntimeError("Repeat participation is disabled.")
+
+    account_key = current_account_key()
+    if not account_key:
+        raise RuntimeError("Authentication is required before starting a new scenario.")
+
+    defaults = runtime_defaults()
+    for key, value in defaults.items():
+        st.session_state[key] = value
+
+    session_id = str(uuid.uuid4())
+    st.session_state.session_id = session_id
+    set_query_param("sid", session_id)
+    persist_checkpoint()
+    save_resume_link(account_key, session_id)

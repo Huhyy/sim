@@ -37,6 +37,7 @@ Set these values in Streamlit Community Cloud app secrets:
 SUPABASE_URL = "https://<project-ref>.supabase.co"
 SUPABASE_SECRET_KEY = "sb_secret_<server-only-key>"
 ACCOUNT_KEY_PEPPER = "<long-random-secret-generated-once>"
+ALLOW_REPEAT_PARTICIPATION = false
 
 [auth]
 redirect_uri = "https://<your-app-domain>/~/+/oauth2callback"
@@ -49,6 +50,8 @@ server_metadata_url = "https://accounts.google.com/.well-known/openid-configurat
 Do not use a Supabase publishable key for app storage. The app requires a server-only secret key because sensitive tables are protected with RLS.
 
 Do not rotate `ACCOUNT_KEY_PEPPER` during data collection. Changing it makes prior participants appear new and prevents recovery of existing in-progress sessions.
+
+Set `ALLOW_REPEAT_PARTICIPATION = true` only during testing. Set it to `false` before collecting real study responses to enforce one completion per Google account.
 
 ## Completion Privacy Flow
 

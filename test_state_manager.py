@@ -78,11 +78,12 @@ def test_finalize_participant_recovers_session_id_before_final_save(monkeypatch)
     monkeypatch.setattr(
         state_manager,
         "db_finalize_participation",
-        lambda account_key, session_id, answers, final_score: saved.update(
+        lambda account_key, session_id, answers, final_score, allow_repeat=False: saved.update(
             account_key=account_key,
             session_id=session_id,
             answers=answers,
             final_score=final_score,
+            allow_repeat=allow_repeat,
         ),
     )
 
@@ -94,6 +95,7 @@ def test_finalize_participant_recovers_session_id_before_final_save(monkeypatch)
         "session_id": "session-789",
         "answers": {"q_1": 5},
         "final_score": 18.25,
+        "allow_repeat": True,
     }
     assert dummy_state.submission_finalized is True
 
@@ -140,3 +142,28 @@ def test_bootstrap_claims_url_checkpoint_before_loading_answers(monkeypatch):
 
     assert events == ["claim", "load"]
     assert dummy_state.answers == {"private": 5}
+
+
+def test_repeat_mode_does_not_block_previously_completed_account(monkeypatch):
+    dummy_state = DummySessionState()
+    checked_completion = []
+    monkeypatch.setattr(state_manager.st, "session_state", dummy_state)
+    monkeypatch.setattr(state_manager, "REPEAT_SCENARIO_DEV_MODE", True)
+    monkeypatch.setattr(state_manager, "current_account_key", lambda: "a" * 64)
+    monkeypatch.setattr(
+        state_manager,
+        "account_has_completed",
+        lambda _account_key: checked_completion.append(True) or True,
+    )
+    monkeypatch.setattr(state_manager, "load_linked_session_id", lambda _account_key: None)
+    monkeypatch.setattr(state_manager, "get_query_param", lambda _name: None)
+    monkeypatch.setattr(state_manager, "set_query_param", lambda _name, _value: None)
+    monkeypatch.setattr(state_manager, "load_session_checkpoint", lambda _session_id: None)
+    monkeypatch.setattr(state_manager, "persist_checkpoint", lambda: True)
+    monkeypatch.setattr(state_manager, "save_resume_link", lambda _account_key, _session_id: None)
+
+    state_manager.bootstrap_authenticated_session()
+
+    assert checked_completion == []
+    assert dummy_state.page == "home"
+    assert dummy_state.already_completed is False

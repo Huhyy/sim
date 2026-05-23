@@ -159,8 +159,17 @@ def save_resume_link(account_key: str, session_id: str):
     client.table("resume_links").upsert(row).execute()
 
 
-def finalize_participation(account_key: str, session_id: str, answers: dict, final_score: float):
+def finalize_participation(
+    account_key: str,
+    session_id: str,
+    answers: dict,
+    final_score: float,
+    allow_repeat: bool = False,
+):
     client = _require_client()
+    if allow_repeat:
+        client.table("completed_accounts").delete().eq("account_key", account_key).execute()
+
     payload = {
         "p_account_key": account_key,
         "p_session_id": session_id,

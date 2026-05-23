@@ -9,9 +9,11 @@ from narratives import get_narrative
 from tables import get_month
 from questions import PRE_SECTIONS, POST_SECTIONS
 from state_manager import (
+    REPEAT_SCENARIO_DEV_MODE,
     bootstrap_authenticated_session,
     finalize_participant,
     persist_checkpoint,
+    start_new_scenario,
 )
 
 DEV = os.getenv("SCENARIO_DEV", "").lower() == "true"
@@ -269,7 +271,7 @@ def render_login_page():
     top: 50%;
     left: 50%;
     z-index: 2;
-    width: min(calc(100vw - 1.8rem), 29.5rem);
+    width: min(calc(100vw - 1.8rem), 52rem);
     max-height: calc(100vh - 2rem);
     margin: 0;
     overflow-y: auto;
@@ -393,6 +395,31 @@ def render_login_page():
     color: #304c49;
 }
 
+.auth-info {
+    display: flex;
+    gap: 0.72rem;
+    align-items: flex-start;
+    margin-top: 1.05rem;
+    padding: 0.86rem 0.92rem;
+    border: 1px solid #d5dad6;
+    border-radius: 1rem;
+    color: #57615f;
+    background: #edf0ed;
+    font: 500 0.76rem/1.55 'Manrope', sans-serif;
+}
+
+.auth-info-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 1.18rem;
+    height: 1.18rem;
+    margin-top: 0.08rem;
+    border: 1.35px solid #53716d;
+    border-radius: 50%;
+    color: #466661;
+    font: 700 0.76rem/1 'Manrope', sans-serif;
+}
+
 @media (max-width: 520px) {
     [data-testid="stMainBlockContainer"] {
         padding: 1.1rem 0.9rem;
@@ -427,7 +454,7 @@ def render_login_page():
 <p class="auth-copy">Autentifică-te pentru a începe sau relua scenariul exact din punctul în care ai rămas.</p>
 <div class="auth-signals">
   <span class="auth-chip">Progres salvat</span>
-  <span class="auth-chip">O singură participare</span>
+  <span class="auth-chip">Reluare după întrerupere</span>
   <span class="auth-chip">Răspunsuri separate</span>
 </div>
 """,
@@ -437,7 +464,11 @@ def render_login_page():
             st.login()
         st.markdown(
             """
-<p class="auth-privacy"><strong>Confidențialitate:</strong> Google este folosit doar pentru reluarea progresului și prevenirea participărilor multiple. La final, legătura dintre cont și răspunsurile tale este eliminată; rămâne doar un identificator tehnic separat, fără răspunsuri sau scor.</p>
+<p class="auth-privacy"><strong>Confidențialitate:</strong> Platforma folosește autentificarea Google pentru identificarea sesiunii, prevenirea participărilor multiple și reluarea progresului în caz de întrerupere. Aplicația poate accesa numele, fotografia de profil și adresa de e-mail asociate contului Google. Aceste date de identificare vor fi stocate separat de răspunsurile experimentale. Analiza statistică se va realiza pe date pseudonimizate, folosind un cod unic de participant, fără includerea adresei de e-mail, numelui sau fotografiei de profil în setul de date analizat.</p>
+<div class="auth-info">
+  <span class="auth-info-icon">i</span>
+  <span>Răspunsurile tale vor fi analizate în mod anonim și vor ajuta la înțelegerea legăturii dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții incerte sau stresante.</span>
+</div>
 """,
             unsafe_allow_html=True,
         )
@@ -453,15 +484,15 @@ if not st.session_state.get("_bootstrap_done"):
     st.session_state._bootstrap_done = True
 
 
-def render_question_section(section):
-    st.markdown(f"### {section['title']}")
+def render_question_section(section, chapter_number, question_offset=0):
+    st.markdown(f"### Capitolul {chapter_number}")
     st.caption(section["instruction"])
     for i, q in enumerate(section["questions"]):
         key = f"{section['key_prefix']}_{i}"
         current = st.session_state.answers.get(key)
         idx = section["scale"].index(current) if current in section["scale"] else None
         st.session_state.answers[key] = st.radio(
-            q,
+            f"{question_offset + i + 1}. {q}",
             options=section["scale"],
             index=idx,
             horizontal=True,
@@ -478,12 +509,21 @@ def all_answered(sections):
     return True
 
 
-def render_quiz_chapter(section, chapter_index, total_chapters, next_page, dev_label, title, skip_page=None):
+def render_quiz_chapter(
+    section,
+    chapter_index,
+    total_chapters,
+    next_page,
+    dev_label,
+    title,
+    skip_page=None,
+    question_offset=0,
+):
     st.title(title)
     st.caption(f"Capitolul {chapter_index + 1} din {total_chapters}")
     st.markdown("Răspunde la capitolul curent, apoi apasă **Continuă** pentru a trece mai departe.")
     st.progress((chapter_index + 1) / total_chapters)
-    render_question_section(section)
+    render_question_section(section, chapter_index + 1, question_offset)
 
     if DEV:
         if st.button(dev_label, type="secondary", key=f"dev_{section['key_prefix']}_{chapter_index}"):
@@ -656,6 +696,9 @@ if st.session_state.page == "already_completed":
     scroll_top_anchor()
     st.title("Participare deja finalizată")
     st.info("Acest cont a finalizat deja scenariul. Nu poate fi trimis un al doilea răspuns.")
+    if REPEAT_SCENARIO_DEV_MODE and st.button("Începe un scenariu nou (test)", type="primary"):
+        start_new_scenario()
+        st.rerun()
     if st.button("Ieși din cont", key="completed_logout"):
         st.logout()
 
@@ -721,6 +764,7 @@ elif st.session_state.page.startswith("pre_question_"):
         "⚡ DEV: Randomizează acest capitol și continuă",
         "Chestionar – înainte de scenariu",
         skip_page="instructions",
+        question_offset=sum(len(section["questions"]) for section in PRE_SECTIONS[:pre_index]),
     )
 
 
@@ -1217,7 +1261,7 @@ elif st.session_state.page.startswith("post_question_"):
     st.caption("Capitolul 1 din 1")
     st.markdown("Indicați cât de mult sunteți de acord cu fiecare afirmație, în funcție de cum vă simțiți **acum**.")
     st.progress(1.0)
-    render_question_section(section)
+    render_question_section(section, post_index + 1)
 
     if not all_answered([section]):
         st.warning("Te rugăm să răspunzi la toate întrebările înainte de a finaliza.")
@@ -1315,6 +1359,12 @@ Răspunsurile tale au fost înregistrate. Rezultatele studiului vor fi disponibi
 Contact: coita.iflorina@gmail.com
 """
     )
+
+    if REPEAT_SCENARIO_DEV_MODE:
+        st.caption("Mod de testare activ: poți parcurge din nou scenariul cu același cont.")
+        if st.button("Începe un scenariu nou (test)", type="primary", key="new_test_scenario"):
+            start_new_scenario()
+            st.rerun()
 
 persist_checkpoint()
 
