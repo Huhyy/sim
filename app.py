@@ -371,6 +371,43 @@ div[data-testid="stExpander"] details[open] > summary svg {
     font-weight: 800 !important;
 }
 
+.st-key-account_menu div[data-testid="stExpander"] details > summary,
+.st-key-account_menu div[data-testid="stExpander"] details[open] > summary,
+.st-key-account_menu div[data-testid="stExpander"] details > summary:hover,
+.st-key-account_menu div[data-testid="stExpander"] details > summary:focus,
+.st-key-account_menu div[data-testid="stExpander"] details > summary:focus-visible {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.55rem !important;
+    background: #fbf8f0 !important;
+    color: #172b29 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.st-key-account_menu div[data-testid="stExpander"] details > summary::before {
+    content: "⌄";
+    color: #172b29;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.st-key-account_menu div[data-testid="stExpander"] details[open] > summary::before {
+    content: "⌃";
+}
+
+.st-key-account_menu div[data-testid="stExpander"] details > summary p,
+.st-key-account_menu div[data-testid="stExpander"] details[open] > summary p,
+.st-key-account_menu div[data-testid="stExpander"] details > summary span,
+.st-key-account_menu div[data-testid="stExpander"] details[open] > summary span {
+    color: #172b29 !important;
+    -webkit-text-fill-color: #172b29 !important;
+    background: transparent !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+}
+
 @media (max-width: 720px) {
     [data-testid="stMainBlockContainer"] {
         width: min(calc(100vw - 1rem), 68rem);
