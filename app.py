@@ -1471,8 +1471,6 @@ elif st.session_state.page == "month_feedback":
     else:
         st.warning(result["feedback_message"])
 
-    st.caption("După confirmare, decizia nu mai poate fi modificată.")
-
     if st.button("Continuă către luna următoare", type="primary"):
         st.session_state.loan.balance = result["credit_final"]
         st.session_state.overdraft.balance = result["overdraft_final"]
