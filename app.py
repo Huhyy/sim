@@ -202,6 +202,31 @@ div[data-testid="stExpander"] details[open] > summary svg {
     font-weight: 800;
 }
 
+.auth-info {
+    display: flex;
+    gap: 0.72rem;
+    align-items: flex-start;
+    margin-top: 1.05rem;
+    padding: 0.86rem 0.92rem;
+    border: 1px solid #d5dad6;
+    border-radius: 1rem;
+    color: #57615f;
+    background: #edf0ed;
+    font: 500 0.76rem/1.55 'Manrope', sans-serif;
+}
+
+.auth-info-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 1.18rem;
+    height: 1.18rem;
+    margin-top: 0.08rem;
+    border: 1.35px solid #53716d;
+    border-radius: 50%;
+    color: #466661;
+    font: 700 0.76rem/1 'Manrope', sans-serif;
+}
+
 .stButton > button {
     border-radius: 999px !important;
     font-family: 'Manrope', sans-serif !important;
@@ -582,31 +607,6 @@ def render_login_page():
 
 .auth-privacy strong {
     color: #304c49;
-}
-
-.auth-info {
-    display: flex;
-    gap: 0.72rem;
-    align-items: flex-start;
-    margin-top: 1.05rem;
-    padding: 0.86rem 0.92rem;
-    border: 1px solid #d5dad6;
-    border-radius: 1rem;
-    color: #57615f;
-    background: #edf0ed;
-    font: 500 0.76rem/1.55 'Manrope', sans-serif;
-}
-
-.auth-info-icon {
-    display: grid;
-    place-items: center;
-    flex: 0 0 1.18rem;
-    height: 1.18rem;
-    margin-top: 0.08rem;
-    border: 1.35px solid #53716d;
-    border-radius: 50%;
-    color: #466661;
-    font: 700 0.76rem/1 'Manrope', sans-serif;
 }
 
 @media (max-width: 520px) {
@@ -1378,12 +1378,19 @@ elif st.session_state.page == "simulation":
         step=1.0,
         value=None,
         format="%g",
-        placeholder="Introduceți o sumă numerică...",
+        placeholder="Introduceți o sumă numerică mai mare sau egală cu 0.",
         key=f"payment_{month}",
     )
     attach_payment_keyboard_bridge()
-    st.caption("Introduceți o sumă numerică mai mare sau egală cu 0.")
-    st.caption("După confirmare, decizia nu mai poate fi modificată.")
+    st.markdown(
+        """
+<div class="auth-info">
+  <span class="auth-info-icon">i</span>
+  <span>După confirmare, decizia nu mai poate fi modificată.</span>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
     if st.button("Confirmă decizia", type="primary"):
         if payment is None:
