@@ -266,7 +266,8 @@ div[data-testid="stExpander"] details[open] > summary svg {
     left: 1rem;
     bottom: 1rem;
     z-index: 9999;
-    width: min(calc(100vw - 2rem), 22rem);
+    width: fit-content;
+    max-width: calc(100vw - 2rem);
 }
 
 .st-key-account_menu div[data-testid="stExpander"] {
@@ -293,10 +294,6 @@ div[data-testid="stExpander"] details[open] > summary svg {
     border-top: 1px solid #e5decc;
 }
 
-.st-key-account_menu details > summary svg {
-    display: none !important;
-}
-
 .st-key-account_menu details > summary p,
 .st-key-account_menu details[open] > summary p,
 .st-key-account_menu details > summary span,
@@ -321,6 +318,7 @@ div[data-testid="stExpander"] details[open] > summary svg {
 
 .account-menu-copy {
     margin: 0 0 0.55rem;
+    white-space: nowrap;
     color: #65716e;
     font-size: 0.78rem;
     font-weight: 700;
@@ -378,23 +376,10 @@ div[data-testid="stExpander"] details[open] > summary svg {
 .st-key-account_menu div[data-testid="stExpander"] details > summary:focus-visible {
     display: flex !important;
     align-items: center !important;
-    gap: 0.55rem !important;
     background: #fbf8f0 !important;
     color: #172b29 !important;
     outline: none !important;
     box-shadow: none !important;
-}
-
-.st-key-account_menu div[data-testid="stExpander"] details > summary::before {
-    content: "⌄";
-    color: #172b29;
-    font-size: 1rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.st-key-account_menu div[data-testid="stExpander"] details[open] > summary::before {
-    content: "⌃";
 }
 
 .st-key-account_menu div[data-testid="stExpander"] details > summary p,
@@ -815,7 +800,6 @@ def render_account_menu():
     email = st.user.get("email") or st.user.get("name") or "Cont conectat"
     with st.container(key="account_menu"):
         with st.expander(email):
-            st.markdown('<div class="account-menu-copy">Sesiune Google activă</div>', unsafe_allow_html=True)
             if st.button("Log out", icon=":material/logout:", key="account_logout", use_container_width=True):
                 st.logout()
 
