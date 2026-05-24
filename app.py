@@ -228,8 +228,15 @@ div[data-testid="stExpander"] details[open] > summary svg {
 }
 
 .payment-note {
-    margin-top: 0.65rem;
-    margin-bottom: 0.8rem;
+    margin: 0.75rem 0 !important;
+}
+
+.payment-button-gap {
+    height: 0;
+}
+
+.payment-button-gap + div[data-testid="stButton"] {
+    margin-top: 0 !important;
 }
 
 .stButton > button {
@@ -1396,6 +1403,7 @@ elif st.session_state.page == "simulation":
 """,
         unsafe_allow_html=True,
     )
+    st.markdown('<div class="payment-button-gap"></div>', unsafe_allow_html=True)
 
     if st.button("Confirmă decizia", type="primary"):
         if payment is None:
