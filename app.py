@@ -85,8 +85,8 @@ body:has(.st-key-auth_card) [data-testid="stMainBlockContainer"] {
 [data-testid="stMainBlockContainer"] p,
 [data-testid="stMainBlockContainer"] li,
 [data-testid="stMainBlockContainer"] label,
-[data-testid="stMainBlockContainer"] span,
-[data-testid="stMainBlockContainer"] div {
+[data-testid="stMainBlockContainer"] input,
+[data-testid="stMainBlockContainer"] textarea {
     font-family: 'Manrope', sans-serif;
 }
 
