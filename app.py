@@ -233,13 +233,23 @@ div[data-testid="stExpander"] details[open] > summary svg {
 }
 
 .payment-note span:last-child {
-    font-size: 0.86rem;
+    font-size: 0.98rem;
     font-weight: 700;
     line-height: 1.2;
 }
 
 .payment-note .auth-info-icon {
+    flex-basis: 1.35rem;
+    height: 1.35rem;
     margin-top: 0;
+    font-size: 0.88rem;
+}
+
+.payment-label {
+    margin-bottom: 0.25rem;
+    color: var(--scenario-text);
+    font-size: 1.02rem;
+    font-weight: 800;
 }
 
 .payment-button-gap {
@@ -1395,14 +1405,16 @@ elif st.session_state.page == "simulation":
             "Plata creditului nu poate fi executată. Pentru această lună, scorul este 0."
         )
 
+    st.markdown('<div class="payment-label">Sumă de rambursat din credit (€)</div>', unsafe_allow_html=True)
     payment = st.number_input(
-        "**Sumă de rambursat din credit (€)**",
+        "Sumă de rambursat din credit (€)",
         min_value=0.0,
         step=1.0,
         value=None,
         format="%g",
         placeholder="Introduceți o sumă numerică mai mare sau egală cu 0.",
         key=f"payment_{month}",
+        label_visibility="collapsed",
     )
     attach_payment_keyboard_bridge()
     st.markdown(
