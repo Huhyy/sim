@@ -1379,12 +1379,7 @@ elif st.session_state.page == "simulation":
         st.table(display_value_table(obligations))
 
     opening_balance_html = (
-        f"""
-    <div class="decision-row positive">
-      <span class="decision-label">Sold inițial disponibil</span>
-      <span class="decision-value">{display_euro(opening_balance)}</span>
-    </div>
-"""
+        f'<div class="decision-row positive"><span class="decision-label">Sold inițial disponibil</span><span class="decision-value">{display_euro(opening_balance)}</span></div>'
         if month == 1
         else ""
     )
@@ -1392,45 +1387,18 @@ elif st.session_state.page == "simulation":
     st.markdown(
         f"""
 <div class="decision-card">
-  <div class="decision-card-title">
-    <span>Decizie privind plata creditului</span>
-    <span>{display_euro(loan_obligation)}</span>
-  </div>
-  <div class="decision-grid">
-    {opening_balance_html}
-    <div class="decision-row positive">
-      <span class="decision-label">Venituri totale</span>
-      <span class="decision-value">{display_euro(income_total)}</span>
-    </div>
-    <div class="decision-row risk">
-      <span class="decision-label">Cheltuieli curente</span>
-      <span class="decision-value">{display_euro(expenses_total)}</span>
-    </div>
-    <div class="decision-row risk">
-      <span class="decision-label">Dobândă overdraft</span>
-      <span class="decision-value">{display_euro(overdraft_interest)}</span>
-    </div>
-    <div class="decision-row risk">
-      <span class="decision-label">Dobândă credit</span>
-      <span class="decision-value">{display_euro(credit_interest)}</span>
-    </div>
-    <div class="decision-row positive">
-      <span class="decision-label">Sold final înainte de plata ratei creditului</span>
-      <span class="decision-value">{display_euro(liquidity_after_charges)}</span>
-    </div>
-    <div class="decision-row risk">
-      <span class="decision-label">Sold credit rămas</span>
-      <span class="decision-value">{display_euro(loan.balance)}</span>
-    </div>
-    <div class="decision-row risk">
-      <span class="decision-label">Overdraft utilizat</span>
-      <span class="decision-value">{display_euro(overdraft.balance)}</span>
-    </div>
-    <div class="decision-row primary">
-      <span class="decision-label">Plata orientativă a creditului în această lună</span>
-      <span class="decision-value">{display_euro(loan_obligation)}</span>
-    </div>
-  </div>
+<div class="decision-card-title"><span>Decizie privind plata creditului</span><span>{display_euro(loan_obligation)}</span></div>
+<div class="decision-grid">
+{opening_balance_html}
+<div class="decision-row positive"><span class="decision-label">Venituri totale</span><span class="decision-value">{display_euro(income_total)}</span></div>
+<div class="decision-row risk"><span class="decision-label">Cheltuieli curente</span><span class="decision-value">{display_euro(expenses_total)}</span></div>
+<div class="decision-row risk"><span class="decision-label">Dobândă overdraft</span><span class="decision-value">{display_euro(overdraft_interest)}</span></div>
+<div class="decision-row risk"><span class="decision-label">Dobândă credit</span><span class="decision-value">{display_euro(credit_interest)}</span></div>
+<div class="decision-row positive"><span class="decision-label">Sold final înainte de plata ratei creditului</span><span class="decision-value">{display_euro(liquidity_after_charges)}</span></div>
+<div class="decision-row risk"><span class="decision-label">Sold credit rămas</span><span class="decision-value">{display_euro(loan.balance)}</span></div>
+<div class="decision-row risk"><span class="decision-label">Overdraft utilizat</span><span class="decision-value">{display_euro(overdraft.balance)}</span></div>
+<div class="decision-row primary"><span class="decision-label">Plata orientativă a creditului în această lună</span><span class="decision-value">{display_euro(loan_obligation)}</span></div>
+</div>
 </div>
 """,
         unsafe_allow_html=True,
