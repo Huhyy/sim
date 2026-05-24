@@ -227,6 +227,11 @@ div[data-testid="stExpander"] details[open] > summary svg {
     font: 700 0.76rem/1 'Manrope', sans-serif;
 }
 
+.payment-note {
+    margin-top: 0.65rem;
+    margin-bottom: 0.8rem;
+}
+
 .stButton > button {
     border-radius: 999px !important;
     font-family: 'Manrope', sans-serif !important;
@@ -1384,7 +1389,7 @@ elif st.session_state.page == "simulation":
     attach_payment_keyboard_bridge()
     st.markdown(
         """
-<div class="auth-info">
+<div class="auth-info payment-note">
   <span class="auth-info-icon">i</span>
   <span>După confirmare, decizia nu mai poate fi modificată.</span>
 </div>
