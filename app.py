@@ -1392,8 +1392,8 @@ elif st.session_state.page == "simulation":
 <div class="decision-row positive"><strong>Venituri totale:</strong> {display_euro(income_total)}</div>
 <div class="decision-row risk"><strong>Cheltuieli curente:</strong> {display_euro(expenses_total)}</div>
 <div class="decision-row risk"><strong>Dobândă overdraft:</strong> {display_euro(overdraft_interest)} | <strong>Dobândă credit:</strong> {display_euro(credit_interest)}</div>
-<div class="decision-row positive"><strong>Sold final înainte de plata ratei creditului:</strong> {display_euro(liquidity_after_charges)}</div>
 <div class="decision-row risk"><strong>Sold credit rămas:</strong> {display_euro(loan.balance)} | <strong>Overdraft utilizat:</strong> {display_euro(overdraft.balance)}</div>
+<div class="decision-row positive"><strong>Sold final înainte de plata ratei creditului:</strong> {display_euro(liquidity_after_charges)}</div>
 <div class="decision-row primary"><strong>Plata orientativă a creditului în această lună:</strong> {display_euro(loan_obligation)}</div>
 </div>
 """,
