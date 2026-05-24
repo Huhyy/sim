@@ -20,6 +20,8 @@ DEV = os.getenv("SCENARIO_DEV", "").lower() == "true"
 
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&family=Roboto:wght@500&display=swap');
+
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
@@ -27,6 +29,158 @@ header {visibility: hidden;}
 [data-testid="stDecoration"] {display: none !important;}
 [data-testid="stStatusWidget"] {display: none !important;}
 [data-testid="stAppDeployButton"] {display: none !important;}
+
+:root {
+    --scenario-bg-ink: #101c21;
+    --scenario-bg-green: #152b2d;
+    --scenario-bg-deep: #0c181a;
+    --scenario-card: #fbf8f0;
+    --scenario-card-border: rgba(223, 211, 181, 0.62);
+    --scenario-text: #172b29;
+    --scenario-muted: #586564;
+    --scenario-green: #174b47;
+    --scenario-soft-green: #e8efea;
+    --scenario-rule: #e5decc;
+    --scenario-warm: #d59b3c;
+}
+
+[data-testid="stAppViewContainer"] {
+    background:
+        radial-gradient(circle at 12% 18%, rgba(213, 155, 60, 0.20), transparent 31rem),
+        radial-gradient(circle at 84% 72%, rgba(20, 104, 98, 0.24), transparent 30rem),
+        linear-gradient(132deg, var(--scenario-bg-ink) 0%, var(--scenario-bg-green) 46%, var(--scenario-bg-deep) 100%);
+}
+
+[data-testid="stMain"] {
+    min-height: 100vh;
+}
+
+[data-testid="stMainBlockContainer"] {
+    width: min(calc(100vw - 2rem), 68rem);
+    max-width: 68rem;
+    margin: clamp(1rem, 4vh, 2.4rem) auto;
+    padding: clamp(1.35rem, 4vw, 2.45rem);
+    border: 1px solid var(--scenario-card-border);
+    border-radius: 1.75rem;
+    background: var(--scenario-card);
+    color: var(--scenario-text);
+    box-shadow:
+        0 28px 72px rgba(0, 0, 0, 0.34),
+        0 2px 0 rgba(255, 255, 255, 0.75) inset;
+}
+
+body:has(.st-key-auth_card) [data-testid="stMain"] {
+    display: flex;
+    align-items: center;
+}
+
+body:has(.st-key-auth_card) [data-testid="stMainBlockContainer"] {
+    width: min(calc(100vw - 1.8rem), 52rem);
+    max-width: 52rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+}
+
+[data-testid="stMainBlockContainer"],
+[data-testid="stMainBlockContainer"] p,
+[data-testid="stMainBlockContainer"] li,
+[data-testid="stMainBlockContainer"] label,
+[data-testid="stMainBlockContainer"] span,
+[data-testid="stMainBlockContainer"] div {
+    font-family: 'Manrope', sans-serif;
+}
+
+[data-testid="stMainBlockContainer"] h1,
+[data-testid="stMainBlockContainer"] h2,
+[data-testid="stMainBlockContainer"] h3 {
+    color: var(--scenario-text);
+    letter-spacing: -0.025em;
+}
+
+[data-testid="stMainBlockContainer"] h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+}
+
+[data-testid="stMainBlockContainer"] p,
+[data-testid="stMainBlockContainer"] li,
+[data-testid="stMainBlockContainer"] label,
+[data-testid="stMainBlockContainer"] [data-testid="stMarkdownContainer"] {
+    color: var(--scenario-text);
+}
+
+[data-testid="stCaptionContainer"],
+[data-testid="stMainBlockContainer"] small {
+    color: var(--scenario-muted) !important;
+}
+
+[data-testid="stMetric"] {
+    padding: 0.75rem 0.9rem;
+    border: 1px solid #e1dac8;
+    border-radius: 1rem;
+    background: #fffaf0;
+}
+
+[data-testid="stMetricLabel"] p,
+[data-testid="stMetricValue"] {
+    color: var(--scenario-text) !important;
+}
+
+[data-testid="stTable"] {
+    border: 1px solid #e0d8c6;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+div[data-testid="stExpander"] {
+    border-color: #d9d1bf !important;
+    border-radius: 1rem !important;
+    background: rgba(255, 252, 244, 0.74);
+}
+
+div[data-testid="stExpander"] summary p {
+    color: var(--scenario-text) !important;
+    font-weight: 700;
+}
+
+.stButton > button {
+    border-radius: 999px !important;
+    font-family: 'Manrope', sans-serif !important;
+    font-weight: 700 !important;
+}
+
+.stButton > button[kind="primary"],
+.stButton > button[data-testid="baseButton-primary"] {
+    border-color: #174b47 !important;
+    background: #174b47 !important;
+    color: #fbf8f0 !important;
+}
+
+.stButton > button[kind="primary"]:hover,
+.stButton > button[data-testid="baseButton-primary"]:hover {
+    border-color: #0f3a37 !important;
+    background: #0f3a37 !important;
+}
+
+.stButton > button[kind="secondary"],
+.stButton > button[data-testid="baseButton-secondary"] {
+    border-color: #d8d1bf !important;
+    background: #fffaf0 !important;
+    color: #174b47 !important;
+}
+
+@media (max-width: 720px) {
+    [data-testid="stMainBlockContainer"] {
+        width: min(calc(100vw - 1rem), 68rem);
+        margin: 0.5rem auto;
+        padding: 1.15rem;
+        border-radius: 1.35rem;
+    }
+
+    body:has(.st-key-auth_card) [data-testid="stMainBlockContainer"] {
+        width: min(calc(100vw - 1rem), 52rem);
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -252,37 +406,8 @@ def render_login_page():
     st.markdown(
         """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&family=Roboto:wght@500&display=swap');
-
-[data-testid="stAppViewContainer"] {
-    background:
-        radial-gradient(circle at 12% 18%, rgba(213, 155, 60, 0.20), transparent 31rem),
-        radial-gradient(circle at 84% 72%, rgba(20, 104, 98, 0.24), transparent 30rem),
-        linear-gradient(132deg, #101c21 0%, #152b2d 46%, #0c181a 100%);
-}
-
-[data-testid="stMainBlockContainer"] {
-    max-width: none;
-    padding: clamp(1.1rem, 3.5vh, 2.4rem) 1.25rem;
-}
-
 .st-key-auth_card {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    z-index: 2;
-    width: min(calc(100vw - 1.8rem), 52rem);
-    max-height: calc(100vh - 2rem);
     margin: 0;
-    overflow-y: auto;
-    transform: translate(-50%, -50%);
-    padding: clamp(1.7rem, 5vw, 2.35rem);
-    border: 1px solid rgba(223, 211, 181, 0.62);
-    border-radius: 1.75rem;
-    background: #fbf8f0;
-    box-shadow:
-        0 28px 72px rgba(0, 0, 0, 0.34),
-        0 2px 0 rgba(255, 255, 255, 0.75) inset;
 }
 
 .auth-brand {
@@ -421,20 +546,8 @@ def render_login_page():
 }
 
 @media (max-width: 520px) {
-    [data-testid="stMainBlockContainer"] {
-        padding: 1.1rem 0.9rem;
-    }
-
     .st-key-auth_card {
-        padding: 1.45rem 1.25rem;
-        border-radius: 1.4rem;
-    }
-}
-
-@media (max-height: 655px) {
-    .st-key-auth_card {
-        top: 1rem;
-        transform: translateX(-50%);
+        margin: 0;
     }
 }
 </style>
