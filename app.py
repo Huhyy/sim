@@ -170,6 +170,11 @@ div[data-testid="stExpander"] details[open] > summary svg {
     color: #fbf8f0 !important;
 }
 
+.stButton > button[kind="primary"] *,
+.stButton > button[data-testid="baseButton-primary"] * {
+    color: #fbf8f0 !important;
+}
+
 .stButton > button[kind="primary"]:hover,
 .stButton > button[data-testid="baseButton-primary"]:hover {
     border-color: #0f3a37 !important;
