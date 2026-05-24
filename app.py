@@ -228,7 +228,18 @@ div[data-testid="stExpander"] details[open] > summary svg {
 }
 
 .payment-note {
+    align-items: center;
     margin: 0.75rem 0 !important;
+}
+
+.payment-note span:last-child {
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.payment-note .auth-info-icon {
+    margin-top: 0;
 }
 
 .payment-button-gap {
@@ -1385,7 +1396,7 @@ elif st.session_state.page == "simulation":
         )
 
     payment = st.number_input(
-        "Sumă de rambursat din credit (€)",
+        "**Sumă de rambursat din credit (€)**",
         min_value=0.0,
         step=1.0,
         value=None,
