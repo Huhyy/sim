@@ -157,6 +157,85 @@ div[data-testid="stExpander"] details[open] > summary svg {
     fill: var(--scenario-card) !important;
 }
 
+.decision-card {
+    margin-top: 1.1rem;
+    padding: clamp(1rem, 2.4vw, 1.3rem);
+    border: 1px solid #d9d1bf;
+    border-radius: 1rem;
+    background:
+        linear-gradient(135deg, rgba(255, 250, 240, 0.96), rgba(238, 241, 234, 0.92));
+    color: var(--scenario-text);
+    box-shadow: 0 12px 30px rgba(23, 43, 41, 0.08);
+}
+
+.decision-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.95rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e4ddcb;
+    color: var(--scenario-green);
+    font-weight: 800;
+}
+
+.decision-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.decision-row {
+    padding: 0.72rem 0.8rem;
+    border: 1px solid #e3dccb;
+    border-radius: 0.82rem;
+    background: rgba(255, 252, 244, 0.78);
+}
+
+.decision-label {
+    display: block;
+    margin-bottom: 0.24rem;
+    color: #65716e;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.decision-value {
+    color: var(--scenario-text);
+    font-size: 0.94rem;
+    font-weight: 800;
+}
+
+.decision-row.positive .decision-value {
+    color: #176b4d;
+}
+
+.decision-row.risk .decision-value {
+    color: #b54842;
+}
+
+.decision-row.primary {
+    grid-column: 1 / -1;
+    border-color: rgba(23, 75, 71, 0.32);
+    background: #e8efea;
+}
+
+.decision-row.primary .decision-label {
+    color: #3c625e;
+}
+
+.decision-row.primary .decision-value {
+    color: var(--scenario-green);
+    font-size: 1.05rem;
+}
+
+@media (max-width: 640px) {
+    .decision-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .stButton > button {
     border-radius: 999px !important;
     font-family: 'Manrope', sans-serif !important;
@@ -1300,22 +1379,58 @@ elif st.session_state.page == "simulation":
         st.table(display_value_table(obligations))
 
     opening_balance_html = (
-        f'<div style="margin-bottom: 0.9rem; color: #8fd18f;"><strong>Sold inițial disponibil:</strong> {display_euro(opening_balance)}</div>'
+        f"""
+    <div class="decision-row positive">
+      <span class="decision-label">Sold inițial disponibil</span>
+      <span class="decision-value">{display_euro(opening_balance)}</span>
+    </div>
+"""
         if month == 1
         else ""
     )
 
     st.markdown(
         f"""
-<div style="background-color: #1f3b5b; padding: 1rem 1.2rem; border-radius: 0.5rem; color: #d8e9ff; line-height: 1.6;">
-  <div style="font-weight: 700; margin-bottom: 0.85rem;">Decizie privind plata creditului</div>
-  {opening_balance_html}
-  <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Venituri totale:</strong> {display_euro(income_total)}</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Cheltuieli curente:</strong> {display_euro(expenses_total)}</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Dobândă overdraft:</strong> {display_euro(overdraft_interest)} | <strong>Dobândă credit:</strong> {display_euro(credit_interest)}</div>
-  <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Sold final înainte de plata ratei creditului:</strong> {display_euro(liquidity_after_charges)}</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Sold credit rămas:</strong> {display_euro(loan.balance)} | <strong>Overdraft utilizat:</strong> {display_euro(overdraft.balance)}</div>
-  <div style="color: #d8e9ff;"><strong>Plata orientativă a creditului în această lună:</strong> {display_euro(loan_obligation)}</div>
+<div class="decision-card">
+  <div class="decision-card-title">
+    <span>Decizie privind plata creditului</span>
+    <span>{display_euro(loan_obligation)}</span>
+  </div>
+  <div class="decision-grid">
+    {opening_balance_html}
+    <div class="decision-row positive">
+      <span class="decision-label">Venituri totale</span>
+      <span class="decision-value">{display_euro(income_total)}</span>
+    </div>
+    <div class="decision-row risk">
+      <span class="decision-label">Cheltuieli curente</span>
+      <span class="decision-value">{display_euro(expenses_total)}</span>
+    </div>
+    <div class="decision-row risk">
+      <span class="decision-label">Dobândă overdraft</span>
+      <span class="decision-value">{display_euro(overdraft_interest)}</span>
+    </div>
+    <div class="decision-row risk">
+      <span class="decision-label">Dobândă credit</span>
+      <span class="decision-value">{display_euro(credit_interest)}</span>
+    </div>
+    <div class="decision-row positive">
+      <span class="decision-label">Sold final înainte de plata ratei creditului</span>
+      <span class="decision-value">{display_euro(liquidity_after_charges)}</span>
+    </div>
+    <div class="decision-row risk">
+      <span class="decision-label">Sold credit rămas</span>
+      <span class="decision-value">{display_euro(loan.balance)}</span>
+    </div>
+    <div class="decision-row risk">
+      <span class="decision-label">Overdraft utilizat</span>
+      <span class="decision-value">{display_euro(overdraft.balance)}</span>
+    </div>
+    <div class="decision-row primary">
+      <span class="decision-label">Plata orientativă a creditului în această lună</span>
+      <span class="decision-value">{display_euro(loan_obligation)}</span>
+    </div>
+  </div>
 </div>
 """,
         unsafe_allow_html=True,
