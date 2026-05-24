@@ -143,6 +143,20 @@ div[data-testid="stExpander"] summary p {
     font-weight: 700;
 }
 
+div[data-testid="stExpander"] details[open] > summary {
+    background: #171c27 !important;
+}
+
+div[data-testid="stExpander"] details[open] > summary p,
+div[data-testid="stExpander"] details[open] > summary span {
+    color: var(--scenario-card) !important;
+}
+
+div[data-testid="stExpander"] details[open] > summary svg {
+    color: var(--scenario-card) !important;
+    fill: var(--scenario-card) !important;
+}
+
 .stButton > button {
     border-radius: 999px !important;
     font-family: 'Manrope', sans-serif !important;
@@ -662,6 +676,22 @@ def render_quiz_chapter(
 
 def money(value):
     return round(float(value), 2)
+
+
+def display_number(value):
+    value = money(value)
+    if value == int(value):
+        return str(int(value))
+    return f"{value:.2f}"
+
+
+def display_euro(value):
+    return f"{display_number(value)} €"
+
+
+def display_value_table(values):
+    rows = [(category, display_number(amount)) for category, amount in values.items()]
+    return pd.DataFrame(rows, columns=["Categoria", "Valoare (€)"])
 
 
 def month_sum(values):
@@ -1254,23 +1284,18 @@ elif st.session_state.page == "simulation":
 
     with st.expander("Buget lunar"):
         st.markdown("**Venituri**")
-        st.table(pd.DataFrame(list(data["income"].items()), columns=["Categoria", "Valoare (€)"]))
-        st.write(f"**Total venituri:** {income_total:.2f}")
+        st.table(display_value_table(data["income"]))
+        st.write(f"**Total venituri:** {display_number(income_total)}")
 
         st.markdown("**Cheltuieli curente**")
-        st.table(pd.DataFrame(list(data["expenses"].items()), columns=["Categoria", "Valoare (€)"]))
-        st.write(f"**Total cheltuieli:** {expenses_total:.2f}")
+        st.table(display_value_table(data["expenses"]))
+        st.write(f"**Total cheltuieli:** {display_number(expenses_total)}")
 
         st.markdown("**Obligații lunare**")
-        st.table(
-            pd.DataFrame(
-                list(obligations.items()),
-                columns=["Categoria", "Valoare (€)"],
-            )
-        )
+        st.table(display_value_table(obligations))
 
     opening_balance_html = (
-        f'<div style="margin-bottom: 0.9rem; color: #8fd18f;"><strong>Sold inițial disponibil:</strong> {opening_balance:.2f} €</div>'
+        f'<div style="margin-bottom: 0.9rem; color: #8fd18f;"><strong>Sold inițial disponibil:</strong> {display_euro(opening_balance)}</div>'
         if month == 1
         else ""
     )
@@ -1280,12 +1305,12 @@ elif st.session_state.page == "simulation":
 <div style="background-color: #1f3b5b; padding: 1rem 1.2rem; border-radius: 0.5rem; color: #d8e9ff; line-height: 1.6;">
   <div style="font-weight: 700; margin-bottom: 0.85rem;">Decizie privind plata creditului</div>
   {opening_balance_html}
-  <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Venituri totale:</strong> {income_total:.2f} €</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Cheltuieli curente:</strong> {expenses_total:.2f} €</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Dobândă overdraft:</strong> {overdraft_interest:.2f} € | <strong>Dobândă credit:</strong> {credit_interest:.2f} €</div>
-  <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Sold final înainte de plata ratei creditului:</strong> {liquidity_after_charges:.2f} €</div>
-  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Sold credit rămas:</strong> {loan.balance:.2f} € | <strong>Overdraft utilizat:</strong> {overdraft.balance:.2f} €</div>
-  <div style="color: #d8e9ff;"><strong>Plata orientativă a creditului în această lună:</strong> {loan_obligation:.2f} €</div>
+  <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Venituri totale:</strong> {display_euro(income_total)}</div>
+  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Cheltuieli curente:</strong> {display_euro(expenses_total)}</div>
+  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Dobândă overdraft:</strong> {display_euro(overdraft_interest)} | <strong>Dobândă credit:</strong> {display_euro(credit_interest)}</div>
+  <div style="margin-bottom: 0.45rem; color: #8fd18f;"><strong>Sold final înainte de plata ratei creditului:</strong> {display_euro(liquidity_after_charges)}</div>
+  <div style="margin-bottom: 0.45rem; color: #ff9a9a;"><strong>Sold credit rămas:</strong> {display_euro(loan.balance)} | <strong>Overdraft utilizat:</strong> {display_euro(overdraft.balance)}</div>
+  <div style="color: #d8e9ff;"><strong>Plata orientativă a creditului în această lună:</strong> {display_euro(loan_obligation)}</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -1302,6 +1327,7 @@ elif st.session_state.page == "simulation":
         min_value=0.0,
         step=1.0,
         value=None,
+        format="%g",
         placeholder="Introduceți o sumă numerică...",
         key=f"payment_{month}",
     )
@@ -1331,17 +1357,17 @@ elif st.session_state.page == "month_feedback":
     st.title(f"Luna {month} - feedback")
 
     st.markdown("### Rezultatul deciziei")
-    st.write(f"**Suma introdusă:** {result['payment_input']:.2f} €")
-    st.write(f"**Plata acceptată la credit:** {result['accepted_payment']:.2f} €")
+    st.write(f"**Suma introdusă:** {display_euro(result['payment_input'])}")
+    st.write(f"**Plata acceptată la credit:** {display_euro(result['accepted_payment'])}")
     st.write(
-        f"**Sold disponibil după plata ratei = Sold inițial + Venituri − Cheltuieli curente − Dobândă overdraft − Rata − Dobânda credit:** {result['cash_final']:.2f} €"
+        f"**Sold disponibil după plata ratei = Sold inițial + Venituri − Cheltuieli curente − Dobândă overdraft − Rata − Dobânda credit:** {display_euro(result['cash_final'])}"
     )
-    st.write(f"**Sold credit rămas:** {result['credit_final']:.2f} €")
-    st.write(f"**Overdraft utilizat final:** {result['overdraft_final']:.2f} €")
-    st.write(f"**Dobândă credit luna aceasta:** {result['credit_interest']:.2f} €")
-    st.write(f"**Dobândă overdraft luna aceasta:** {result['overdraft_interest']:.2f} €")
+    st.write(f"**Sold credit rămas:** {display_euro(result['credit_final'])}")
+    st.write(f"**Overdraft utilizat final:** {display_euro(result['overdraft_final'])}")
+    st.write(f"**Dobândă credit luna aceasta:** {display_euro(result['credit_interest'])}")
+    st.write(f"**Dobândă overdraft luna aceasta:** {display_euro(result['overdraft_interest'])}")
     if result["penalties"] > 0:
-        st.write(f"**Penalități luna aceasta:** {result['penalties']:.2f} €")
+        st.write(f"**Penalități luna aceasta:** {display_euro(result['penalties'])}")
     st.metric("Puncte acumulate", st.session_state.total_score + result["monthly_score"])
 
     if result["pre_credit_impossible"]:
@@ -1416,20 +1442,20 @@ elif st.session_state.page == "final_score":
     st.markdown("### Formula de calcul")
     st.markdown(
         f"""
-**Puncte lunare brute:** {breakdown["monthly_points"]:.2f}
+**Puncte lunare brute:** {display_number(breakdown["monthly_points"])}
 
-**Credit rămas:** {breakdown["remaining_credit"]:.2f} €  → penalizare: -{breakdown["remaining_credit"] / 1000.0:.2f}
+**Credit rămas:** {display_euro(breakdown["remaining_credit"])}  → penalizare: -{display_number(breakdown["remaining_credit"] / 1000.0)}
 
-**Overdraft utilizat:** {breakdown["remaining_overdraft"]:.2f} €  → penalizare: -{breakdown["remaining_overdraft"] / 100.0:.2f}
+**Overdraft utilizat:** {display_euro(breakdown["remaining_overdraft"])}  → penalizare: -{display_number(breakdown["remaining_overdraft"] / 100.0)}
 
-**Costuri acumulate:** {breakdown["accumulated_costs"]:.2f} €  → penalizare: -{breakdown["accumulated_costs"] / 50.0:.2f}
+**Costuri acumulate:** {display_euro(breakdown["accumulated_costs"])}  → penalizare: -{display_number(breakdown["accumulated_costs"] / 50.0)}
 
-**Scor brut după formulă:** {breakdown["raw_score"]:.2f}
+**Scor brut după formulă:** {display_number(breakdown["raw_score"])}
 
-**Scor final ajustat:** **{breakdown["final_score"]:.2f} / 24**
+**Scor final ajustat:** **{display_number(breakdown["final_score"])} / 24**
 """
     )
-    st.metric("Scor final", f"{breakdown['final_score']:.2f} / 24")
+    st.metric("Scor final", f"{display_number(breakdown['final_score'])} / 24")
     st.info("Acesta este scorul tău după aplicarea formulei finale de ajustare.")
 
     if st.button("Continuă →", type="primary"):
@@ -1455,17 +1481,17 @@ elif st.session_state.page == "done":
             st.error(f"Eroare la salvarea datelor: {e}")
 
     st.title("Mulțumim pentru participare!")
-    st.metric("Scor final scenariu", f"{st.session_state.final_score:.2f}")
+    st.metric("Scor final scenariu", display_number(st.session_state.final_score))
     st.markdown(
-        f"Ai acumulat {st.session_state.final_score:.2f} puncte din 24. Valoare câștigată: {st.session_state.final_score:.2f} euro."
+        f"Ai acumulat {display_number(st.session_state.final_score)} puncte din 24. Valoare câștigată: {display_number(st.session_state.final_score)} euro."
     )
     st.markdown(
         f"""
-Puncte lunare brute: **{st.session_state.total_score:.2f}**
+Puncte lunare brute: **{display_number(st.session_state.total_score)}**
 
-Credit rămas: **{st.session_state.loan.balance:.2f} €**
+Credit rămas: **{display_euro(st.session_state.loan.balance)}**
 
-Overdraft utilizat: **{st.session_state.overdraft.balance:.2f} €**
+Overdraft utilizat: **{display_euro(st.session_state.overdraft.balance)}**
 
 Răspunsurile tale au fost înregistrate. Rezultatele studiului vor fi disponibile după finalizarea colectării datelor.
 
