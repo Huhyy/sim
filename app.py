@@ -261,6 +261,54 @@ div[data-testid="stExpander"] details[open] > summary svg {
     margin-top: 0 !important;
 }
 
+.st-key-account_menu {
+    position: fixed;
+    left: 1rem;
+    bottom: 1rem;
+    z-index: 9999;
+    width: min(calc(100vw - 2rem), 22rem);
+}
+
+.st-key-account_menu button {
+    border: 1px solid rgba(251, 248, 240, 0.34) !important;
+    border-radius: 999px !important;
+    background: rgba(251, 248, 240, 0.04) !important;
+    color: #fbf8f0 !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18) !important;
+    backdrop-filter: blur(10px);
+}
+
+.st-key-account_menu button * {
+    color: #fbf8f0 !important;
+    font-weight: 800 !important;
+}
+
+.st-key-account_menu button:hover {
+    border-color: rgba(251, 248, 240, 0.55) !important;
+    background: rgba(251, 248, 240, 0.1) !important;
+}
+
+.st-key-account_logout button {
+    width: 100%;
+    justify-content: center;
+    border-color: rgba(181, 72, 66, 0.28) !important;
+    background: #fff3ec !important;
+    color: #b54842 !important;
+    box-shadow: none !important;
+}
+
+.st-key-account_logout button * {
+    color: #b54842 !important;
+    font-weight: 800 !important;
+}
+
+.account-menu-copy {
+    margin: 0 0 0.55rem;
+    color: #65716e;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
 .stButton > button {
     border-radius: 999px !important;
     font-family: 'Manrope', sans-serif !important;
@@ -290,6 +338,31 @@ div[data-testid="stExpander"] details[open] > summary svg {
     border-color: #d8d1bf !important;
     background: #fffaf0 !important;
     color: #174b47 !important;
+}
+
+.st-key-account_menu button {
+    border-color: rgba(251, 248, 240, 0.34) !important;
+    background: rgba(251, 248, 240, 0.04) !important;
+    color: #fbf8f0 !important;
+}
+
+.st-key-account_menu button * {
+    color: #fbf8f0 !important;
+    font-weight: 800 !important;
+}
+
+.st-key-account_logout button,
+.st-key-account_logout button[data-testid="baseButton-secondary"] {
+    border-color: rgba(181, 72, 66, 0.28) !important;
+    background: #fff3ec !important;
+    color: #b54842 !important;
+    box-shadow: none !important;
+}
+
+.st-key-account_logout button *,
+.st-key-account_logout button[data-testid="baseButton-secondary"] * {
+    color: #b54842 !important;
+    font-weight: 800 !important;
 }
 
 @media (max-width: 720px) {
@@ -695,6 +768,18 @@ if not st.session_state.get("_bootstrap_done"):
     st.session_state._bootstrap_done = True
 
 
+def render_account_menu():
+    email = st.user.get("email") or st.user.get("name") or "Cont conectat"
+    with st.container(key="account_menu"):
+        with st.popover(f"**{email} ˅**", use_container_width=False):
+            st.markdown('<div class="account-menu-copy">Sesiune Google activă</div>', unsafe_allow_html=True)
+            if st.button("Log out", icon=":material/logout:", key="account_logout", use_container_width=True):
+                st.logout()
+
+
+render_account_menu()
+
+
 def render_question_section(section, chapter_number, question_offset=0):
     st.markdown(f"### Capitolul {chapter_number}")
     st.caption(section["instruction"])
@@ -926,8 +1011,6 @@ if st.session_state.page == "already_completed":
     if REPEAT_SCENARIO_DEV_MODE and st.button("Începe un scenariu nou (test)", type="primary"):
         start_new_scenario()
         st.rerun()
-    if st.button("Ieși din cont", key="completed_logout"):
-        st.logout()
 
 
 # ==================== HOME ====================
