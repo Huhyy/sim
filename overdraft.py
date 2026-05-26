@@ -3,7 +3,7 @@ def r2(x):
 
 
 class Overdraft:
-    def __init__(self, limit=3000.0, annual_interest=0.24):
+    def __init__(self, limit=3000.0, annual_interest=0.18):
         self.limit = limit
         self.balance = 0.0
         self.monthly_rate = annual_interest / 12
@@ -29,7 +29,9 @@ class Overdraft:
         return r2(cash)
 
     def apply_interest(self):
-        return 0.0
+        if self.balance <= 0:
+            return 0.0
+        return r2(self.balance * self.monthly_rate)
 
     def get_state(self):
         return {

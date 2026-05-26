@@ -894,15 +894,27 @@ def month_sum(values):
     return money(sum(values.values()))
 
 
+def get_opening_balance(month, data):
+    if month <= 1:
+        return money(data["position"]["initial"])
+
+    for result in reversed(st.session_state.get("monthly_results", [])):
+        if int(result.get("month", 0)) == month - 1:
+            return money(result.get("cash_final", 0.0))
+
+    # Keep older/incomplete checkpoints usable if the previous result is absent.
+    return money(data["position"].get("initial", 0.0))
+
+
 def compute_month_result(month, data, loan, overdraft, payment):
     income_total = month_sum(data["income"])
     expenses_total = month_sum(data["expenses"])
     obligations = data.get("obligations", {})
     loan_obligation = money(loan.get_required_payment())
     credit_interest = money(loan.apply_interest())
-    overdraft_interest = money(obligations.get("overdraft_interest", 0))
+    overdraft_interest = money(overdraft.apply_interest())
     penalties = money(obligations.get("penalties", 0))
-    opening_balance = money(data["position"]["initial"])
+    opening_balance = get_opening_balance(month, data)
 
     available_total = money(opening_balance + income_total)
     outflows_before_credit = money(expenses_total + overdraft_interest + credit_interest + penalties)
@@ -1448,13 +1460,13 @@ elif st.session_state.page == "simulation":
     income_total = month_sum(data["income"])
     expenses_total = month_sum(data["expenses"])
     obligations = data.get("obligations", {})
-    opening_balance = money(data["position"]["initial"])
+    opening_balance = get_opening_balance(month, data)
     loan_obligation = money(loan.get_required_payment())
     credit_interest = money(loan.apply_interest())
-    overdraft_interest = money(obligations.get("overdraft_interest", 0))
+    overdraft_interest = money(overdraft.apply_interest())
     penalties = money(obligations.get("penalties", 0))
     available_total = money(opening_balance + income_total)
-    outflows_before_credit = money(expenses_total + overdraft_interest + penalties)
+    outflows_before_credit = money(expenses_total + overdraft_interest + credit_interest + penalties)
     liquidity_after_charges = money(max(0.0, available_total - outflows_before_credit))
     deficit_before_credit = money(max(0.0, outflows_before_credit - available_total))
     overdraft_after_charges = money(overdraft.balance + deficit_before_credit)

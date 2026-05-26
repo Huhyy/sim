@@ -121,7 +121,7 @@ def runtime_defaults():
         "session_id": None,
         "month": 1,
         "loan": Loan(balance=7000.0, annual_interest=0.0835, months=24),
-        "overdraft": Overdraft(limit=3000.0, annual_interest=0.24),
+        "overdraft": Overdraft(limit=3000.0, annual_interest=0.18),
         "savings": None,
         "total_score": 0,
         "monthly_points": 0.0,
@@ -226,7 +226,7 @@ def hydrate_from_checkpoint(checkpoint):
     )
     st.session_state.overdraft = Overdraft(
         limit=3000.0,
-        annual_interest=0.24,
+        annual_interest=0.18,
     )
     st.session_state.overdraft.balance = round(float(checkpoint.get("overdraft_balance", 0.0)), 2)
     st.session_state.savings = checkpoint.get("savings")
