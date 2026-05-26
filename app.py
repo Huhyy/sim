@@ -920,6 +920,17 @@ def get_opening_balance(month, data):
     return money(data["position"].get("initial", 0.0))
 
 
+def zero_score_data():
+    return {
+        "score_model": "behavioral_v1",
+        "score_repayment": 0.0,
+        "score_liquidity": 0.0,
+        "score_overdraft": 0.0,
+        "monthly_score": 0.0,
+        "bonus_lunar": 0.0,
+    }
+
+
 def compute_monthly_score(accepted_payment, cash_final, overdraft_final, overdraft_limit, loan_obligation):
     if loan_obligation <= 0:
         repayment_score = 40.0
@@ -931,12 +942,33 @@ def compute_monthly_score(accepted_payment, cash_final, overdraft_final, overdra
     monthly_score = min(100.0, max(0.0, repayment_score + liquidity_score + overdraft_score))
 
     return {
+        "score_model": "behavioral_v1",
         "score_repayment": money(repayment_score),
         "score_liquidity": money(liquidity_score),
         "score_overdraft": money(overdraft_score),
         "monthly_score": money(monthly_score),
         "bonus_lunar": money(monthly_score / 100.0 * (get_bonus_max_session() / SESSION_MONTHS)),
     }
+
+
+def normalize_month_result_score(result):
+    if result.get("score_model") == "behavioral_v1":
+        return result
+
+    if not result.get("payment_valid") or result.get("pre_credit_impossible"):
+        result.update(zero_score_data())
+        return result
+
+    result.update(
+        compute_monthly_score(
+            money(result.get("accepted_payment", 0.0)),
+            money(result.get("cash_final", 0.0)),
+            money(result.get("overdraft_final", 0.0)),
+            3000.0,
+            money(result.get("loan_obligation", 317.71)),
+        )
+    )
+    return result
 
 
 def compute_month_result(month, data, loan, overdraft, payment):
@@ -977,13 +1009,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
         overdraft_final = money(overdraft.limit)
         cash_final = 0.0
         credit_final = money(loan.balance)
-        score_data = {
-            "score_repayment": 0.0,
-            "score_liquidity": 0.0,
-            "score_overdraft": 0.0,
-            "monthly_score": 0.0,
-            "bonus_lunar": 0.0,
-        }
+        score_data = zero_score_data()
         invalid_reason = "pre_credit"
     elif payment_valid:
         accepted_payment = payment_value
@@ -1008,13 +1034,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
         overdraft_final = money(overdraft_after_charges)
         cash_final = money(liquidity_after_charges)
         credit_final = money(loan.balance)
-        score_data = {
-            "score_repayment": 0.0,
-            "score_liquidity": 0.0,
-            "score_overdraft": 0.0,
-            "monthly_score": 0.0,
-            "bonus_lunar": 0.0,
-        }
+        score_data = zero_score_data()
         feedback_message = (
             "Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. "
             "Plata nu a fost executată. Pentru această lună, scorul este 0."
@@ -1028,13 +1048,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
             accepted_payment = 0.0
             credit_final = money(loan.balance)
             overdraft_from_payment = 0.0
-            score_data = {
-                "score_repayment": 0.0,
-                "score_liquidity": 0.0,
-                "score_overdraft": 0.0,
-                "monthly_score": 0.0,
-                "bonus_lunar": 0.0,
-            }
+            score_data = zero_score_data()
             feedback_message = (
                 "Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. "
                 "Plata nu a fost executată. Pentru această lună, scorul este 0."
@@ -1073,13 +1087,13 @@ def compute_month_result(month, data, loan, overdraft, payment):
 
 
 def compute_final_score():
-    monthly_results = st.session_state.get("monthly_results", [])
+    monthly_results = [normalize_month_result_score(result) for result in st.session_state.get("monthly_results", [])]
     score_sum = sum(float(result.get("monthly_score", 0.0)) for result in monthly_results)
     return money(min(100.0, max(0.0, score_sum / SESSION_MONTHS)))
 
 
 def get_final_score_breakdown():
-    monthly_results = st.session_state.get("monthly_results", [])
+    monthly_results = [normalize_month_result_score(result) for result in st.session_state.get("monthly_results", [])]
     monthly_score_sum = money(sum(float(result.get("monthly_score", 0.0)) for result in monthly_results))
     final_score = money(min(100.0, max(0.0, monthly_score_sum / SESSION_MONTHS)))
     bonus_max_session = get_bonus_max_session()
@@ -1625,6 +1639,8 @@ elif st.session_state.page == "month_feedback":
     result = st.session_state.get("pending_month_result")
     if not result:
         goto("simulation")
+    result = normalize_month_result_score(result)
+    st.session_state.pending_month_result = result
 
     month = result["month"]
     st.title(f"Luna {month} - feedback")
