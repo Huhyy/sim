@@ -17,6 +17,20 @@ from state_manager import (
 )
 
 DEV = os.getenv("SCENARIO_DEV", "").lower() == "true"
+RECOMMENDED_BUFFER = 150.0
+SESSION_MONTHS = 24
+
+
+def get_bonus_max_session():
+    try:
+        value = st.secrets.get("BONUS_MAXIM_SESIUNE", os.getenv("BONUS_MAXIM_SESIUNE", 24))
+    except Exception:
+        value = os.getenv("BONUS_MAXIM_SESIUNE", 24)
+
+    try:
+        return money(value)
+    except (TypeError, ValueError):
+        return 24.0
 
 st.markdown("""
 <style>
@@ -906,6 +920,25 @@ def get_opening_balance(month, data):
     return money(data["position"].get("initial", 0.0))
 
 
+def compute_monthly_score(accepted_payment, cash_final, overdraft_final, overdraft_limit, loan_obligation):
+    if loan_obligation <= 0:
+        repayment_score = 40.0
+    else:
+        repayment_score = min(accepted_payment / loan_obligation, 1.0) * 40.0
+
+    liquidity_score = min(cash_final / RECOMMENDED_BUFFER, 1.0) * 30.0
+    overdraft_score = 30.0 if overdraft_limit <= 0 else max(0.0, 30.0 * (1.0 - overdraft_final / overdraft_limit))
+    monthly_score = min(100.0, max(0.0, repayment_score + liquidity_score + overdraft_score))
+
+    return {
+        "score_repayment": money(repayment_score),
+        "score_liquidity": money(liquidity_score),
+        "score_overdraft": money(overdraft_score),
+        "monthly_score": money(monthly_score),
+        "bonus_lunar": money(monthly_score / 100.0 * (get_bonus_max_session() / SESSION_MONTHS)),
+    }
+
+
 def compute_month_result(month, data, loan, overdraft, payment):
     income_total = month_sum(data["income"])
     expenses_total = month_sum(data["expenses"])
@@ -944,7 +977,13 @@ def compute_month_result(month, data, loan, overdraft, payment):
         overdraft_final = money(overdraft.limit)
         cash_final = 0.0
         credit_final = money(loan.balance)
-        monthly_score = 0
+        score_data = {
+            "score_repayment": 0.0,
+            "score_liquidity": 0.0,
+            "score_overdraft": 0.0,
+            "monthly_score": 0.0,
+            "bonus_lunar": 0.0,
+        }
         invalid_reason = "pre_credit"
     elif payment_valid:
         accepted_payment = payment_value
@@ -952,7 +991,13 @@ def compute_month_result(month, data, loan, overdraft, payment):
         overdraft_final = money(overdraft_after_charges + overdraft_from_payment)
         cash_final = money(max(0.0, liquidity_after_charges - accepted_payment))
         credit_final = money(max(0.0, loan.balance - accepted_payment))
-        monthly_score = 1
+        score_data = compute_monthly_score(
+            accepted_payment,
+            cash_final,
+            overdraft_final,
+            overdraft.limit,
+            loan_obligation,
+        )
         feedback_message = (
             "Decizia a fost acceptată. Plata a fost înregistrată, iar soldurile au fost actualizate."
         )
@@ -963,7 +1008,13 @@ def compute_month_result(month, data, loan, overdraft, payment):
         overdraft_final = money(overdraft_after_charges)
         cash_final = money(liquidity_after_charges)
         credit_final = money(loan.balance)
-        monthly_score = 0
+        score_data = {
+            "score_repayment": 0.0,
+            "score_liquidity": 0.0,
+            "score_overdraft": 0.0,
+            "monthly_score": 0.0,
+            "bonus_lunar": 0.0,
+        }
         feedback_message = (
             "Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. "
             "Plata nu a fost executată. Pentru această lună, scorul este 0."
@@ -973,11 +1024,17 @@ def compute_month_result(month, data, loan, overdraft, payment):
     if overdraft_final > overdraft.limit:
         overdraft_final = money(overdraft.limit)
         cash_final = 0.0
-        if monthly_score == 1:
-            monthly_score = 0
+        if score_data["monthly_score"] > 0:
             accepted_payment = 0.0
             credit_final = money(loan.balance)
             overdraft_from_payment = 0.0
+            score_data = {
+                "score_repayment": 0.0,
+                "score_liquidity": 0.0,
+                "score_overdraft": 0.0,
+                "monthly_score": 0.0,
+                "bonus_lunar": 0.0,
+            }
             feedback_message = (
                 "Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. "
                 "Plata nu a fost executată. Pentru această lună, scorul este 0."
@@ -1006,7 +1063,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
         "overdraft_final": overdraft_final,
         "cash_final": cash_final,
         "credit_final": credit_final,
-        "monthly_score": monthly_score,
+        **score_data,
         "costs_this_month": money(credit_interest + overdraft_interest + penalties),
         "feedback_message": feedback_message,
         "invalid_reason": invalid_reason,
@@ -1016,29 +1073,32 @@ def compute_month_result(month, data, loan, overdraft, payment):
 
 
 def compute_final_score():
-    monthly_points = money(st.session_state.get("monthly_points", 0.0))
-    remaining_credit = money(st.session_state.loan.balance)
-    remaining_overdraft = money(st.session_state.overdraft.balance)
-    accumulated_costs = money(st.session_state.get("accumulated_costs", 0.0))
-
-    raw = monthly_points - (remaining_credit / 1000.0) - (remaining_overdraft / 100.0) - (accumulated_costs / 50.0)
-    return money(max(0.0, min(24.0, raw)))
+    monthly_results = st.session_state.get("monthly_results", [])
+    score_sum = sum(float(result.get("monthly_score", 0.0)) for result in monthly_results)
+    return money(min(100.0, max(0.0, score_sum / SESSION_MONTHS)))
 
 
 def get_final_score_breakdown():
-    monthly_points = money(st.session_state.get("monthly_points", 0.0))
-    remaining_credit = money(st.session_state.loan.balance)
-    remaining_overdraft = money(st.session_state.overdraft.balance)
-    accumulated_costs = money(st.session_state.get("accumulated_costs", 0.0))
-    raw_score = monthly_points - (remaining_credit / 1000.0) - (remaining_overdraft / 100.0) - (accumulated_costs / 50.0)
-    final_score = money(max(0.0, min(24.0, raw_score)))
+    monthly_results = st.session_state.get("monthly_results", [])
+    monthly_score_sum = money(sum(float(result.get("monthly_score", 0.0)) for result in monthly_results))
+    final_score = money(min(100.0, max(0.0, monthly_score_sum / SESSION_MONTHS)))
+    bonus_max_session = get_bonus_max_session()
+    bonus_final = money(final_score / 100.0 * bonus_max_session)
+    total_repaid = money(sum(float(result.get("accepted_payment", 0.0)) for result in monthly_results))
+    credit_interest_total = money(sum(float(result.get("credit_interest", 0.0)) for result in monthly_results))
+    overdraft_interest_total = money(sum(float(result.get("overdraft_interest", 0.0)) for result in monthly_results))
     return {
-        "monthly_points": monthly_points,
-        "remaining_credit": remaining_credit,
-        "remaining_overdraft": remaining_overdraft,
-        "accumulated_costs": accumulated_costs,
-        "raw_score": money(raw_score),
+        "months_completed": len(monthly_results),
+        "monthly_score_sum": monthly_score_sum,
         "final_score": final_score,
+        "bonus_max_session": bonus_max_session,
+        "bonus_final": bonus_final,
+        "total_repaid": total_repaid,
+        "remaining_credit": money(st.session_state.loan.balance),
+        "remaining_overdraft": money(st.session_state.overdraft.balance),
+        "credit_interest_total": credit_interest_total,
+        "overdraft_interest_total": overdraft_interest_total,
+        "interest_total": money(credit_interest_total + overdraft_interest_total),
     }
 
 
@@ -1478,7 +1538,7 @@ elif st.session_state.page == "simulation":
     with col_title:
         st.title(f"Luna {month}")
     with col_score:
-        st.metric("Puncte acumulate", st.session_state.total_score)
+        st.metric("Scor acumulat", display_number(st.session_state.total_score))
 
     with st.expander("Context narativ", expanded=True):
         narrative = re.sub(r'^(\S+)', r'<strong>\1</strong>', get_narrative(month))
@@ -1581,7 +1641,12 @@ elif st.session_state.page == "month_feedback":
     st.write(f"**Dobândă overdraft luna aceasta:** {display_euro(result['overdraft_interest'])}")
     if result["penalties"] > 0:
         st.write(f"**Penalități luna aceasta:** {display_euro(result['penalties'])}")
-    st.metric("Puncte acumulate", st.session_state.total_score + result["monthly_score"])
+    st.markdown("### Scorul lunii")
+    st.write(f"**Scor rambursare:** {display_number(result['score_repayment'])} / 40")
+    st.write(f"**Scor lichiditate:** {display_number(result['score_liquidity'])} / 30")
+    st.write(f"**Scor overdraft:** {display_number(result['score_overdraft'])} / 30")
+    st.metric("Scor lunar", f"{display_number(result['monthly_score'])} / 100")
+    st.metric("Scor acumulat", display_number(st.session_state.total_score + result["monthly_score"]))
 
     if result["pre_credit_impossible"]:
         st.error(result["feedback_message"])
@@ -1644,30 +1709,35 @@ elif st.session_state.page.startswith("post_question_"):
 elif st.session_state.page == "final_score":
     scroll_top_anchor()
 
-    if st.session_state.final_score is None:
-        st.session_state.final_score = compute_final_score()
+    st.session_state.final_score = compute_final_score()
 
     breakdown = get_final_score_breakdown()
 
     st.title("Scor final")
-    st.markdown("### Formula de calcul")
+    st.markdown("Ai finalizat cele 24 de luni ale scenariului.")
+    st.markdown("### Scor comportamental final")
     st.markdown(
         f"""
-**Puncte lunare brute:** {display_number(breakdown["monthly_points"])}
+**Scor comportamental final:** {display_number(breakdown["final_score"])} / 100
 
-**Credit rămas:** {display_euro(breakdown["remaining_credit"])}  → penalizare: -{display_number(breakdown["remaining_credit"] / 1000.0)}
+**Bonus final obținut:** {display_euro(breakdown["bonus_final"])} / {display_euro(breakdown["bonus_max_session"])}
 
-**Overdraft utilizat:** {display_euro(breakdown["remaining_overdraft"])}  → penalizare: -{display_number(breakdown["remaining_overdraft"] / 100.0)}
+### Rezumat financiar final
 
-**Costuri acumulate:** {display_euro(breakdown["accumulated_costs"])}  → penalizare: -{display_number(breakdown["accumulated_costs"] / 50.0)}
+**Total rambursat din credit:** {display_euro(breakdown["total_repaid"])}
 
-**Scor brut după formulă:** {display_number(breakdown["raw_score"])}
+**Credit rămas la final:** {display_euro(breakdown["remaining_credit"])}
 
-**Scor final ajustat:** **{display_number(breakdown["final_score"])} / 24**
+**Overdraft utilizat la final:** {display_euro(breakdown["remaining_overdraft"])}
+
+**Dobânzi totale acumulate:** {display_euro(breakdown["interest_total"])}
 """
     )
-    st.metric("Scor final", f"{display_number(breakdown['final_score'])} / 24")
-    st.info("Acesta este scorul tău după aplicarea formulei finale de ajustare.")
+    st.info(
+        "Scorul comportamental final a fost calculat automat pe baza deciziilor lunare privind "
+        "rambursarea creditului, lichiditatea rămasă după plată și utilizarea overdraftului."
+    )
+    st.caption("Datele generate în scenariu vor fi folosite doar în scopul cercetării, conform acordului de participare.")
 
     if st.button("Continuă →", type="primary"):
         st.session_state.scroll_to_top = True
@@ -1677,8 +1747,9 @@ elif st.session_state.page == "final_score":
 # ==================== DONE ====================
 elif st.session_state.page == "done":
     scroll_top_anchor()
-    if st.session_state.final_score is None:
-        st.session_state.final_score = compute_final_score()
+    st.session_state.final_score = compute_final_score()
+    breakdown = get_final_score_breakdown()
+    st.session_state.answers["financial_summary"] = breakdown
 
     if not st.session_state.get("saved"):
         try:
@@ -1692,14 +1763,10 @@ elif st.session_state.page == "done":
             st.error(f"Eroare la salvarea datelor: {e}")
 
     st.title("Mulțumim pentru participare!")
-    st.metric("Scor final scenariu", display_number(st.session_state.final_score))
-    st.markdown(
-        f"Ai acumulat {display_number(st.session_state.final_score)} puncte din 24. Valoare câștigată: {display_number(st.session_state.final_score)} euro."
-    )
+    st.metric("Scor comportamental final", f"{display_number(st.session_state.final_score)} / 100")
+    st.markdown(f"**Bonus final obținut:** {display_euro(breakdown['bonus_final'])}")
     st.markdown(
         f"""
-Puncte lunare brute: **{display_number(st.session_state.total_score)}**
-
 Credit rămas: **{display_euro(st.session_state.loan.balance)}**
 
 Overdraft utilizat: **{display_euro(st.session_state.overdraft.balance)}**
