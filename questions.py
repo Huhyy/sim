@@ -399,20 +399,72 @@ PRE_SECTIONS = [
 
 POST_SECTIONS = [
     {
-        "title": "Stare psihologică după scenariu",
-        "instruction": "Indicați cât de mult sunteți de acord cu fiecare afirmație, în funcție de cum vă simțiți acum.",
-        "scale": SCALE_5_POST,
-        "key_prefix": "post",
+        "title": "Capitolul 1",
+        "instruction": """Următoarele afirmații se referă la felul în care te-ai simțit în timpul simulării financiare și imediat după finalizarea acesteia. Te rugăm să răspunzi în funcție de experiența ta din această sarcină, nu în funcție de starea ta obișnuită.
+
+Scală de răspuns
+1 = Deloc
+2 = Puțin
+3 = Moderat
+4 = Mult
+5 = Foarte mult""",
+        "scale": ["1 - Deloc", "2 - Puțin", "3 - Moderat", "4 - Mult", "5 - Foarte mult"],
+        "key_prefix": "post_stress",
         "questions": [
-            "Mă simt energizat(ă) și plin(ă) de entuziasm în acest moment.",
-            "Sunt foarte motivat(ă) să încep o activitate nouă acum.",
-            "Gândul de a mă apuca de următoarea sarcină mi se pare atrăgător și stimulativ.",
-            "Mă simt liniștit(ă) și relaxat(ă), fără tensiune.",
-            "Mă simt mulțumit(ă) și în armonie cu mine.",
-            "Mă simt într-o dispoziție general pozitivă.",
-            "Simt o conexiune socială cu ceilalți participanți.",
-            "Simt că pot avea încredere în oamenii din jur în acest moment.",
-            "Simt căldură emoțională și apropiere față de cei din jur.",
+            "În timpul experimentului, m-am simțit copleșit(ă) de informațiile și deciziile pe care trebuia să le gestionez.",
+            "În timpul experimentului, am avut impresia că nu pot controla complet evoluția situației financiare prezentate.",
+            "În timpul experimentului, m-am simțit nervos/oasă sau încordat(ă).",
+            "În timpul experimentului, am simțit că evenimentele lunare și responsabilitățile financiare mă depășesc.",
+            "În timpul experimentului, am simțit presiune din cauza timpului sau a numărului de decizii de luat.",
+            "În timpul experimentului, am avut impresia că situația financiară prezentată cere mai mult decât puteam gestiona confortabil.",
+            "La finalul experimentului, m-am simțit aproape de epuizare psihică sau mentală.",
+            "După experiment, m-am simțit tensionat(ă) sau iritabil(ă).",
+            "După experiment, m-am simțit anxios/anxioasă sau cu o stare de apăsare interioară.",
+            "După experiment, am simțit o stare de descurajare.",
+            "După experiment, m-am simțit vinovat(ă) sau auto-critic(ă) în legătură cu unele decizii luate.",
+            "După experiment, m-am simțit neliniștit(ă), ca și cum îmi era greu să mă relaxez.",
+            "După experiment, m-am simțit mai retras(ă) sau mai puțin disponibil(ă) pentru interacțiune decât de obicei.",
+            "După experiment, m-am simțit energic(ă) și activ(ă).",
+            "După experiment, m-am simțit calm(ă) și echilibrat(ă) emoțional.",
+            "După experiment, m-am simțit mulțumit(ă) de felul în care am gestionat sarcina.",
+            "În timpul experimentului, am simțit că am control asupra deciziilor mele.",
+            "În timpul experimentului, m-am simțit motivat(ă) să continui și să finalizez sarcina.",
+            "În timpul experimentului, au existat momente în care m-am simțit implicat(ă).",
+            "În timpul sau imediat după experiment, mi-a fost greu să mă concentrez.",
+            "În timpul experimentului, mi-a fost greu să finalizez unele decizii din cauza tensiunii sau oboselii.",
+            "După experiment, am simțit oboseală mentală accentuată.",
+            "După experiment, am resimțit tensiune musculară, durere de cap sau disconfort fizic ușor.",
+            "După experiment, am simțit nevoia să iau o pauză înainte de a continua cu altă activitate.",
+            "În timpul experimentului, am evitat să analizez în detaliu unele informații deoarece mi s-au părut prea solicitante.",
+        ],
+    },
+    {
+        "title": "Capitolul 2",
+        "instruction": """Scală pentru percepția asupra experimentului:
+1 = Complet în dezacord
+2 = Mai degrabă în dezacord
+3 = Nici de acord, nici în dezacord
+4 = Mai degrabă de acord
+5 = Complet de acord""",
+        "scale": [
+            "1 - Complet în dezacord",
+            "2 - Mai degrabă în dezacord",
+            "3 - Nici de acord, nici în dezacord",
+            "4 - Mai degrabă de acord",
+            "5 - Complet de acord",
+        ],
+        "key_prefix": "post_perception",
+        "questions": [
+            "Experimentul mi s-a părut realist.",
+            "Deciziile lunare mi s-au părut credibile pentru o situație financiară reală.",
+            "Informațiile afișate în fiecare lună au fost clare.",
+            "Mi-a fost ușor să înțeleg efectul deciziilor mele asupra creditului.",
+            "Mi-a fost ușor să înțeleg efectul deciziilor mele asupra overdraftului.",
+            "Sarcina a fost dificilă din punct de vedere financiar.",
+            "Sarcina a fost dificilă din punct de vedere emoțional.",
+            "Am simțit presiune când trebuia să aleg suma de rambursare.",
+            "Am avut impresia că deciziile mele aveau consecințe importante.",
+            "Am tratat experimentul ca pe o situație serioasă.",
         ],
     },
 ]

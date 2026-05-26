@@ -1737,37 +1737,48 @@ elif st.session_state.page == "month_feedback":
 # ==================== POST-SIMULATION QUESTIONS ====================
 elif st.session_state.page.startswith("post_question_"):
     scroll_top_anchor()
-    post_index = 0
+    try:
+        post_index = int(st.session_state.page.rsplit("_", 1)[1])
+    except Exception:
+        goto("post_question_0")
+
+    if post_index >= len(POST_SECTIONS):
+        goto("final_score")
+
     section = POST_SECTIONS[post_index]
-    st.title("Chestionar – după scenariu")
-    st.caption("Capitolul 1 din 1")
-    st.markdown("Indicați cât de mult sunteți de acord cu fiecare afirmație, în funcție de cum vă simțiți **acum**.")
-    st.progress(1.0)
-    render_question_section(section, post_index + 1)
+    next_page = "final_score" if post_index + 1 >= len(POST_SECTIONS) else f"post_question_{post_index + 1}"
+    question_offset = sum(len(post_section["questions"]) for post_section in POST_SECTIONS[:post_index])
+
+    st.title("Chestionar post-experiment")
+    st.caption(f"Capitolul {post_index + 1} din {len(POST_SECTIONS)}")
+    st.progress((post_index + 1) / len(POST_SECTIONS))
+    render_question_section(section, post_index + 1, question_offset)
 
     if not all_answered([section]):
-        st.warning("Te rugăm să răspunzi la toate întrebările înainte de a finaliza.")
+        st.warning("Te rugăm să răspunzi la toate întrebările din acest capitol înainte de a continua.")
 
-    st.markdown("### Feedback opțional")
-    st.session_state.answers["feedback"] = st.text_area(
-        "Ce parte a scenariului ți s-a părut cea mai provocatoare sau realistă?",
-        value=st.session_state.answers.get("feedback", ""),
-    )
+    if post_index + 1 >= len(POST_SECTIONS):
+        st.markdown("### Feedback opțional")
+        st.session_state.answers["feedback"] = st.text_area(
+            "Ce parte a scenariului ți s-a părut cea mai provocatoare sau realistă?",
+            value=st.session_state.answers.get("feedback", ""),
+        )
 
-    if st.button("Skip all chapters", type="secondary", key="skip_post_question"):
+    if st.button("Skip all chapters", type="secondary", key=f"skip_post_question_{post_index}"):
         st.session_state.scroll_to_top = True
         goto("final_score")
 
     if DEV:
-        if st.button("⚡ DEV: Randomizează acest capitol și finalizează", type="secondary"):
+        if st.button("⚡ DEV: Randomizează acest capitol și continuă", type="secondary", key=f"dev_post_question_{post_index}"):
             randomize_section(section)
             st.session_state.scroll_to_top = True
-            goto("final_score")
+            goto(next_page)
 
-    if st.button("Finalizează →", type="primary"):
+    button_label = "Finalizează →" if post_index + 1 >= len(POST_SECTIONS) else "Continuă →"
+    if st.button(button_label, type="primary", key=f"continue_post_question_{post_index}"):
         if all_answered([section]):
             st.session_state.scroll_to_top = True
-            goto("final_score")
+            goto(next_page)
         else:
             st.error("Sunt întrebări fără răspuns.")
 
