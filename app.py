@@ -216,6 +216,13 @@ div[data-testid="stExpander"] details[open] > summary svg {
     font-weight: 800;
 }
 
+.decision-row.formula {
+    margin-top: 0.72rem;
+    color: #57615f;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
 .auth-info {
     display: flex;
     gap: 0.72rem;
@@ -1586,8 +1593,9 @@ elif st.session_state.page == "simulation":
 <div class="decision-row risk"><strong>Cheltuieli curente:</strong> {display_euro(expenses_total)}</div>
 <div class="decision-row risk"><strong>Dobândă overdraft:</strong> {display_euro(overdraft_interest)} | <strong>Dobândă credit:</strong> {display_euro(credit_interest)}</div>
 <div class="decision-row risk"><strong>Sold credit rămas:</strong> {display_euro(loan.balance)} | <strong>Overdraft utilizat:</strong> {display_euro(overdraft.balance)}</div>
-<div class="decision-row positive"><strong>Sold final înainte de plata ratei creditului:</strong> {display_euro(liquidity_after_charges)}</div>
-<div class="decision-row primary"><strong>Plata orientativă a creditului în această lună:</strong> {display_euro(loan_obligation)}</div>
+<div class="decision-row positive"><strong>Bani disponibili înainte de plata creditului:</strong> {display_euro(liquidity_after_charges)}</div>
+<div class="decision-row formula"><strong>Bani disponibili înainte de plata creditului</strong> = sold inițial disponibil + venituri totale - cheltuieli curente - dobândă credit - dobândă overdraft</div>
+<div class="decision-row primary"><strong>Rata lunară prevăzută în contract:</strong> {display_euro(loan_obligation)}</div>
 </div>
 """,
         unsafe_allow_html=True,
