@@ -998,12 +998,12 @@ def compute_month_result(month, data, loan, overdraft, payment):
 
     pre_credit_impossible = overdraft_after_charges > overdraft.limit
     payment_value = None if payment is None else money(payment)
+    capped_payment = None if payment_value is None else money(min(payment_value, loan.balance))
     payment_valid = (
         not pre_credit_impossible
         and payment_value is not None
         and payment_value >= 0
-        and payment_value <= max_payment
-        and payment_value <= loan.balance
+        and capped_payment <= max_payment
     )
 
     if pre_credit_impossible:
@@ -1019,7 +1019,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
         score_data = zero_score_data()
         invalid_reason = "pre_credit"
     elif payment_valid:
-        accepted_payment = payment_value
+        accepted_payment = capped_payment
         overdraft_from_payment = money(max(0.0, accepted_payment - liquidity_after_charges))
         overdraft_final = money(overdraft_after_charges + overdraft_from_payment)
         cash_final = money(max(0.0, liquidity_after_charges - accepted_payment))
