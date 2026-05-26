@@ -1203,50 +1203,93 @@ elif st.session_state.page == "instructions":
     scroll_top_anchor()
     st.markdown("""
 <style>
-.participant-instructions { text-align: justify; }
+.participant-instructions {
+    text-align: justify;
+    font-family: 'Manrope', sans-serif;
+    color: var(--scenario-text);
+}
+.participant-instructions h2,
+.participant-instructions h3 {
+    font-family: 'Fraunces', serif;
+    color: var(--scenario-text);
+}
+.participant-instructions h2 {
+    margin-top: 0.4rem;
+    font-size: 1.45rem;
+}
+.participant-instructions h3 {
+    margin-top: 1.55rem;
+    font-size: 1.15rem;
+}
+.participant-instructions p,
+.participant-instructions li {
+    font-size: 0.98rem;
+    line-height: 1.72;
+}
+.participant-instructions ul,
+.participant-instructions ol {
+    margin-bottom: 1.1rem;
+}
 </style>
 """, unsafe_allow_html=True)
-
-    st.title("Instrucțiuni pentru participant")
 
     st.markdown(
         '<div class="participant-instructions">',
         unsafe_allow_html=True,
     )
-    st.info(
+    st.markdown(
         """
-**Instrucțiuni pentru participant**
+## Instrucțiuni pentru participant
 
-În acest scenariu vei lua rolul lui Andrei, o persoană care are un credit de nevoi personale și trebuie să ia decizii lunare de rambursare.
+În acest experiment vei lua rolul lui Andrei, o persoană care are un credit de nevoi personale și trebuie să ia decizii lunare de rambursare.
 
-Scenariul durează 24 de luni.
+Experimentul se desfasoara pe parcursul a 24 de luni.
 
-În fiecare lună vei vedea:
+În fiecare lună vei vedea informații despre situația financiară a lunii respective:
 
 - veniturile lunii;
 - cheltuielile lunii;
-- suma disponibilă înainte de plata creditului;
+- dobânda creditului;
+- dobânda overdraftului, dacă există;
+- banii disponibili înainte de plata creditului;
 - soldul creditului;
-- soldul overdraftului;
-- dobânzile sau penalitățile, dacă există.
+- overdraftul utilizat;
+- rata lunară prevăzută în contract.
 
 După ce citești informațiile lunii, trebuie să introduci suma pe care dorești să o rambursezi din credit în acea lună.
 
-Tu decizi doar suma plătită la credit.
+Tu decizi doar suma plătită pentru credit.
 
-Nu trebuie să rambursezi separat overdraftul.
+Nu trebuie să rambursezi separat overdraftul. Overdraftul se actualizează automat în platformă, în funcție de deficitul lunii și de suma introdusă pentru plata creditului.
 
-Creditul este obligația de bază a scenariului. Overdraftul este o sursă suplimentară de finanțare care poate ajuta temporar, dar care indică fragilitate financiară. De aceea, participanții sunt penalizați mai puternic dacă acumulează overdraft sau dacă încheie scenariul cu overdraft nerambursat.
+### Ce este overdraftul
 
-### 📊 Cum funcționează decizia lunară
+Overdraftul este o linie de credit atașată contului curent. În acest experiment, limita maximă de overdraft este de 3.000 euro.
 
-În fiecare lună, vei introduce o singură sumă:
+Overdraftul funcționează ca o rezervă de bani împrumutați. Dacă banii disponibili nu sunt suficienți pentru cheltuielile lunii sau pentru plata introdusă de tine, platforma poate folosi overdraftul, dar numai în limita disponibilă.
 
-- suma pe care vrei să o plătești din credit
+Utilizarea overdraftului crește gradul de îndatorare și reduce scorul lunar.
+
+### Cum se calculează suma disponibilă înainte de plata creditului
+
+În fiecare lună, platforma calculează automat banii disponibili înainte de plata creditului.
+
+Formula este:
+
+Bani disponibili înainte de plata creditului =
+sold inițial disponibil + venituri totale - cheltuieli curente - dobândă credit - dobândă overdraft
+
+Această sumă arată cât este disponibil înainte ca tu să introduci plata pentru credit.
+
+### Cum funcționează decizia lunară
+
+În fiecare lună vei introduce o singură sumă:
+
+suma pe care dorești să o plătești pentru credit în luna respectivă.
 
 Apoi apeși:
 
-- **Confirmă decizia**
+Confirmă decizia
 
 După confirmare, decizia nu mai poate fi modificată.
 
@@ -1255,22 +1298,15 @@ Platforma va calcula automat:
 - dacă plata poate fi realizată;
 - cât scade soldul creditului;
 - dacă se folosește overdraftul;
-- care este soldul final al lunii;
+- care este suma rămasă după plată;
+- care este overdraftul final al lunii;
 - ce scor primești pentru luna respectivă.
 
 După confirmare, vei vedea un ecran de feedback pentru luna curentă. Acolo vei vedea rezultatul deciziei tale. Apoi vei apăsa:
 
-- **Continuă către luna următoare**
+Continuă către luna următoare
 
-Overdraftul este o linie de credit atașată contului curent.
-
-În acest scenariu, limita maximă de overdraft este: **3.000 euro**
-
-Overdraftul funcționează ca o rezervă de bani împrumutați.
-
-Dacă banii disponibili nu ajung pentru cheltuielile lunii și pentru plata introdusă de tine, platforma va folosi overdraftul, în limita disponibilă.
-
-### 😃 Ce se întâmplă dacă introduci o sumă posibilă
+### Ce se întâmplă dacă introduci o sumă posibilă
 
 Dacă suma introdusă poate fi acoperită din banii disponibili și din overdraftul rămas, plata este acceptată.
 
@@ -1279,91 +1315,98 @@ Dacă suma introdusă poate fi acoperită din banii disponibili și din overdraf
 - plata se înregistrează;
 - soldul creditului scade;
 - soldurile lunii se actualizează;
-- primești scorul lunii.
+- scorul lunii se calculează automat.
 
-### 🤔 Ce se întâmplă dacă introduci o sumă imposibilă
+### Ce se întâmplă dacă introduci o sumă invalida
 
 Dacă introduci o sumă mai mare decât banii disponibili plus overdraftul rămas, plata nu poate fi realizată.
 
 În acest caz:
 
 - plata este respinsă;
-- creditul nu scade;
-- nu se depășește limita de overdraft;
+- creditul nu scade prin acea plată;
+- suma introdusă nu se transferă în overdraft;
+- limita maximă de overdraft nu este depășită;
 - scorul lunii este 0;
-- scenariul continuă cu luna următoare.
+- experimentul continuă cu luna următoare.
 
-După ce ai confirmat o sumă imposibilă, nu vei putea reveni pentru a o corecta. De aceea, trebuie să verifici atent informațiile înainte de confirmare.
+După ce ai confirmat o sumă invalida, nu vei putea reveni pentru a o corecta. De aceea, este important să verifici atent informațiile înainte de confirmare.
 
-### 👍 Ce poți corecta înainte de confirmare
+### Ce poți corecta înainte de confirmare
 
 Înainte să apeși „Confirmă decizia”, poți corecta suma introdusă.
 
 Dacă introduci din greșeală litere, semne sau o valoare negativă, platforma îți va cere să introduci o valoare numerică validă.
 
-### 🏆 Cum se acordă scorul lunar
+### Cum se acordă scorul lunar
 
-În fiecare lună poți primi:
+În fiecare lună, scorul poate varia între 0 și 100 de puncte.
 
-- 1 punct sau 0 puncte
+Scorul lunar ține cont de trei aspecte:
 
-Primești 1 punct dacă suma introdusă este posibilă și plata poate fi executată.
+1. suma rambursată din credit;
+2. banii rămași disponibili după plată;
+3. nivelul overdraftului utilizat.
 
-Primești 0 puncte dacă suma introdusă este imposibilă.
+O plată mai mare din credit poate crește scorul de rambursare, dar trebuie să fie susținută de situația financiară a lunii.
 
-Pe scurt:
+Păstrarea unei rezerve de bani după plată contribuie la scorul de lichiditate.
 
-- Plată posibilă = 1 punct
-- Plată imposibilă = 0 puncte
+Utilizarea unui overdraft mai mare reduce scorul lunar.
 
-Scorul lunar nu înseamnă că ai ales perfect. El arată doar dacă decizia ta a putut fi executată în condițiile financiare ale lunii respective.
+Scorul lunar nu reprezintă o evaluare personală. El reflectă doar rezultatul financiar al deciziei introduse în condițiile lunii respective.
 
-### 🪙 Cum se calculează scorul final
+### Cum se calculează scorul final
 
-La finalul celor 24 de luni, se adună punctele obținute în fiecare lună.
+La finalul celor 24 de luni, platforma calculează scorul comportamental final.
 
-Scorul maxim lunar total este: **24 puncte**
+Scorul comportamental final este media scorurilor lunare obținute în cele 24 de luni.
 
-Apoi, scorul final este ajustat în funcție de situația financiară rămasă la finalul scenariului.
+Formula generală este:
 
-Se ține cont de:
+Scor comportamental final =
+media scorurilor lunare din cele 24 de luni
 
-- creditul rămas;
-- overdraftul rămas;
-- dobânzile și penalitățile acumulate.
+Bonusul final este calculat în funcție de scorul comportamental final.
 
-Cu cât rămân datorii mai mari la final, cu atât scorul final poate scădea.
+### Ce se afișează la final
 
-Overdraftul rămas scade scorul mai mult, deoarece arată că s-au folosit bani împrumutați suplimentar.
+La finalul experimentului vei vedea:
 
-Creditul ramas, dobânzile și penalitățile scad și ele scorul, deoarece sunt costuri acumulate pe parcursul jocului.
+- scorul comportamental final;
+- bonusul final obținut;
+- creditul rămas la final;
+- overdraftul utilizat la final;
+- dobânzile totale acumulate, dacă sunt afișate în versiunea finală a platformei.
 
-### 🖥️ Regula generală a scenariului
+### Regula generală a experimentului
 
 Scopul nu este să plătești mereu aceeași sumă.
 
 Scopul este să iei o decizie lunară care poate fi susținută de situația financiară a lunii respective.
 
-În unele luni poate fi ușor să plătești rata recomandată. În alte luni, din cauza cheltuielilor și veniturilor, decizia poate fi mai dificilă.
+În unele luni poate fi mai ușor să plătești rata lunară prevăzută în contract. În alte luni, din cauza veniturilor, cheltuielilor și dobânzilor, decizia poate fi mai dificilă.
 
 Trebuie să alegi suma pe care o consideri potrivită, ținând cont de:
 
 - venituri;
 - cheltuieli;
-- credit;
-- overdraft;
+- dobânda creditului;
+- dobânda overdraftului;
+- creditul rămas;
+- overdraftul utilizat;
+- banii disponibili înainte de plată;
 - riscul de a introduce o plată imposibilă.
 
-### Mesaj important înainte de începerea scenariului
+### Mesaj important înainte de începerea experimentului
 
 Te rugăm să citești cu atenție informațiile fiecărei luni înainte de a introduce suma de rambursat.
 
 După ce apeși „Confirmă decizia”, suma introdusă nu mai poate fi modificată.
 
 Dacă suma introdusă depășește resursele disponibile și limita de overdraft, plata nu va fi executată, iar scorul lunii va fi 0.
-
-Scenariul continuă până la finalul celor 24 de luni.
-"""
+""",
+        unsafe_allow_html=True,
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
