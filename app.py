@@ -1485,9 +1485,6 @@ elif st.session_state.page == "simulation":
         st.table(display_value_table(data["expenses"]))
         st.write(f"**Total cheltuieli:** {display_number(expenses_total)}")
 
-        st.markdown("**Obligații lunare**")
-        st.table(display_value_table(obligations))
-
     opening_balance_html = (
         f'<div class="decision-row positive"><strong>Sold inițial disponibil:</strong> {display_euro(opening_balance)}</div>'
         if month == 1
