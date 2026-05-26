@@ -1325,25 +1325,36 @@ Te rugăm să confirmi următoarele afirmații înainte de a continua:
         "Am înțeles că deciziile luate în cadrul experimentului nu afectează un credit real, un cont bancar sau un raport de credit.",
         "Sunt de acord să particip la acest studiu.",
     ]
-    consent_values = [
-        st.checkbox(item, key=f"consent_item_{index}")
-        for index, item in enumerate(consent_items)
-    ]
-    consent_complete = all(consent_values)
+    with st.form("consent_form"):
+        consent_values = [
+            st.checkbox(item, key=f"consent_item_{index}")
+            for index, item in enumerate(consent_items)
+        ]
+        consent_complete = all(consent_values)
 
-    col_accept, col_decline = st.columns([2, 1])
-    with col_accept:
-        if st.button(
-            "Sunt de acord și doresc să continui",
-            type="primary",
-            disabled=not consent_complete,
-            use_container_width=True,
-        ):
+        col_accept, col_decline = st.columns([2, 1])
+        with col_accept:
+            accept_clicked = st.form_submit_button(
+                "Sunt de acord și doresc să continui",
+                type="primary",
+                use_container_width=True,
+            )
+        with col_decline:
+            decline_clicked = st.form_submit_button(
+                "Nu sunt de acord",
+                type="secondary",
+                use_container_width=True,
+            )
+
+        if accept_clicked:
+            if not consent_complete:
+                st.warning("Te rugăm să confirmi toate afirmațiile înainte de a continua.")
+                st.stop()
             st.session_state.answers["consent_agreed"] = "1 - Da"
             st.session_state.scroll_to_top = True
             goto("pre_question_0")
-    with col_decline:
-        if st.button("Nu sunt de acord", type="secondary", use_container_width=True):
+
+        if decline_clicked:
             st.session_state.answers["consent_agreed"] = "0 - Nu"
             st.session_state.scroll_to_top = True
             goto("consent_declined")
