@@ -1168,15 +1168,209 @@ procesul decizional în situații economice riscante.
 
     if st.button("Începe scenariul →", type="primary"):
         st.session_state.scroll_to_top = True
-        goto("pre_question_0")
+        goto("consent")
+
+
+# ==================== INFORMED CONSENT ====================
+elif st.session_state.page == "consent":
+    scroll_top_anchor()
+    st.markdown("""
+<style>
+.consent-page {
+    text-align: justify;
+    font-family: 'Manrope', sans-serif;
+    color: var(--scenario-text);
+}
+.consent-page h2,
+.consent-page h3 {
+    font-family: 'Fraunces', serif;
+    color: var(--scenario-text);
+}
+.consent-page h2 {
+    margin-top: 0.4rem;
+    font-size: 1.45rem;
+}
+.consent-page h3 {
+    margin-top: 1.5rem;
+    font-size: 1.08rem;
+}
+.consent-page p,
+.consent-page li {
+    font-size: 0.96rem;
+    line-height: 1.7;
+}
+</style>
+""", unsafe_allow_html=True)
+
+    st.markdown('<div class="consent-page">', unsafe_allow_html=True)
+    st.markdown("""
+## Acord de participare și consimțământ informat
+
+### Titlul studiului
+
+Percepția riscului și decizia financiară în condiții de incertitudine
+
+### Invitație de participare
+
+Ești invitat(ă) să participi la un studiu de cercetare despre modul în care persoanele iau decizii financiare în condiții de incertitudine. Studiul include un experiment financiar structurat, în care vei lua decizii lunare privind rambursarea unui credit, pe baza unor informații despre venituri, cheltuieli, sold disponibil și evoluția obligațiilor financiare.
+
+Participarea este voluntară. Te rugăm să citești cu atenție informațiile de mai jos înainte de a decide dacă dorești să continui.
+
+### Scopul studiului
+
+Scopul studiului este de a analiza relația dintre profilul psihologic, percepția riscului, nivelul de stres și deciziile financiare luate într-un experiment de credit.
+
+Studiul urmărește să înțeleagă cum variază deciziile de rambursare în funcție de factori precum impulsivitatea, reglarea emoțională, toleranța la incertitudine, încrederea în propriile judecăți și reacțiile afective produse de sarcina financiară.
+
+### Ce presupune participarea
+
+Dacă accepți să participi, vei parcurge următoarele etape:
+
+- vei citi informațiile despre studiu și vei confirma consimțământul informat;
+- vei completa un scurt profil demografic;
+- vei răspunde la un chestionar psihologic inițial;
+- vei parcurge un experiment financiar structurat pe mai multe luni, în care vei lua decizii privind rambursarea unui credit;
+- vei completa un chestionar final despre starea ta psihologică după experiment și despre percepția asupra sarcinii.
+
+În cadrul experimentului, vei primi informații financiare lunare și vei decide suma pe care dorești să o aloci rambursării creditului. Experimentul este construit pentru a reflecta situații financiare realiste, fără a implica acces la conturi bancare reale sau modificări asupra unor obligații financiare personale.
+
+### Durata estimată
+
+Participarea durează aproximativ 30–45 de minute, în funcție de ritmul de completare.
+
+### Tipuri de date colectate
+
+În cadrul studiului pot fi colectate următoarele categorii de date:
+
+- răspunsuri la întrebări demografice generale;
+- răspunsuri la chestionare psihometrice;
+- deciziile introduse în cadrul experimentului financiar;
+- indicatori calculați automat pe baza deciziilor luate în experiment, precum soldul creditului, utilizarea overdraftului, penalități, dobânzi și scoruri experimentale;
+- răspunsuri la întrebări finale despre experiența în cadrul experimentului.
+
+Nu ți se va cere să furnizezi date bancare reale, parole, coduri de acces, extrase de cont reale sau informații financiare identificabile.
+
+Dacă studiul va include în viitor date suplimentare, precum date open banking, profil profesional sau date din alte surse, acestea vor fi prezentate separat și vor necesita consimțământ distinct. În această versiune a studiului, sarcina financiară se bazează exclusiv pe informațiile prezentate în platforma experimentală.
+
+### Natura experimentului
+
+Situațiile financiare, evenimentele lunare și informațiile prezentate în cadrul experimentului sunt construite pentru scopuri de cercetare. Acestea nu reprezintă o evaluare a situației tale financiare personale și nu produc efecte asupra vreunui credit real, cont bancar sau raport de credit.
+
+Deciziile tale din cadrul experimentului sunt folosite exclusiv în scop de cercetare.
+
+### Posibile riscuri sau disconfort
+
+Studiul include situații legate de credit, datorii, presiune financiară, stres, obligații lunare și incertitudine. Unele persoane pot resimți ușor disconfort, tensiune sau oboseală în timpul parcurgerii experimentului.
+
+Nu există răspunsuri corecte sau greșite. Nu evaluăm competența ta financiară și nu formulăm judecăți individuale despre deciziile tale.
+
+Poți întrerupe participarea în orice moment, fără să oferi explicații.
+
+### Beneficii
+
+Nu există un beneficiu personal direct garantat. Participarea ta poate contribui la o mai bună înțelegere a modului în care oamenii iau decizii financiare în contexte incerte sau stresante.
+
+Rezultatele pot fi folosite pentru cercetare academică, dezvoltarea unor modele de analiză comportamentală și proiectarea unor instrumente educaționale sau experimentale în domeniul finanțelor comportamentale.
+
+### Confidențialitate și anonimitate
+
+Datele vor fi analizate în formă anonimă sau pseudonimizată. Răspunsurile individuale nu vor fi publicate în mod identificabil.
+
+Dacă platforma folosește un cod de participant, acesta va fi utilizat doar pentru a lega răspunsurile inițiale, deciziile din cadrul experimentului și răspunsurile finale. Codul nu va fi folosit pentru identificarea publică a participantului.
+
+Rezultatele vor fi raportate agregat, de exemplu sub formă de medii, corelații, modele statistice sau grafice.
+
+### Participare voluntară și retragere
+
+Participarea este voluntară. Ai dreptul:
+
+- să refuzi participarea;
+- să întrerupi completarea în orice moment;
+- să nu răspunzi la o întrebare, dacă aceasta permite opțiune de necompletare;
+- să soliciți informații suplimentare despre studiu.
+
+Retragerea din studiu nu va avea consecințe negative asupra ta.
+
+### Compensație
+
+Participarea la acest studiu poate include o compensație fixă pentru participare și/sau o recompensă experimentală calculată pe baza deciziilor luate în cadrul experimentului financiar.
+
+Recompensa experimentală are rol exclusiv de stimulent în cadrul studiului și nu reprezintă o evaluare reală a situației financiare, a competenței financiare sau a bonității participantului.
+
+### Utilizarea rezultatelor
+
+Datele colectate pot fi utilizate pentru: analize statistice; lucrări științifice; prezentări academice; rapoarte de cercetare; dezvoltarea unor modele experimentale privind decizia financiară.
+
+Nicio publicație sau prezentare nu va include informații care să permită identificarea directă a participanților.
+
+### Contact
+
+Pentru întrebări despre studiu sau despre utilizarea datelor, poți contacta echipa de cercetare la:
+
+coita.iflorina@gmail.com
+
+### Declarație de consimțământ
+
+Te rugăm să confirmi următoarele afirmații înainte de a continua:
+""")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    consent_items = [
+        "Am citit și am înțeles informațiile despre studiu.",
+        "Am înțeles că participarea este voluntară.",
+        "Am înțeles că pot întrerupe participarea în orice moment.",
+        "Am înțeles că voi parcurge un experiment financiar care poate include situații de presiune financiară, stres și incertitudine.",
+        "Am înțeles că datele mele vor fi analizate anonim sau pseudonimizat.",
+        "Am înțeles că nu mi se cer date bancare reale sau informații financiare identificabile.",
+        "Am înțeles că deciziile luate în cadrul experimentului nu afectează un credit real, un cont bancar sau un raport de credit.",
+        "Sunt de acord să particip la acest studiu.",
+    ]
+    consent_values = [
+        st.checkbox(item, key=f"consent_item_{index}")
+        for index, item in enumerate(consent_items)
+    ]
+    consent_complete = all(consent_values)
+
+    col_accept, col_decline = st.columns([2, 1])
+    with col_accept:
+        if st.button(
+            "Sunt de acord și doresc să continui",
+            type="primary",
+            disabled=not consent_complete,
+            use_container_width=True,
+        ):
+            st.session_state.answers["consent_agreed"] = "1 - Da"
+            st.session_state.scroll_to_top = True
+            goto("pre_question_0")
+    with col_decline:
+        if st.button("Nu sunt de acord", type="secondary", use_container_width=True):
+            st.session_state.answers["consent_agreed"] = "0 - Nu"
+            st.session_state.scroll_to_top = True
+            goto("consent_declined")
+
+
+# ==================== CONSENT DECLINED ====================
+elif st.session_state.page == "consent_declined":
+    scroll_top_anchor()
+    st.title("Participare întreruptă")
+    st.markdown(
+        "Ai ales să nu îți dai consimțământul pentru participare. Participarea este voluntară, "
+        "iar chestionarul nu va începe fără acordul tău."
+    )
+    if st.button("Înapoi la acordul de participare", type="primary"):
+        st.session_state.scroll_to_top = True
+        goto("consent")
 
 
 # ==================== PRE-SIMULATION QUESTIONS ====================
 elif st.session_state.page == "pre_questions":
-    goto("pre_question_0")
+    goto("consent" if st.session_state.answers.get("consent_agreed") != "1 - Da" else "pre_question_0")
 
 elif st.session_state.page.startswith("pre_question_"):
     scroll_top_anchor()
+    if st.session_state.answers.get("consent_agreed") != "1 - Da":
+        goto("consent")
+
     try:
         pre_index = int(st.session_state.page.rsplit("_", 1)[1])
     except Exception:
