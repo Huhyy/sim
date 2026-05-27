@@ -2080,8 +2080,11 @@ elif st.session_state.page == "simulation":
             st.warning("Vă rugăm să introduceți o sumă numerică validă, mai mare sau egală cu 0.")
             st.stop()
 
-        result = compute_month_result(month, data, loan, overdraft, payment)
+        result = normalize_month_result_score(compute_month_result(month, data, loan, overdraft, payment))
         st.session_state.pending_month_result = result
+        if not persist_month_result_snapshot(result, bonus_max_session=get_bonus_max_session()):
+            st.error("Eroare la salvarea lunii curente. Te rugăm să reîncarci pagina și să încerci din nou.")
+            st.stop()
         goto("month_feedback")
 
 
