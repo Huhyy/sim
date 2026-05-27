@@ -11,6 +11,7 @@ from questions import PRE_SECTIONS, POST_SECTIONS
 from state_manager import (
     REPEAT_SCENARIO_DEV_MODE,
     bootstrap_authenticated_session,
+    ensure_current_scenario_version,
     finalize_participant,
     persist_checkpoint,
     start_new_scenario,
@@ -815,6 +816,8 @@ if not is_logged_in():
 if not st.session_state.get("_bootstrap_done"):
     bootstrap_authenticated_session()
     st.session_state._bootstrap_done = True
+else:
+    ensure_current_scenario_version()
 
 
 def render_account_menu():

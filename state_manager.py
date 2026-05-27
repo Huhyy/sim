@@ -28,6 +28,13 @@ def _feature_flag(name, default):
 
 
 REPEAT_SCENARIO_DEV_MODE = _feature_flag("ALLOW_REPEAT_PARTICIPATION", "true")
+SCENARIO_VERSION = "income-baseline-950-initial-150"
+
+
+def clear_payment_values():
+    for key in list(st.session_state.keys()):
+        if key.startswith("payment_"):
+            del st.session_state[key]
 
 
 def get_query_param(name):
@@ -134,6 +141,7 @@ def runtime_defaults():
         "submission_finalized": False,
         "already_completed": False,
         "saved": False,
+        "scenario_version": SCENARIO_VERSION,
     }
 
 
@@ -146,6 +154,7 @@ def collect_checkpoint():
     }
 
     return {
+        "scenario_version": SCENARIO_VERSION,
         "page": st.session_state.get("page", "home"),
         "month": st.session_state.get("month", 1),
         "loan_balance": st.session_state.loan.balance,
@@ -205,6 +214,7 @@ def persist_checkpoint(status=None):
 
 def hydrate_from_checkpoint(checkpoint):
     defaults = runtime_defaults()
+    clear_payment_values()
     for key, value in defaults.items():
         if key not in ("loan", "overdraft", "session_id"):
             st.session_state[key] = value
@@ -240,6 +250,31 @@ def hydrate_from_checkpoint(checkpoint):
 
     for key, value in (checkpoint.get("payment_values") or {}).items():
         st.session_state[key] = value
+
+
+def reset_current_session_for_scenario_version():
+    session_id = resolve_session_id()
+    clear_payment_values()
+    defaults = runtime_defaults()
+    for key, value in defaults.items():
+        if key not in ("session_id",):
+            st.session_state[key] = value
+    st.session_state.session_id = session_id
+    persist_checkpoint()
+    st.session_state.checkpoint_last_load = {
+        "ok": False,
+        "source": "supabase",
+        "session_id": session_id,
+        "reset_reason": "Scenario data changed; old checkpoint was reset.",
+        "scenario_version": SCENARIO_VERSION,
+    }
+
+
+def ensure_current_scenario_version():
+    current_version = st.session_state.get("scenario_version")
+    if current_version == SCENARIO_VERSION:
+        return
+    reset_current_session_for_scenario_version()
 
 
 
@@ -287,6 +322,11 @@ def bootstrap_authenticated_session():
         }
         checkpoint = None
 
+    checkpoint_reset = False
+    if checkpoint and checkpoint.get("scenario_version") != SCENARIO_VERSION:
+        checkpoint = None
+        checkpoint_reset = True
+
     if checkpoint:
         hydrate_from_checkpoint(checkpoint)
         st.session_state.session_id = session_id
@@ -299,6 +339,7 @@ def bootstrap_authenticated_session():
         }
     else:
         defaults = runtime_defaults()
+        clear_payment_values()
         for key, value in defaults.items():
             if key not in ("loan", "overdraft", "session_id"):
                 st.session_state[key] = value
@@ -306,6 +347,14 @@ def bootstrap_authenticated_session():
         st.session_state.loan = defaults["loan"]
         st.session_state.overdraft = defaults["overdraft"]
         persist_checkpoint()
+        if checkpoint_reset:
+            st.session_state.checkpoint_last_load = {
+                "ok": False,
+                "source": "supabase",
+                "session_id": session_id,
+                "reset_reason": "Scenario data changed; old checkpoint was reset.",
+                "scenario_version": SCENARIO_VERSION,
+            }
 
     if is_new_session:
         save_resume_link(account_key, session_id)
@@ -320,6 +369,7 @@ def start_new_scenario():
         raise RuntimeError("Authentication is required before starting a new scenario.")
 
     defaults = runtime_defaults()
+    clear_payment_values()
     for key, value in defaults.items():
         st.session_state[key] = value
 
