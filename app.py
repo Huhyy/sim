@@ -285,6 +285,30 @@ div[data-testid="stExpander"] details[open] > summary svg {
     margin-top: 0 !important;
 }
 
+.final-score-card {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: fit-content;
+    min-width: 10.5rem;
+    margin: 0.35rem 0 1.2rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(207, 191, 153, 0.82);
+    border-radius: 0.95rem;
+    background: rgba(255, 250, 240, 0.72);
+}
+
+.final-score-label {
+    color: #65716e;
+    font: 700 0.78rem/1.2 'Manrope', sans-serif;
+}
+
+.final-score-value {
+    color: var(--scenario-text);
+    font: 600 1.7rem/1.1 'Manrope', sans-serif;
+    letter-spacing: -0.02em;
+}
+
 .st-key-account_menu {
     position: fixed;
     left: 1rem;
@@ -2175,9 +2199,16 @@ elif st.session_state.page == "final_score":
     st.markdown("### Scor comportamental final")
     st.markdown(
         f"""
-**Scor comportamental final:** {display_number(breakdown["final_score"])} / 100
-
-**Bonus final obținut:** {display_euro(breakdown["bonus_final"])} / {display_euro(breakdown["bonus_max_session"])}
+<div class="final-score-card">
+  <span class="final-score-label">Scor comportamental final</span>
+  <span class="final-score-value">{display_number(breakdown["final_score"])} / 100</span>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f"""
+**Bonus final obținut:** {display_euro(breakdown["bonus_final"])}
 
 ### Rezumat financiar final
 
