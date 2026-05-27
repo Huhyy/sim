@@ -18,7 +18,7 @@ from state_manager import (
 )
 
 DEV = os.getenv("SCENARIO_DEV", "").lower() == "true"
-RECOMMENDED_BUFFER = 150.0
+RECOMMENDED_BUFFER = 5.0
 SESSION_MONTHS = 24
 
 

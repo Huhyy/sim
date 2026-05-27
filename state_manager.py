@@ -28,7 +28,7 @@ def _feature_flag(name, default):
 
 
 REPEAT_SCENARIO_DEV_MODE = _feature_flag("ALLOW_REPEAT_PARTICIPATION", "true")
-SCENARIO_VERSION = "income-baseline-950-initial-150"
+SCENARIO_VERSION = "income-baseline-1050-initial-150"
 
 
 def clear_payment_values():
