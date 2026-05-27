@@ -16,6 +16,7 @@ save_session_checkpoint = getattr(db_module, "save_session_checkpoint", lambda *
 account_has_completed = getattr(db_module, "account_has_completed", lambda *_args, **_kwargs: False)
 load_linked_session_id = getattr(db_module, "load_linked_session_id", lambda *_args, **_kwargs: None)
 save_resume_link = getattr(db_module, "save_resume_link", lambda *_args, **_kwargs: None)
+db_save_month_result = getattr(db_module, "save_month_result", lambda *_args, **_kwargs: None)
 db_finalize_participation = getattr(db_module, "finalize_participation")
 
 
@@ -100,7 +101,38 @@ def resolve_session_id():
     return None
 
 
-def finalize_participant(session_id, answers, final_score):
+def persist_month_result_snapshot(result, bonus_max_session=24.0):
+    session_id = resolve_session_id()
+    if not session_id:
+        return False
+
+    try:
+        db_save_month_result(session_id, result, bonus_max_session=bonus_max_session)
+        st.session_state.month_snapshot_last_save = {
+            "ok": True,
+            "session_id": session_id,
+            "month": result.get("month"),
+        }
+        return True
+    except Exception as e:
+        st.session_state.month_snapshot_last_save = {
+            "ok": False,
+            "session_id": session_id,
+            "month": result.get("month"),
+            "error": str(e),
+        }
+        return False
+
+
+def finalize_participant(
+    session_id,
+    answers,
+    final_score,
+    monthly_results=None,
+    summary=None,
+    pre_sections=None,
+    post_sections=None,
+):
     resolved_session_id = session_id or resolve_session_id()
     if not resolved_session_id:
         raise ValueError("Missing session_id")
@@ -115,6 +147,10 @@ def finalize_participant(session_id, answers, final_score):
         answers,
         final_score,
         allow_repeat=REPEAT_SCENARIO_DEV_MODE,
+        monthly_results=monthly_results,
+        summary=summary,
+        pre_sections=pre_sections,
+        post_sections=post_sections,
     )
     st.session_state.submission_finalized = True
     clear_query_param("sid")

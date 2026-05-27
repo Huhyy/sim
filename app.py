@@ -10,10 +10,12 @@ from tables import get_month
 from questions import PRE_SECTIONS, POST_SECTIONS
 from state_manager import (
     REPEAT_SCENARIO_DEV_MODE,
+    SCENARIO_VERSION,
     bootstrap_authenticated_session,
     ensure_current_scenario_version,
     finalize_participant,
     persist_checkpoint,
+    persist_month_result_snapshot,
     start_new_scenario,
 )
 
@@ -2106,6 +2108,7 @@ elif st.session_state.page == "month_feedback":
         st.session_state.monthly_points += result["monthly_score"]
         st.session_state.accumulated_costs += result["costs_this_month"]
         st.session_state.monthly_results.append(result)
+        persist_month_result_snapshot(result, bonus_max_session=get_bonus_max_session())
         st.session_state.pending_month_result = None
         st.session_state.month += 1
         goto("simulation")
@@ -2212,6 +2215,16 @@ elif st.session_state.page == "done":
                 st.session_state.session_id,
                 st.session_state.answers,
                 st.session_state.final_score,
+                monthly_results=[
+                    normalize_month_result_score(result)
+                    for result in st.session_state.get("monthly_results", [])
+                ],
+                summary={
+                    **breakdown,
+                    "scenario_version": SCENARIO_VERSION,
+                },
+                pre_sections=PRE_SECTIONS,
+                post_sections=POST_SECTIONS,
             )
             st.session_state.saved = True
         except Exception as e:

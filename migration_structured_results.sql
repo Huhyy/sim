@@ -1,5 +1,5 @@
--- Current Supabase schema for the scenario app.
--- This is intentionally structured only: no legacy participants/months/study_responses blob tables.
+-- Structured result storage for the scenario app.
+-- Run this once in Supabase SQL Editor before deploying the matching app code.
 
 DROP FUNCTION IF EXISTS finalize_study_response(TEXT, UUID, NUMERIC, TEXT, JSONB);
 DROP TABLE IF EXISTS legacy_responses CASCADE;
@@ -14,9 +14,13 @@ CREATE TABLE IF NOT EXISTS participant_sessions (
   completed_at TIMESTAMPTZ,
   status TEXT NOT NULL DEFAULT 'in_progress',
   current_page TEXT,
-  checkpoint JSONB NOT NULL DEFAULT '{}'::jsonb,
-  demographics JSONB NOT NULL DEFAULT '{}'::jsonb
+  checkpoint JSONB NOT NULL DEFAULT '{}'::jsonb
 );
+
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS demographics JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+ALTER TABLE participant_sessions ENABLE ROW LEVEL SECURITY;
 
 CREATE TABLE IF NOT EXISTS psychometric_pre_answers (
   session_id UUID NOT NULL REFERENCES participant_sessions(id) ON DELETE CASCADE,
@@ -113,7 +117,6 @@ CREATE TABLE IF NOT EXISTS completed_accounts (
   completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-ALTER TABLE participant_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE psychometric_pre_answers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE psychometric_post_answers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE month_results ENABLE ROW LEVEL SECURITY;

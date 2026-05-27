@@ -1,19 +1,22 @@
 # Google Authentication Setup
 
-The app uses Google authentication only to resume unfinished participation and prevent duplicate submissions. It stores a peppered HMAC account key in Supabase, never the participant's email or Google profile alongside responses.
+The app uses Google authentication only to resume unfinished participation and prevent duplicate submissions. It stores a peppered HMAC account key in Supabase, never the participant's email or Google profile beside experimental answers.
 
-## 1. Run The Supabase Migration
+## 1. Run The Supabase Schema
 
-Run `migration_identity_separation.sql` once in the Supabase SQL Editor before allowing participants to use the authenticated app.
+Run `setup.sql` or `migration_structured_results.sql` once in the Supabase SQL Editor before allowing participants to use the app.
 
-The migration:
+The schema:
 
-- creates `study_responses` for anonymous final responses;
+- creates `participant_sessions` as the session connector and recovery checkpoint table;
+- creates `psychometric_pre_answers` with one row per pre-questionnaire answer;
+- creates `psychometric_post_answers` with one row per post-questionnaire answer;
+- creates `month_results` with one row per session and month, including `cash_final`;
+- creates `session_summaries` for final score, bonus, and financial totals;
 - creates `resume_links` for temporary in-progress recovery;
 - creates `completed_accounts` for duplicate prevention only;
-- protects the old `participants` answer table as legacy response data;
-- enables Row Level Security on sensitive public tables;
-- installs the atomic `finalize_study_response` function.
+- drops old legacy result tables/functions: `participants`, `months`, `legacy_responses`, `study_responses`, and `finalize_study_response`;
+- enables Row Level Security on all app tables.
 
 ## 2. Configure Google OIDC
 
@@ -58,15 +61,15 @@ Set `ALLOW_REPEAT_PARTICIPATION = true` only during testing. Set it to `false` b
 While a participant is in progress:
 
 - `resume_links` contains only the opaque account key and random session id;
-- `participant_sessions` contains the recoverable checkpoint, including in-progress questionnaire responses.
+- `participant_sessions` contains the recoverable checkpoint for that same session id.
 
-At final submission, one database transaction:
+At final submission:
 
-- saves answers and final score to `study_responses` under an unrelated response id;
-- records the opaque key alone in `completed_accounts`;
-- deletes the temporary `resume_links` row;
-- deletes the answer-bearing `participant_sessions` row.
+- `psychometric_pre_answers` stores pre-questionnaire answers by `session_id`;
+- `psychometric_post_answers` stores post-questionnaire answers by `session_id`;
+- `month_results` stores monthly decisions and calculated financial state by `session_id` and `month_number`;
+- `session_summaries` stores the final score and financial summary by `session_id`;
+- `completed_accounts` stores only the opaque account key for duplicate prevention;
+- the temporary `resume_links` row is deleted.
 
-The completed response has no account key, session id, Google email, or Google user identifier.
-
-Once deployment is complete and no previous app version writes to `participants`, that table can be renamed to `legacy_responses` for clarity or exported and archived.
+The completed experimental data is connected by session id, not by Google email, name, or profile photo.
