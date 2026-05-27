@@ -187,6 +187,35 @@ def _active_resume_link_exists(client, account_key: str, session_id: str):
     return bool(getattr(response, "data", None) or [])
 
 
+def _session_exists_for_finalization(client, session_id: str):
+    response = (
+        client
+        .table("participant_sessions")
+        .select("id,status")
+        .eq("id", session_id)
+        .limit(1)
+        .execute()
+    )
+    data = getattr(response, "data", None) or []
+    if not data:
+        return False
+    return data[0].get("status") != "completed"
+
+
+def _repair_missing_resume_link(client, account_key: str, session_id: str):
+    if not _session_exists_for_finalization(client, session_id):
+        return False
+
+    client.table("resume_links").upsert(
+        {
+            "account_key": account_key,
+            "session_id": session_id,
+            "updated_at": _utcnow(),
+        }
+    ).execute()
+    return True
+
+
 def _psychometric_rows(session_id: str, answers: dict, sections):
     rows = []
     question_number = 1
@@ -339,7 +368,7 @@ def finalize_participation(
     if not allow_repeat and account_has_completed(account_key):
         raise RuntimeError("This participant has already completed the study.")
 
-    if not _active_resume_link_exists(client, account_key, session_id):
+    if not _active_resume_link_exists(client, account_key, session_id) and not _repair_missing_resume_link(client, account_key, session_id):
         raise RuntimeError("No active session is associated with this participant.")
 
     summary = summary or {}
