@@ -294,14 +294,11 @@ def bootstrap_authenticated_session():
 
     linked_session_id = load_linked_session_id(account_key)
     url_session_id = get_query_param("sid")
-    is_new_session = not linked_session_id and not url_session_id
+    unsafe_url_session_id = bool(url_session_id and not linked_session_id)
+    is_new_session = not linked_session_id
 
     if linked_session_id:
         session_id = linked_session_id
-    elif url_session_id:
-        session_id = url_session_id
-        # Claim an existing URL checkpoint before loading any sensitive answers.
-        save_resume_link(account_key, session_id)
     else:
         session_id = str(uuid.uuid4())
 
@@ -358,6 +355,14 @@ def bootstrap_authenticated_session():
 
     if is_new_session:
         save_resume_link(account_key, session_id)
+        if unsafe_url_session_id:
+            st.session_state.checkpoint_last_load = {
+                "ok": False,
+                "source": "supabase",
+                "session_id": session_id,
+                "ignored_url_session_id": url_session_id,
+                "reset_reason": "URL session id was not linked to this account, so a fresh session was created.",
+            }
 
 
 def start_new_scenario():
