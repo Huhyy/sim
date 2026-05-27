@@ -64,7 +64,7 @@ def _parse(value):
 
 def _parsed_answers(answers: dict):
     return {
-        key: _parse(value)
+        key: _parse(value) if _parse(value) is not None else value
         for key, value in answers.items()
         if key != "feedback"
     }

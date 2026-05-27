@@ -853,6 +853,25 @@ def all_answered(sections):
     return True
 
 
+DEMOGRAPHIC_KEYS = [
+    "demo_age",
+    "demo_gender",
+    "demo_education",
+    "demo_field",
+    "demo_occupation",
+    "demo_financial_decisions",
+    "demo_credit_experience",
+    "demo_financial_familiarity",
+    "demo_living_situation",
+    "demo_recurring_responsibilities",
+    "demo_country",
+]
+
+
+def demographics_complete():
+    return all(st.session_state.answers.get(key) not in (None, "") for key in DEMOGRAPHIC_KEYS)
+
+
 def render_quiz_chapter(
     section,
     chapter_index,
@@ -1352,7 +1371,7 @@ Te rugăm să confirmi următoarele afirmații înainte de a continua:
                 st.stop()
             st.session_state.answers["consent_agreed"] = "1 - Da"
             st.session_state.scroll_to_top = True
-            goto("pre_question_0")
+            goto("demographics")
 
         if decline_clicked:
             st.session_state.answers["consent_agreed"] = "0 - Nu"
@@ -1373,14 +1392,164 @@ elif st.session_state.page == "consent_declined":
         goto("consent")
 
 
+# ==================== DEMOGRAPHIC PROFILE ====================
+elif st.session_state.page == "demographics":
+    scroll_top_anchor()
+    if st.session_state.answers.get("consent_agreed") != "1 - Da":
+        goto("consent")
+
+    st.markdown("""
+<style>
+.demographics-page {
+    text-align: justify;
+    font-family: 'Manrope', sans-serif;
+    color: var(--scenario-text);
+}
+.demographics-page h2 {
+    margin-top: 0.4rem;
+    font-family: 'Fraunces', serif;
+    font-size: 1.45rem;
+    color: var(--scenario-text);
+}
+.demographics-page p {
+    font-size: 0.98rem;
+    line-height: 1.72;
+}
+</style>
+""", unsafe_allow_html=True)
+
+    st.markdown(
+        """
+<div class="demographics-page">
+<h2>Profil demografic</h2>
+<p>Următoarele întrebări ne ajută să descriem eșantionul de participanți la nivel general. Răspunsurile vor fi analizate agregat și nu vor fi folosite pentru identificarea ta.</p>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+    gender_options = ["Femeie", "Bărbat", "Non-binar / altă identitate de gen", "Prefer să nu răspund"]
+    education_options = [
+        "Studii liceale",
+        "Studii postliceale",
+        "Studii universitare de licență",
+        "Studii universitare de master",
+        "Studii doctorale",
+        "Alt nivel de educație",
+        "Prefer să nu răspund",
+    ]
+    field_options = [
+        "Economie / Finanțe / Contabilitate / Business",
+        "Informatică / Tehnologie / Inginerie",
+        "Științe sociale / Psihologie / Educație",
+        "Medicină / Științe ale vieții",
+        "Drept / Administrație publică",
+        "Arte / Științe umaniste",
+        "Alt domeniu",
+        "Prefer să nu răspund",
+    ]
+    occupation_options = [
+        "Student(ă)",
+        "Angajat(ă) cu normă întreagă",
+        "Angajat(ă) cu normă parțială",
+        "Lucrător independent / freelancer / antreprenor",
+        "Șomer(ă) / în căutarea unui loc de muncă",
+        "Inactiv profesional / altă situație",
+        "Prefer să nu răspund",
+    ]
+    frequency_options = ["Niciodată sau aproape niciodată", "Rar", "Uneori", "Des", "Foarte des", "Prefer să nu răspund"]
+    credit_options = ["Da", "Nu", "Nu sunt sigur(ă)", "Prefer să nu răspund"]
+    familiarity_options = ["Deloc familiar(ă)", "Puțin familiar(ă)", "Moderat familiar(ă)", "Familiar(ă)", "Foarte familiar(ă)", "Prefer să nu răspund"]
+    living_options = ["Locuiesc singur(ă)", "Locuiesc cu partenerul/partenera", "Locuiesc cu familia", "Locuiesc cu colegi/prieteni", "Altă situație", "Prefer să nu răspund"]
+    yes_no_options = ["Da", "Nu", "Prefer să nu răspund"]
+
+    def radio_index(key, options):
+        current = st.session_state.answers.get(key)
+        return options.index(current) if current in options else None
+
+    with st.form("demographics_form"):
+        st.markdown("**1. Vârsta**")
+        st.caption("Răspuns numeric")
+        age = st.number_input(
+            "Te rugăm să introduci vârsta ta în ani împliniți:",
+            min_value=18,
+            max_value=75,
+            step=1,
+            value=st.session_state.answers.get("demo_age"),
+        )
+        st.caption("Recomandare tehnică: acceptă doar valori între 18 și 75")
+
+        st.markdown("**2. Genul**")
+        gender = st.radio("Cum te identifici?", gender_options, index=radio_index("demo_gender", gender_options))
+
+        st.markdown("**3. Nivelul de educație**")
+        education = st.radio("Care este cel mai înalt nivel de educație finalizat?", education_options, index=radio_index("demo_education", education_options))
+
+        st.markdown("**4. Domeniul principal de studiu sau activitate**")
+        field = st.radio("Care este domeniul tău principal de studiu sau activitate profesională?", field_options, index=radio_index("demo_field", field_options))
+
+        st.markdown("**5. Statut ocupațional**")
+        occupation = st.radio("Care este statutul tău principal în prezent?", occupation_options, index=radio_index("demo_occupation", occupation_options))
+
+        st.markdown("**6. Experiență cu decizii financiare personale**")
+        financial_decisions = st.radio("Cât de des iei decizii legate de buget personal, plăți, economisire sau datorii?", frequency_options, index=radio_index("demo_financial_decisions", frequency_options))
+
+        st.markdown("**7. Experiență anterioară cu produse de creditare**")
+        credit_experience = st.radio("Ai utilizat vreodată un produs de creditare, cum ar fi credit de nevoi personale, card de credit, overdraft, credit ipotecar sau cumpărături în rate?", credit_options, index=radio_index("demo_credit_experience", credit_options))
+
+        st.markdown("**8. Familiaritate cu conceptele financiare**")
+        financial_familiarity = st.radio("Cât de familiar(ă) ești cu termeni precum dobândă, rată lunară, sold restant, penalitate sau overdraft?", familiarity_options, index=radio_index("demo_financial_familiarity", familiarity_options))
+
+        st.markdown("**9. Situație de trai**")
+        living_situation = st.radio("Care variantă descrie cel mai bine situația ta actuală de trai?", living_options, index=radio_index("demo_living_situation", living_options))
+
+        st.markdown("**10. Responsabilități financiare recurente**")
+        recurring_responsibilities = st.radio("Ai responsabilități financiare recurente, cum ar fi chirie, rate, întreținere, sprijin pentru familie sau alte obligații lunare?", yes_no_options, index=radio_index("demo_recurring_responsibilities", yes_no_options))
+
+        st.markdown("**11. Țara de rezidență**")
+        st.caption("Răspuns liber")
+        country = st.text_input("În ce țară locuiești în prezent?", value=st.session_state.answers.get("demo_country", ""))
+
+        submitted = st.form_submit_button("Continuă către chestionar →", type="primary", use_container_width=True)
+
+        if submitted:
+            values = {
+                "demo_age": int(age) if age is not None else None,
+                "demo_gender": gender,
+                "demo_education": education,
+                "demo_field": field,
+                "demo_occupation": occupation,
+                "demo_financial_decisions": financial_decisions,
+                "demo_credit_experience": credit_experience,
+                "demo_financial_familiarity": financial_familiarity,
+                "demo_living_situation": living_situation,
+                "demo_recurring_responsibilities": recurring_responsibilities,
+                "demo_country": country.strip(),
+            }
+            if any(value in (None, "") for value in values.values()):
+                st.warning("Te rugăm să răspunzi la toate întrebările înainte de a continua.")
+                st.stop()
+
+            st.session_state.answers.update(values)
+            st.session_state.scroll_to_top = True
+            goto("pre_question_0")
+
+
 # ==================== PRE-SIMULATION QUESTIONS ====================
 elif st.session_state.page == "pre_questions":
-    goto("consent" if st.session_state.answers.get("consent_agreed") != "1 - Da" else "pre_question_0")
+    if st.session_state.answers.get("consent_agreed") != "1 - Da":
+        goto("consent")
+    elif not demographics_complete():
+        goto("demographics")
+    else:
+        goto("pre_question_0")
 
 elif st.session_state.page.startswith("pre_question_"):
     scroll_top_anchor()
     if st.session_state.answers.get("consent_agreed") != "1 - Da":
         goto("consent")
+    if not demographics_complete():
+        goto("demographics")
 
     try:
         pre_index = int(st.session_state.page.rsplit("_", 1)[1])
