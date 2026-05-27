@@ -288,7 +288,7 @@ div[data-testid="stExpander"] details[open] > summary svg {
 .st-key-account_menu {
     position: fixed;
     left: 1rem;
-    bottom: 1rem;
+    top: 1rem;
     z-index: 9999;
     width: fit-content;
     max-width: calc(100vw - 2rem);
@@ -304,7 +304,7 @@ div[data-testid="stExpander"] details[open] > summary svg {
 
 .st-key-account_menu details {
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
 }
 
 .st-key-account_menu details > summary {
@@ -315,7 +315,7 @@ div[data-testid="stExpander"] details[open] > summary svg {
 
 .st-key-account_menu details[open] > summary {
     background: #fbf8f0 !important;
-    border-top: 1px solid #e5decc;
+    border-bottom: 1px solid #e5decc;
 }
 
 .st-key-account_menu details > summary p,
