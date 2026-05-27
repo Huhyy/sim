@@ -1,7 +1,7 @@
 {
   "1": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 750.0,
       "other": 0
     },
@@ -21,12 +21,12 @@
       "penalties": 0
     },
     "position": {
-      "initial": 350
+      "initial": 150
     }
   },
   "2": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 750.0,
       "other": 0
     },
@@ -52,7 +52,7 @@
   },
   "3": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 750.0,
       "other": 0
     },
@@ -78,7 +78,7 @@
   },
   "4": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 643.34,
       "other": 0
     },
@@ -104,7 +104,7 @@
   },
   "5": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 643.34,
       "other": 0
     },
@@ -130,7 +130,7 @@
   },
   "6": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 643.34,
       "other": 0
     },
@@ -156,7 +156,7 @@
   },
   "7": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 643.34,
       "other": 0
     },
@@ -182,7 +182,7 @@
   },
   "8": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "bonus_andrei": 392.05,
       "maria": 643.34,
       "other": 0
@@ -208,7 +208,7 @@
   },
   "9": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 643.34,
       "other": 0
     },
@@ -234,7 +234,7 @@
   },
   "10": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 643.34,
       "other": 0
     },
@@ -260,7 +260,7 @@
   },
   "11": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 643.34,
       "other": 0
     },
@@ -285,7 +285,7 @@
   },
   "12": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "bonus_andrei": 261.36,
       "maria": 643.34,
       "bonus_maria": 266.66,
@@ -314,7 +314,7 @@
   },
   "13": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 643.34,
       "other": 0
     },
@@ -339,7 +339,7 @@
   },
   "14": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 550.0,
       "other": 0
     },
@@ -365,7 +365,7 @@
   },
   "15": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 523.34,
       "other": 0
     },
@@ -391,7 +391,7 @@
   },
   "16": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 523.34,
       "other": 0
     },
@@ -418,7 +418,7 @@
   },
   "17": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 510.0,
       "other": 0
     },
@@ -445,7 +445,7 @@
   },
   "18": {
     "income": {
-      "andrei": 1256.82,
+      "andrei": 1106.82,
       "maria": 350.0,
       "other": 0
     },
@@ -472,7 +472,7 @@
   },
   "19": {
     "income": {
-      "andrei": 1126.14,
+      "andrei": 976.14,
       "maria": 83.34,
       "other": 0
     },
@@ -499,7 +499,7 @@
   },
   "20": {
     "income": {
-      "andrei": 1126.14,
+      "andrei": 976.14,
       "maria": 283.34,
       "other": 0
     },
@@ -525,7 +525,7 @@
   },
   "21": {
     "income": {
-      "andrei": 1126.14,
+      "andrei": 976.14,
       "maria": 283.34,
       "other": 0
     },
@@ -551,7 +551,7 @@
   },
   "22": {
     "income": {
-      "andrei": 1282.95,
+      "andrei": 1132.95,
       "maria": 283.34,
       "other": 0
     },
@@ -577,7 +577,7 @@
   },
   "23": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 283.34,
       "other": 0
     },
@@ -603,7 +603,7 @@
   },
   "24": {
     "income": {
-      "andrei": 1100.0,
+      "andrei": 950.0,
       "maria": 283.34,
       "other": 0
     },
