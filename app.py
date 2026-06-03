@@ -5,9 +5,19 @@ import streamlit as st
 import pandas as pd
 
 from auth_manager import is_logged_in
-from narratives import get_narrative
 from tables import get_month
-from questions import PRE_SECTIONS, POST_SECTIONS
+from questions import PRE_SECTIONS as PRE_SECTIONS_RO
+from questions import POST_SECTIONS as POST_SECTIONS_RO
+from i18n import (
+    ensure_language,
+    get_category_label,
+    get_display_post_sections,
+    get_display_pre_sections,
+    get_language,
+    get_localized_narrative,
+    set_language,
+    t,
+)
 from state_manager import (
     REPEAT_SCENARIO_DEV_MODE,
     SCENARIO_VERSION,
@@ -84,6 +94,20 @@ header {visibility: hidden;}
     box-shadow:
         0 28px 72px rgba(0, 0, 0, 0.34),
         0 2px 0 rgba(255, 255, 255, 0.75) inset;
+}
+
+.st-key-lang_ro button,
+.st-key-lang_en button {
+    min-height: 2.4rem;
+    border-radius: 999px !important;
+    font: 700 0.78rem/1 'Manrope', sans-serif !important;
+}
+
+.language-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
 }
 
 body:has(.st-key-auth_card) [data-testid="stMain"] {
@@ -551,27 +575,27 @@ def scroll_top_anchor():
         st.session_state.scroll_to_top = False
 
 
-def auto_open_context_narrativ(month):
+def auto_open_context_narrativ(expander_label):
     st.components.v1.html(
-        """
+        f"""
 <script>
-(function() {
-  function openNarrative() {
-    try {
+(function() {{
+  function openNarrative() {{
+    try {{
       var doc = window.parent.document;
-      var expander = Array.from(doc.querySelectorAll('details')).find(function(el) {
-        return (el.textContent || '').includes('Context narativ');
-      });
+      var expander = Array.from(doc.querySelectorAll('details')).find(function(el) {{
+        return (el.textContent || '').includes({expander_label!r});
+      }});
       if (!expander) return;
       if (expander.open) return;
       var summary = expander.querySelector('summary');
       if (summary) summary.click();
-    } catch (e) {}
-  }
+    }} catch (e) {{}}
+  }}
 
   setTimeout(openNarrative, 80);
   setTimeout(openNarrative, 300);
-})();
+}})();
 </script>
 """,
         height=0,
@@ -672,6 +696,33 @@ def randomize_section(section):
     for i in range(len(section["questions"])):
         key = f"{section['key_prefix']}_{i}"
         st.session_state.answers[key] = random.choice(section["scale"])
+
+
+def render_language_selector():
+    ensure_language()
+    current_language = get_language()
+    with st.container():
+        col_ro, col_en, _ = st.columns([0.08, 0.08, 0.84])
+        with col_ro:
+            if st.button(
+                t("language.ro"),
+                type="primary" if current_language == "ro" else "secondary",
+                key="lang_ro",
+                use_container_width=True,
+            ):
+                if current_language != "ro":
+                    set_language("ro")
+                    st.rerun()
+        with col_en:
+            if st.button(
+                t("language.en"),
+                type="primary" if current_language == "en" else "secondary",
+                key="lang_en",
+                use_container_width=True,
+            ):
+                if current_language != "en":
+                    set_language("en")
+                    st.rerun()
 
 
 def render_login_page():
@@ -804,30 +855,30 @@ def render_login_page():
 
     with st.container(key="auth_card"):
         st.markdown(
-            """
+            f"""
 <div class="auth-brand">
   <span class="auth-brand-mark">S</span>
-  <span>ScenariuCredit</span>
+  <span>{t("auth.brand")}</span>
 </div>
 <div class="auth-rule"></div>
-<h1 class="auth-title">Decizii financiare sub presiune</h1>
-<p class="auth-copy">Autentifică-te pentru a începe sau relua scenariul exact din punctul în care ai rămas.</p>
+<h1 class="auth-title">{t("auth.title")}</h1>
+<p class="auth-copy">{t("auth.copy")}</p>
 <div class="auth-signals">
-  <span class="auth-chip">Progres salvat</span>
-  <span class="auth-chip">Reluare după întrerupere</span>
-  <span class="auth-chip">Răspunsuri separate</span>
+  <span class="auth-chip">{t("auth.chips")[0]}</span>
+  <span class="auth-chip">{t("auth.chips")[1]}</span>
+  <span class="auth-chip">{t("auth.chips")[2]}</span>
 </div>
 """,
             unsafe_allow_html=True,
         )
-        if st.button("Continuă cu Google", key="google_login", use_container_width=True):
+        if st.button(t("auth.google_button"), key="google_login", use_container_width=True):
             st.login()
         st.markdown(
-            """
-<p class="auth-privacy"><strong>Confidențialitate:</strong> Platforma folosește autentificarea Google pentru identificarea sesiunii, prevenirea participărilor multiple și reluarea progresului în caz de întrerupere. Aplicația poate accesa numele, fotografia de profil și adresa de e-mail asociate contului Google. Aceste date de identificare vor fi stocate separat de răspunsurile experimentale. Analiza statistică se va realiza pe date pseudonimizate, folosind un cod unic de participant, fără includerea adresei de e-mail, numelui sau fotografiei de profil în setul de date analizat.</p>
+            f"""
+<p class="auth-privacy">{t("auth.privacy_html")}</p>
 <div class="auth-info">
   <span class="auth-info-icon">i</span>
-  <span>Răspunsurile tale vor fi analizate în mod anonim și vor ajuta la înțelegerea legăturii dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții incerte sau stresante.</span>
+  <span>{t("auth.privacy_note")}</span>
 </div>
 """,
             unsafe_allow_html=True,
@@ -836,6 +887,7 @@ def render_login_page():
 
 # -------------------------
 if not is_logged_in():
+    render_language_selector()
     render_login_page()
     st.stop()
 
@@ -847,18 +899,19 @@ else:
 
 
 def render_account_menu():
-    email = st.user.get("email") or st.user.get("name") or "Cont conectat"
+    email = st.user.get("email") or st.user.get("name") or t("auth.account_fallback")
     with st.container(key="account_menu"):
         with st.expander(email):
-            if st.button("Log out", icon=":material/logout:", key="account_logout", use_container_width=True):
+            if st.button(t("auth.logout"), icon=":material/logout:", key="account_logout", use_container_width=True):
                 st.logout()
 
 
+render_language_selector()
 render_account_menu()
 
 
 def render_question_section(section, chapter_number, question_offset=0):
-    st.markdown(f"### Capitolul {chapter_number}")
+    st.markdown(f"### {t('quiz.chapter_heading', number=chapter_number)}")
     st.caption(section["instruction"])
     for i, q in enumerate(section["questions"]):
         key = f"{section['key_prefix']}_{i}"
@@ -912,8 +965,8 @@ def render_quiz_chapter(
     question_offset=0,
 ):
     st.title(title)
-    st.caption(f"Capitolul {chapter_index + 1} din {total_chapters}")
-    st.markdown("Răspunde la capitolul curent, apoi apasă **Continuă** pentru a trece mai departe.")
+    st.caption(t("quiz.chapter_label", current=chapter_index + 1, total=total_chapters))
+    st.markdown(t("quiz.chapter_continue_help"))
     st.progress((chapter_index + 1) / total_chapters)
     render_question_section(section, chapter_index + 1, question_offset)
 
@@ -924,19 +977,19 @@ def render_quiz_chapter(
             goto(next_page)
 
     if skip_page is not None:
-        if st.button("Skip all chapters", type="secondary", key=f"skip_{section['key_prefix']}_{chapter_index}"):
+        if st.button(t("quiz.skip_all_button"), type="secondary", key=f"skip_{section['key_prefix']}_{chapter_index}"):
             st.session_state.scroll_to_top = True
             goto(skip_page)
 
     if not all_answered([section]):
-        st.warning("Te rugăm să răspunzi la toate întrebările din acest capitol înainte de a continua.")
+        st.warning(t("quiz.chapter_required_warning"))
 
-    if st.button("Continuă →", type="primary", key=f"continue_{section['key_prefix']}_{chapter_index}"):
+    if st.button(t("quiz.continue_button"), type="primary", key=f"continue_{section['key_prefix']}_{chapter_index}"):
         if all_answered([section]):
             st.session_state.scroll_to_top = True
             goto(next_page)
         else:
-            st.error("Sunt întrebări fără răspuns.")
+            st.error(t("quiz.chapter_missing_error"))
 
 
 def money(value):
@@ -955,8 +1008,8 @@ def display_euro(value):
 
 
 def display_value_table(values):
-    rows = [(category, display_number(amount)) for category, amount in values.items()]
-    return pd.DataFrame(rows, columns=["Categoria", "Valoare (€)"])
+    rows = [(get_category_label(category), display_number(amount)) for category, amount in values.items()]
+    return pd.DataFrame(rows, columns=[t("table.category"), t("table.value")])
 
 
 def month_sum(values):
@@ -1055,10 +1108,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
     )
 
     if pre_credit_impossible:
-        feedback_message = (
-            "Cheltuielile lunii depășesc lichiditatea disponibilă și limita de overdraft. "
-            "Plata creditului nu poate fi executată. Pentru această lună, scorul este 0."
-        )
+        feedback_message = t("simulation.feedback_pre_credit")
         accepted_payment = 0.0
         overdraft_from_payment = 0.0
         overdraft_final = money(overdraft.limit)
@@ -1079,9 +1129,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
             overdraft.limit,
             loan_obligation,
         )
-        feedback_message = (
-            "Decizia a fost acceptată. Plata a fost înregistrată, iar soldurile au fost actualizate."
-        )
+        feedback_message = t("simulation.feedback_success")
         invalid_reason = None
     else:
         accepted_payment = 0.0
@@ -1090,10 +1138,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
         cash_final = money(liquidity_after_charges)
         credit_final = money(loan.balance)
         score_data = zero_score_data()
-        feedback_message = (
-            "Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. "
-            "Plata nu a fost executată. Pentru această lună, scorul este 0."
-        )
+        feedback_message = t("simulation.feedback_invalid")
         invalid_reason = "payment"
 
     if overdraft_final > overdraft.limit:
@@ -1104,10 +1149,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
             credit_final = money(loan.balance)
             overdraft_from_payment = 0.0
             score_data = zero_score_data()
-            feedback_message = (
-                "Suma introdusă depășește lichiditatea disponibilă și limita de overdraft rămasă. "
-                "Plata nu a fost executată. Pentru această lună, scorul este 0."
-            )
+            feedback_message = t("simulation.feedback_invalid")
             invalid_reason = "payment"
 
     return {
@@ -1174,9 +1216,9 @@ def get_final_score_breakdown():
 # ==================== COMPLETED ACCOUNT ====================
 if st.session_state.page == "already_completed":
     scroll_top_anchor()
-    st.title("Participare deja finalizată")
-    st.info("Acest cont a finalizat deja scenariul. Nu poate fi trimis un al doilea răspuns.")
-    if REPEAT_SCENARIO_DEV_MODE and st.button("Începe un scenariu nou (test)", type="primary"):
+    st.title(t("already_completed.title"))
+    st.info(t("already_completed.body"))
+    if REPEAT_SCENARIO_DEV_MODE and st.button(t("already_completed.button"), type="primary"):
         start_new_scenario()
         st.rerun()
 
@@ -1189,32 +1231,15 @@ elif st.session_state.page == "home":
 .home-title { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
 .home-body { text-align: justify; }
 </style>
-<div class="home-title">Percepția riscului și decizia financiară în condiții de incertitudine</div>
+<div class="home-title">{t("home.title")}</div>
 """, unsafe_allow_html=True)
     st.markdown('<div class="home-body">', unsafe_allow_html=True)
-    st.markdown("""
-Acest studiu își propune să investigheze modul în care indivizii percep și evaluează riscul
-atunci când iau decizii financiare în contexte incerte sau instabile. Vei fi invitat(ă) să
-parcurgi o serie de scenarii realiste de creditare, în care va trebui să formulezi estimări
-și să iei decizii care implică bani, timp și responsabilitate. În paralel, vom analiza
-reacțiile tale subiective privind nivelul de stres, presiunea socială, încărcătura
-emoțională și încrederea în propriile judecăți.
-
-Scopul este de a înțelege cum interacționează stările afective și profilul psihologic cu
-procesul decizional în situații economice riscante.
-    """)
-    st.info(
-        "Chestionarele sunt validate științific și nu conțin răspunsuri «corecte» sau «greșite». "
-        "Răspunde cât mai sincer, alegând opțiunea care reflectă cel mai bine cum ești tu în general."
-    )
-    st.markdown(
-        "Răspunsurile tale vor fi analizate **în mod anonim** și vor ajuta la înțelegerea legăturii "
-        "dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții "
-        "incerte sau stresante."
-    )
+    st.markdown(t("home.body"))
+    st.info(t("home.info"))
+    st.markdown(t("home.note"))
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("Începe scenariul →", type="primary"):
+    if st.button(t("home.button"), type="primary"):
         st.session_state.scroll_to_top = True
         goto("consent")
 
@@ -1251,128 +1276,10 @@ elif st.session_state.page == "consent":
 """, unsafe_allow_html=True)
 
     st.markdown('<div class="consent-page">', unsafe_allow_html=True)
-    st.markdown("""
-## Acord de participare și consimțământ informat
-
-### Titlul studiului
-
-Percepția riscului și decizia financiară în condiții de incertitudine
-
-### Invitație de participare
-
-Ești invitat(ă) să participi la un studiu de cercetare despre modul în care persoanele iau decizii financiare în condiții de incertitudine. Studiul include un experiment financiar structurat, în care vei lua decizii lunare privind rambursarea unui credit, pe baza unor informații despre venituri, cheltuieli, sold disponibil și evoluția obligațiilor financiare.
-
-Participarea este voluntară. Te rugăm să citești cu atenție informațiile de mai jos înainte de a decide dacă dorești să continui.
-
-### Scopul studiului
-
-Scopul studiului este de a analiza relația dintre profilul psihologic, percepția riscului, nivelul de stres și deciziile financiare luate într-un experiment de credit.
-
-Studiul urmărește să înțeleagă cum variază deciziile de rambursare în funcție de factori precum impulsivitatea, reglarea emoțională, toleranța la incertitudine, încrederea în propriile judecăți și reacțiile afective produse de sarcina financiară.
-
-### Ce presupune participarea
-
-Dacă accepți să participi, vei parcurge următoarele etape:
-
-- vei citi informațiile despre studiu și vei confirma consimțământul informat;
-- vei completa un scurt profil demografic;
-- vei răspunde la un chestionar psihologic inițial;
-- vei parcurge un experiment financiar structurat pe mai multe luni, în care vei lua decizii privind rambursarea unui credit;
-- vei completa un chestionar final despre starea ta psihologică după experiment și despre percepția asupra sarcinii.
-
-În cadrul experimentului, vei primi informații financiare lunare și vei decide suma pe care dorești să o aloci rambursării creditului. Experimentul este construit pentru a reflecta situații financiare realiste, fără a implica acces la conturi bancare reale sau modificări asupra unor obligații financiare personale.
-
-### Durata estimată
-
-Participarea durează aproximativ 30–45 de minute, în funcție de ritmul de completare.
-
-### Tipuri de date colectate
-
-În cadrul studiului pot fi colectate următoarele categorii de date:
-
-- răspunsuri la întrebări demografice generale;
-- răspunsuri la chestionare psihometrice;
-- deciziile introduse în cadrul experimentului financiar;
-- indicatori calculați automat pe baza deciziilor luate în experiment, precum soldul creditului, utilizarea overdraftului, penalități, dobânzi și scoruri experimentale;
-- răspunsuri la întrebări finale despre experiența în cadrul experimentului.
-
-Nu ți se va cere să furnizezi date bancare reale, parole, coduri de acces, extrase de cont reale sau informații financiare identificabile.
-
-Dacă studiul va include în viitor date suplimentare, precum date open banking, profil profesional sau date din alte surse, acestea vor fi prezentate separat și vor necesita consimțământ distinct. În această versiune a studiului, sarcina financiară se bazează exclusiv pe informațiile prezentate în platforma experimentală.
-
-### Natura experimentului
-
-Situațiile financiare, evenimentele lunare și informațiile prezentate în cadrul experimentului sunt construite pentru scopuri de cercetare. Acestea nu reprezintă o evaluare a situației tale financiare personale și nu produc efecte asupra vreunui credit real, cont bancar sau raport de credit.
-
-Deciziile tale din cadrul experimentului sunt folosite exclusiv în scop de cercetare.
-
-### Posibile riscuri sau disconfort
-
-Studiul include situații legate de credit, datorii, presiune financiară, stres, obligații lunare și incertitudine. Unele persoane pot resimți ușor disconfort, tensiune sau oboseală în timpul parcurgerii experimentului.
-
-Nu există răspunsuri corecte sau greșite. Nu evaluăm competența ta financiară și nu formulăm judecăți individuale despre deciziile tale.
-
-Poți întrerupe participarea în orice moment, fără să oferi explicații.
-
-### Beneficii
-
-Nu există un beneficiu personal direct garantat. Participarea ta poate contribui la o mai bună înțelegere a modului în care oamenii iau decizii financiare în contexte incerte sau stresante.
-
-Rezultatele pot fi folosite pentru cercetare academică, dezvoltarea unor modele de analiză comportamentală și proiectarea unor instrumente educaționale sau experimentale în domeniul finanțelor comportamentale.
-
-### Confidențialitate și anonimitate
-
-Datele vor fi analizate în formă anonimă sau pseudonimizată. Răspunsurile individuale nu vor fi publicate în mod identificabil.
-
-Dacă platforma folosește un cod de participant, acesta va fi utilizat doar pentru a lega răspunsurile inițiale, deciziile din cadrul experimentului și răspunsurile finale. Codul nu va fi folosit pentru identificarea publică a participantului.
-
-Rezultatele vor fi raportate agregat, de exemplu sub formă de medii, corelații, modele statistice sau grafice.
-
-### Participare voluntară și retragere
-
-Participarea este voluntară. Ai dreptul:
-
-- să refuzi participarea;
-- să întrerupi completarea în orice moment;
-- să nu răspunzi la o întrebare, dacă aceasta permite opțiune de necompletare;
-- să soliciți informații suplimentare despre studiu.
-
-Retragerea din studiu nu va avea consecințe negative asupra ta.
-
-### Compensație
-
-Participarea la acest studiu poate include o compensație fixă pentru participare și/sau o recompensă experimentală calculată pe baza deciziilor luate în cadrul experimentului financiar.
-
-Recompensa experimentală are rol exclusiv de stimulent în cadrul studiului și nu reprezintă o evaluare reală a situației financiare, a competenței financiare sau a bonității participantului.
-
-### Utilizarea rezultatelor
-
-Datele colectate pot fi utilizate pentru: analize statistice; lucrări științifice; prezentări academice; rapoarte de cercetare; dezvoltarea unor modele experimentale privind decizia financiară.
-
-Nicio publicație sau prezentare nu va include informații care să permită identificarea directă a participanților.
-
-### Contact
-
-Pentru întrebări despre studiu sau despre utilizarea datelor, poți contacta echipa de cercetare la:
-
-coita.iflorina@gmail.com
-
-### Declarație de consimțământ
-
-Te rugăm să confirmi următoarele afirmații înainte de a continua:
-""")
+    st.markdown(t("consent.markdown"))
     st.markdown('</div>', unsafe_allow_html=True)
 
-    consent_items = [
-        "Am citit și am înțeles informațiile despre studiu.",
-        "Am înțeles că participarea este voluntară.",
-        "Am înțeles că pot întrerupe participarea în orice moment.",
-        "Am înțeles că voi parcurge un experiment financiar care poate include situații de presiune financiară, stres și incertitudine.",
-        "Am înțeles că datele mele vor fi analizate anonim sau pseudonimizat.",
-        "Am înțeles că nu mi se cer date bancare reale sau informații financiare identificabile.",
-        "Am înțeles că deciziile luate în cadrul experimentului nu afectează un credit real, un cont bancar sau un raport de credit.",
-        "Sunt de acord să particip la acest studiu.",
-    ]
+    consent_items = t("consent.items")
     consent_values = [
         st.checkbox(item, key=f"consent_item_{index}")
         for index, item in enumerate(consent_items)
@@ -1382,14 +1289,14 @@ Te rugăm să confirmi următoarele afirmații înainte de a continua:
     col_accept, col_decline = st.columns([2, 1])
     with col_accept:
         accept_clicked = st.button(
-            "Sunt de acord și doresc să continui",
+            t("consent.accept_button"),
             type="primary",
             use_container_width=True,
             key="consent_accept",
         )
     with col_decline:
         decline_clicked = st.button(
-            "Nu sunt de acord",
+            t("consent.decline_button"),
             type="secondary",
             use_container_width=True,
             key="consent_decline",
@@ -1397,7 +1304,7 @@ Te rugăm să confirmi următoarele afirmații înainte de a continua:
 
     if accept_clicked:
         if not consent_complete:
-            st.warning("Te rugăm să confirmi toate afirmațiile înainte de a continua.")
+            st.warning(t("consent.warning"))
             st.stop()
         st.session_state.answers["consent_agreed"] = "1 - Da"
         st.session_state.scroll_to_top = True
@@ -1412,12 +1319,9 @@ Te rugăm să confirmi următoarele afirmații înainte de a continua:
 # ==================== CONSENT DECLINED ====================
 elif st.session_state.page == "consent_declined":
     scroll_top_anchor()
-    st.title("Participare întreruptă")
-    st.markdown(
-        "Ai ales să nu îți dai consimțământul pentru participare. Participarea este voluntară, "
-        "iar chestionarul nu va începe fără acordul tău."
-    )
-    if st.button("Înapoi la acordul de participare", type="primary"):
+    st.title(t("consent_declined.title"))
+    st.markdown(t("consent_declined.body"))
+    if st.button(t("consent_declined.button"), type="primary"):
         st.session_state.scroll_to_top = True
         goto("consent")
 
@@ -1449,98 +1353,73 @@ elif st.session_state.page == "demographics":
 """, unsafe_allow_html=True)
 
     st.markdown(
-        """
+        f"""
 <div class="demographics-page">
-<h2>Profil demografic</h2>
-<p>Următoarele întrebări ne ajută să descriem eșantionul de participanți la nivel general. Răspunsurile vor fi analizate agregat și nu vor fi folosite pentru identificarea ta.</p>
+<h2>{t("demographics.title")}</h2>
+<p>{t("demographics.intro")}</p>
 </div>
 """,
         unsafe_allow_html=True,
     )
 
-    gender_options = ["Femeie", "Bărbat", "Non-binar / altă identitate de gen", "Prefer să nu răspund"]
-    education_options = [
-        "Studii liceale",
-        "Studii postliceale",
-        "Studii universitare de licență",
-        "Studii universitare de master",
-        "Studii doctorale",
-        "Alt nivel de educație",
-        "Prefer să nu răspund",
-    ]
-    field_options = [
-        "Economie / Finanțe / Contabilitate / Business",
-        "Informatică / Tehnologie / Inginerie",
-        "Științe sociale / Psihologie / Educație",
-        "Medicină / Științe ale vieții",
-        "Drept / Administrație publică",
-        "Arte / Științe umaniste",
-        "Alt domeniu",
-        "Prefer să nu răspund",
-    ]
-    occupation_options = [
-        "Student(ă)",
-        "Angajat(ă) cu normă întreagă",
-        "Angajat(ă) cu normă parțială",
-        "Lucrător independent / freelancer / antreprenor",
-        "Șomer(ă) / în căutarea unui loc de muncă",
-        "Inactiv profesional / altă situație",
-        "Prefer să nu răspund",
-    ]
-    frequency_options = ["Niciodată sau aproape niciodată", "Rar", "Uneori", "Des", "Foarte des", "Prefer să nu răspund"]
-    credit_options = ["Da", "Nu", "Nu sunt sigur(ă)", "Prefer să nu răspund"]
-    familiarity_options = ["Deloc familiar(ă)", "Puțin familiar(ă)", "Moderat familiar(ă)", "Familiar(ă)", "Foarte familiar(ă)", "Prefer să nu răspund"]
-    living_options = ["Locuiesc singur(ă)", "Locuiesc cu partenerul/partenera", "Locuiesc cu familia", "Locuiesc cu colegi/prieteni", "Altă situație", "Prefer să nu răspund"]
-    yes_no_options = ["Da", "Nu", "Prefer să nu răspund"]
+    gender_options = t("demographics.options.gender")
+    education_options = t("demographics.options.education")
+    field_options = t("demographics.options.field")
+    occupation_options = t("demographics.options.occupation")
+    frequency_options = t("demographics.options.frequency")
+    credit_options = t("demographics.options.credit")
+    familiarity_options = t("demographics.options.familiarity")
+    living_options = t("demographics.options.living")
+    yes_no_options = t("demographics.options.yes_no")
 
     def radio_index(key, options):
         current = st.session_state.answers.get(key)
         return options.index(current) if current in options else None
 
-    st.markdown("**1. Vârsta**")
-    st.caption("Răspuns numeric")
+    st.markdown(f"**{t('demographics.age_title')}**")
+    st.caption(t("demographics.age_caption"))
     age = st.number_input(
-        "Te rugăm să introduci vârsta ta în ani împliniți:",
+        t("demographics.age_prompt"),
         min_value=18,
         max_value=75,
         step=1,
         value=st.session_state.answers.get("demo_age"),
         key="demo_age_input",
     )
-    st.caption("Recomandare tehnică: acceptă doar valori între 18 și 75")
+    st.caption(t("demographics.age_note"))
 
-    st.markdown("**2. Genul**")
-    gender = st.radio("Cum te identifici?", gender_options, index=radio_index("demo_gender", gender_options), key="demo_gender_input")
+    st.markdown(f"**{t('demographics.gender_title')}**")
+    gender = st.radio(t("demographics.gender_prompt"), gender_options, index=radio_index("demo_gender", gender_options), key="demo_gender_input")
 
-    st.markdown("**3. Nivelul de educație**")
-    education = st.radio("Care este cel mai înalt nivel de educație finalizat?", education_options, index=radio_index("demo_education", education_options), key="demo_education_input")
+    st.markdown(f"**{t('demographics.education_title')}**")
+    education = st.radio(t("demographics.education_prompt"), education_options, index=radio_index("demo_education", education_options), key="demo_education_input")
 
-    st.markdown("**4. Domeniul principal de studiu sau activitate**")
-    field = st.radio("Care este domeniul tău principal de studiu sau activitate profesională?", field_options, index=radio_index("demo_field", field_options), key="demo_field_input")
+    st.markdown(f"**{t('demographics.field_title')}**")
+    field = st.radio(t("demographics.field_prompt"), field_options, index=radio_index("demo_field", field_options), key="demo_field_input")
 
-    st.markdown("**5. Statut ocupațional**")
-    occupation = st.radio("Care este statutul tău principal în prezent?", occupation_options, index=radio_index("demo_occupation", occupation_options), key="demo_occupation_input")
+    st.markdown(f"**{t('demographics.occupation_title')}**")
+    occupation = st.radio(t("demographics.occupation_prompt"), occupation_options, index=radio_index("demo_occupation", occupation_options), key="demo_occupation_input")
 
-    st.markdown("**6. Experiență cu decizii financiare personale**")
-    financial_decisions = st.radio("Cât de des iei decizii legate de buget personal, plăți, economisire sau datorii?", frequency_options, index=radio_index("demo_financial_decisions", frequency_options), key="demo_financial_decisions_input")
+    st.markdown(f"**{t('demographics.financial_decisions_title')}**")
+    financial_decisions = st.radio(t("demographics.financial_decisions_prompt"), frequency_options, index=radio_index("demo_financial_decisions", frequency_options), key="demo_financial_decisions_input")
 
-    st.markdown("**7. Experiență anterioară cu produse de creditare**")
-    credit_experience = st.radio("Ai utilizat vreodată un produs de creditare, cum ar fi credit de nevoi personale, card de credit, overdraft, credit ipotecar sau cumpărături în rate?", credit_options, index=radio_index("demo_credit_experience", credit_options), key="demo_credit_experience_input")
+    st.markdown(f"**{t('demographics.credit_experience_title')}**")
+    credit_experience = st.radio(t("demographics.credit_experience_prompt"), credit_options, index=radio_index("demo_credit_experience", credit_options), key="demo_credit_experience_input")
 
-    st.markdown("**8. Familiaritate cu conceptele financiare**")
-    financial_familiarity = st.radio("Cât de familiar(ă) ești cu termeni precum dobândă, rată lunară, sold restant, penalitate sau overdraft?", familiarity_options, index=radio_index("demo_financial_familiarity", familiarity_options), key="demo_financial_familiarity_input")
+    st.markdown(f"**{t('demographics.financial_familiarity_title')}**")
+    financial_familiarity = st.radio(t("demographics.financial_familiarity_prompt"), familiarity_options, index=radio_index("demo_financial_familiarity", familiarity_options), key="demo_financial_familiarity_input")
 
-    st.markdown("**9. Situație de trai**")
-    living_situation = st.radio("Care variantă descrie cel mai bine situația ta actuală de trai?", living_options, index=radio_index("demo_living_situation", living_options), key="demo_living_situation_input")
+    st.markdown(f"**{t('demographics.living_title')}**")
+    living_situation = st.radio(t("demographics.living_prompt"), living_options, index=radio_index("demo_living_situation", living_options), key="demo_living_situation_input")
 
-    st.markdown("**10. Responsabilități financiare recurente**")
-    recurring_responsibilities = st.radio("Ai responsabilități financiare recurente, cum ar fi chirie, rate, întreținere, sprijin pentru familie sau alte obligații lunare?", yes_no_options, index=radio_index("demo_recurring_responsibilities", yes_no_options), key="demo_recurring_responsibilities_input")
+    st.markdown(f"**{t('demographics.responsibilities_title')}**")
+    recurring_responsibilities = st.radio(t("demographics.responsibilities_prompt"), yes_no_options, index=radio_index("demo_recurring_responsibilities", yes_no_options), key="demo_recurring_responsibilities_input")
 
-    st.markdown("**11. Țara de rezidență**")
-    st.caption("Răspuns liber")
-    country = st.text_input("În ce țară locuiești în prezent?", value=st.session_state.answers.get("demo_country", ""), key="demo_country_input")
+    st.markdown(f"**{t('demographics.country_title')}**")
+    st.caption(t("demographics.country_caption"))
+    country = st.text_input(t("demographics.country_prompt"), value=st.session_state.answers.get("demo_country", ""), key="demo_country_input")
 
-    if st.button("Continuă către chestionar →", type="primary", use_container_width=True, key="demographics_continue"):
+    if st.button(t("demographics.continue_button"), type="primary", use_container_width=True, key="demographics_continue"):
         values = {
             "demo_age": int(age) if age is not None else None,
             "demo_gender": gender,
@@ -1555,7 +1434,7 @@ elif st.session_state.page == "demographics":
             "demo_country": country.strip(),
         }
         if any(value in (None, "") for value in values.values()):
-            st.warning("Te rugăm să răspunzi la toate întrebările înainte de a continua.")
+            st.warning(t("demographics.warning"))
             st.stop()
 
         st.session_state.answers.update(values)
@@ -1579,24 +1458,26 @@ elif st.session_state.page.startswith("pre_question_"):
     if not demographics_complete():
         goto("demographics")
 
+    pre_sections = get_display_pre_sections()
+
     try:
         pre_index = int(st.session_state.page.rsplit("_", 1)[1])
     except Exception:
         goto("pre_question_0")
 
-    if pre_index >= len(PRE_SECTIONS):
+    if pre_index >= len(pre_sections):
         goto("instructions")
 
-    next_page = "instructions" if pre_index + 1 >= len(PRE_SECTIONS) else f"pre_question_{pre_index + 1}"
+    next_page = "instructions" if pre_index + 1 >= len(pre_sections) else f"pre_question_{pre_index + 1}"
     render_quiz_chapter(
-        PRE_SECTIONS[pre_index],
+        pre_sections[pre_index],
         pre_index,
-        len(PRE_SECTIONS),
+        len(pre_sections),
         next_page,
-        "⚡ DEV: Randomizează acest capitol și continuă",
-        "Chestionar – înainte de scenariu",
+        t("quiz.dev_randomize"),
+        t("quiz.pre_title"),
         skip_page="instructions",
-        question_offset=sum(len(section["questions"]) for section in PRE_SECTIONS[:pre_index]),
+        question_offset=sum(len(section["questions"]) for section in pre_sections[:pre_index]),
     )
 
 
@@ -1639,180 +1520,10 @@ elif st.session_state.page == "instructions":
         '<div class="participant-instructions">',
         unsafe_allow_html=True,
     )
-    st.markdown(
-        """
-## Instrucțiuni pentru participant
-
-În acest experiment vei lua rolul lui Andrei, o persoană care are un credit de nevoi personale și trebuie să ia decizii lunare de rambursare.
-
-Experimentul se desfasoara pe parcursul a 24 de luni.
-
-În fiecare lună vei vedea informații despre situația financiară a lunii respective:
-
-- veniturile lunii;
-- cheltuielile lunii;
-- dobânda creditului;
-- dobânda overdraftului, dacă există;
-- banii disponibili înainte de plata creditului;
-- soldul creditului;
-- overdraftul utilizat;
-- rata lunară prevăzută în contract.
-
-După ce citești informațiile lunii, trebuie să introduci suma pe care dorești să o rambursezi din credit în acea lună.
-
-Tu decizi doar suma plătită pentru credit.
-
-Nu trebuie să rambursezi separat overdraftul. Overdraftul se actualizează automat în platformă, în funcție de deficitul lunii și de suma introdusă pentru plata creditului.
-
-### Ce este overdraftul
-
-Overdraftul este o linie de credit atașată contului curent. În acest experiment, limita maximă de overdraft este de 3.000 euro.
-
-Overdraftul funcționează ca o rezervă de bani împrumutați. Dacă banii disponibili nu sunt suficienți pentru cheltuielile lunii sau pentru plata introdusă de tine, platforma poate folosi overdraftul, dar numai în limita disponibilă.
-
-Utilizarea overdraftului crește gradul de îndatorare și reduce scorul lunar.
-
-### Cum se calculează suma disponibilă înainte de plata creditului
-
-În fiecare lună, platforma calculează automat banii disponibili înainte de plata creditului.
-
-Formula este:
-
-Bani disponibili înainte de plata creditului =
-sold inițial disponibil + venituri totale - cheltuieli curente - dobândă credit - dobândă overdraft
-
-Această sumă arată cât este disponibil înainte ca tu să introduci plata pentru credit.
-
-### Cum funcționează decizia lunară
-
-În fiecare lună vei introduce o singură sumă:
-
-suma pe care dorești să o plătești pentru credit în luna respectivă.
-
-Apoi apeși:
-
-Confirmă decizia
-
-După confirmare, decizia nu mai poate fi modificată.
-
-Platforma va calcula automat:
-
-- dacă plata poate fi realizată;
-- cât scade soldul creditului;
-- dacă se folosește overdraftul;
-- care este suma rămasă după plată;
-- care este overdraftul final al lunii;
-- ce scor primești pentru luna respectivă.
-
-După confirmare, vei vedea un ecran de feedback pentru luna curentă. Acolo vei vedea rezultatul deciziei tale. Apoi vei apăsa:
-
-Continuă către luna următoare
-
-### Ce se întâmplă dacă introduci o sumă posibilă
-
-Dacă suma introdusă poate fi acoperită din banii disponibili și din overdraftul rămas, plata este acceptată.
-
-În acest caz:
-
-- plata se înregistrează;
-- soldul creditului scade;
-- soldurile lunii se actualizează;
-- scorul lunii se calculează automat.
-
-### Ce se întâmplă dacă introduci o sumă invalida
-
-Dacă introduci o sumă mai mare decât banii disponibili plus overdraftul rămas, plata nu poate fi realizată.
-
-În acest caz:
-
-- plata este respinsă;
-- creditul nu scade prin acea plată;
-- suma introdusă nu se transferă în overdraft;
-- limita maximă de overdraft nu este depășită;
-- scorul lunii este 0;
-- experimentul continuă cu luna următoare.
-
-După ce ai confirmat o sumă invalida, nu vei putea reveni pentru a o corecta. De aceea, este important să verifici atent informațiile înainte de confirmare.
-
-### Ce poți corecta înainte de confirmare
-
-Înainte să apeși „Confirmă decizia”, poți corecta suma introdusă.
-
-Dacă introduci din greșeală litere, semne sau o valoare negativă, platforma îți va cere să introduci o valoare numerică validă.
-
-### Cum se acordă scorul lunar
-
-În fiecare lună, scorul poate varia între 0 și 100 de puncte.
-
-Scorul lunar ține cont de trei aspecte:
-
-1. suma rambursată din credit;
-2. banii rămași disponibili după plată;
-3. nivelul overdraftului utilizat.
-
-O plată mai mare din credit poate crește scorul de rambursare, dar trebuie să fie susținută de situația financiară a lunii.
-
-Păstrarea unei rezerve de bani după plată contribuie la scorul de lichiditate.
-
-Utilizarea unui overdraft mai mare reduce scorul lunar.
-
-Scorul lunar nu reprezintă o evaluare personală. El reflectă doar rezultatul financiar al deciziei introduse în condițiile lunii respective.
-
-### Cum se calculează scorul final
-
-La finalul celor 24 de luni, platforma calculează scorul comportamental final.
-
-Scorul comportamental final este media scorurilor lunare obținute în cele 24 de luni.
-
-Formula generală este:
-
-Scor comportamental final =
-media scorurilor lunare din cele 24 de luni
-
-Bonusul final este calculat în funcție de scorul comportamental final.
-
-### Ce se afișează la final
-
-La finalul experimentului vei vedea:
-
-- scorul comportamental final;
-- bonusul final obținut;
-- creditul rămas la final;
-- overdraftul utilizat la final;
-- dobânzile totale acumulate, dacă sunt afișate în versiunea finală a platformei.
-
-### Regula generală a experimentului
-
-Scopul nu este să plătești mereu aceeași sumă.
-
-Scopul este să iei o decizie lunară care poate fi susținută de situația financiară a lunii respective.
-
-În unele luni poate fi mai ușor să plătești rata lunară prevăzută în contract. În alte luni, din cauza veniturilor, cheltuielilor și dobânzilor, decizia poate fi mai dificilă.
-
-Trebuie să alegi suma pe care o consideri potrivită, ținând cont de:
-
-- venituri;
-- cheltuieli;
-- dobânda creditului;
-- dobânda overdraftului;
-- creditul rămas;
-- overdraftul utilizat;
-- banii disponibili înainte de plată;
-- riscul de a introduce o plată imposibilă.
-
-### Mesaj important înainte de începerea experimentului
-
-Te rugăm să citești cu atenție informațiile fiecărei luni înainte de a introduce suma de rambursat.
-
-După ce apeși „Confirmă decizia”, suma introdusă nu mai poate fi modificată.
-
-Dacă suma introdusă depășește resursele disponibile și limita de overdraft, plata nu va fi executată, iar scorul lunii va fi 0.
-""",
-        unsafe_allow_html=True,
-    )
+    st.markdown(t("instructions.body"), unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("Continuă către profil →", type="primary"):
+    if st.button(t("instructions.button"), type="primary"):
         st.session_state.scroll_to_top = True
         goto("profile")
 
@@ -1829,143 +1540,17 @@ h3 { margin-top: 0.5rem; }
 </style>
 """, unsafe_allow_html=True)
 
-    st.title("Profilul participantului")
-    st.markdown("Înainte de a începe scenariul, citește cu atenție profilul personajului pe care îl vei reprezenta.")
+    st.title(t("profile.title"))
+    st.markdown(t("profile.intro"))
 
     st.markdown('<div class="profile-text">', unsafe_allow_html=True)
-
-    st.subheader("Profil general – Andrei")
-    st.markdown("""
-| | |
-|---|---|
-| **Nume** | Andrei |
-| **Vârstă** | 34 de ani |
-| **Oraș** | Locuiește într-un oraș mare |
-| **Locuință** | Împreună cu soția, în chirie, apartament de 2 camere |
-| **Chirie** | 330 euro / lună (nu include utilitățile) |
-""")
-
-    st.subheader("Situație profesională")
-    st.markdown("""
-Andrei lucrează de aproximativ 6 ani în aceeași companie, într-o firmă din zona de servicii / corporație
-(de exemplu: suport tehnic, operațiuni, back-office, project coordinator junior).
-Nu este la început de drum, dar nici într-o poziție foarte bine plătită.
-
-| | |
-|---|---|
-| **Contract** | Perioadă nedeterminată |
-| **Venit lunar net** | Aproximativ 1.150 euro |
-
-Venitul este relativ stabil, dar:
-- fără bonusuri garantate
-- creșteri salariale mici și rare
-- uneori apar întârzieri administrative
-
-Andrei se percepe ca având un job „sigur".
-""")
-
-    st.subheader("Situație personală și emoțională")
-    st.markdown("""
-- **Status relațional:** căsătorit cu Maria. Maria are un venit net lunar în jur de 800 euro.
-- Are un cerc restrâns de prieteni, mulți dintre ei deja căsătoriți, cu copii, cu rate la casă.
-
-Andrei nu este impulsiv emoțional, dar:
-- evită conflictele
-- evită să spună „nu" în contexte sociale
-- preferă soluții pe termen scurt care reduc stresul imediat
-""")
-
-    st.subheader("Stil de viață și hobby-uri")
-    st.markdown("""
-- Iese de 1–2 ori pe săptămână în oraș (mâncare, cafea).
-- Merge ocazional la sală.
-- Are mașină (nu foarte nouă), pe care o folosește zilnic.
-- Îi place să plece din oraș de câteva ori pe an.
-- Nu cheltuie extravagant, dar nici nu ține un buget strict.
-- Cheltuielile „mici, dar dese" sunt o constantă.
-""")
-
-    st.subheader("Obiceiuri financiare")
-    st.markdown("""
-Andrei:
-- nu ține un buget scris
-- știe aproximativ cât câștigă, cât este chiria și cât este rata
-- restul banilor sunt gestionați „din mers"
-
-Are următoarele obiceiuri:
-- plătește facturile la timp, de obicei
-- evită restanțele, pentru că îl stresează
-- când apare o problemă, taie mai întâi din economii
-- abia la final reduce din cheltuieli
-""")
-
-    st.subheader("Economii")
-    st.markdown("""
-La începutul scenariului:
-- are aproximativ **350 euro** economii
-- ținute în cont curent, nu separat
-- nu are un „fond de urgență" clar definit
-
-Aceste economii:
-- nu sunt rezultatul unei discipline
-- sunt mai degrabă „ce a rămas" din ultimele luni mai bune
-""")
-
-    st.subheader("Creditul")
-    st.markdown("""
-| | |
-|---|---|
-| **Tip credit** | Credit de nevoi personale |
-| **Valoare inițială** | Aproximativ 7.000 euro |
-| **Durată** | 24 luni |
-| **Rată lunară** | 317.71 euro |
-| **Dobândă** | 8,35% |
-
-De ce a luat creditul:
-- mobilă și electrocasnice pentru apartament
-- o parte din bani au mers pe mutare
-- reparații minore
-- câteva cheltuieli „de confort"
-
-Creditul nu a fost luat într-o criză, ci:
-- într-o perioadă relativ stabilă
-- cu convingerea că „mă descurc fără probleme"
-""")
-
-    st.subheader("Cum se raportează Andrei la credit")
-    st.markdown("""
-Nu vede creditul ca pe un pericol. Îl vede ca pe „o obligație fixă". Nu se gândește la ce se întâmplă dacă:
-- venitul întârzie
-- apar 2–3 luni proaste la rând
-
-Are mentalitatea: **„Dacă apare ceva, rezolv atunci."**
-
-Creditul îl plătește Andrei, dar cheltuielile lunare sunt suportate împreună.
-""")
-
-    st.subheader("Overdraft")
-    st.markdown("""
-| | |
-|---|---|
-| **Tip instrument** | Linie de credit de tip overdraft atașată contului curent |
-| **Limită maximă** | Aproximativ 3.000 euro |
-
-**Rolul overdraftului:** funcționează ca o rezervă de lichiditate care poate fi utilizată atunci când cheltuielile
-lunare depășesc suma disponibilă în cont.
-
-**Mod de utilizare:** dacă totalul cheltuielilor lunare și al sumei introduse pentru plata creditului depășește
-lichiditatea disponibilă, diferența este acoperită automat din overdraft, în limita disponibilă.
-Participanții nu activează manual overdraftul, dar decizia lor de plată poate conduce la utilizarea lui.
-
-**Dobândă overdraft:** sumele utilizate generează dobândă lunară, care se adaugă la datoria acumulată.
-
-**Rambursarea overdraftului:** orice sumă rămasă în cont după efectuarea plăților lunare reduce automat
-soldul overdraftului utilizat.
-""")
+    for section in t("profile.sections"):
+        st.subheader(section["title"])
+        st.markdown(section["body"])
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("Începe scenariul →", type="primary"):
+    if st.button(t("profile.button"), type="primary"):
         st.session_state.scroll_to_top = True
         goto("simulation")
 
@@ -2002,29 +1587,29 @@ elif st.session_state.page == "simulation":
 
     col_title, col_score = st.columns([5, 1])
     with col_title:
-        st.title(f"Luna {month}")
+        st.title(t("simulation.month_title", month=month))
     with col_score:
-        st.metric("Scor acumulat", display_number(st.session_state.total_score))
+        st.metric(t("simulation.score_accumulated"), display_number(st.session_state.total_score))
 
-    with st.expander("Context narativ", expanded=True):
-        narrative = re.sub(r'^(\S+)', r'<strong>\1</strong>', get_narrative(month))
+    with st.expander(t("simulation.narrative_expander"), expanded=True):
+        narrative = re.sub(r'^(\S+)', r'<strong>\1</strong>', get_localized_narrative(month))
         st.markdown(
             f'<div style="text-align: justify">{narrative}</div>',
             unsafe_allow_html=True,
         )
-    auto_open_context_narrativ(month)
+    auto_open_context_narrativ(t("simulation.narrative_expander"))
 
-    with st.expander("Buget lunar"):
-        st.markdown("**Venituri**")
+    with st.expander(t("simulation.budget_expander")):
+        st.markdown(t("simulation.income_header"))
         st.table(display_value_table(data["income"]))
-        st.write(f"**Total venituri:** {display_number(income_total)}")
+        st.write(t("simulation.income_total", value=display_number(income_total)))
 
-        st.markdown("**Cheltuieli curente**")
+        st.markdown(t("simulation.expenses_header"))
         st.table(display_value_table(data["expenses"]))
-        st.write(f"**Total cheltuieli:** {display_number(expenses_total)}")
+        st.write(t("simulation.expenses_total", value=display_number(expenses_total)))
 
     opening_balance_html = (
-        f'<div class="decision-row positive"><strong>Sold inițial disponibil:</strong> {display_euro(opening_balance)}</div>'
+        f'<div class="decision-row positive"><strong>{t("simulation.opening_balance")}:</strong> {display_euro(opening_balance)}</div>'
         if month == 1
         else ""
     )
@@ -2032,34 +1617,31 @@ elif st.session_state.page == "simulation":
     st.markdown(
         f"""
 <div class="decision-card">
-<div class="decision-card-title">Decizie privind plata creditului</div>
+<div class="decision-card-title">{t("simulation.decision_title")}</div>
 {opening_balance_html}
-<div class="decision-row positive"><strong>Venituri totale:</strong> {display_euro(income_total)}</div>
-<div class="decision-row risk"><strong>Cheltuieli curente:</strong> {display_euro(expenses_total)}</div>
-<div class="decision-row risk"><strong>Dobândă overdraft:</strong> {display_euro(overdraft_interest)} | <strong>Dobândă credit:</strong> {display_euro(credit_interest)}</div>
-<div class="decision-row risk"><strong>Sold credit rămas:</strong> {display_euro(loan.balance)} | <strong>Overdraft utilizat:</strong> {display_euro(overdraft.balance)}</div>
-<div class="decision-row positive"><strong>Bani disponibili înainte de plata creditului:</strong> {display_euro(liquidity_after_charges)}</div>
-<div class="decision-row formula"><strong>Bani disponibili înainte de plata creditului</strong> = sold inițial disponibil + venituri totale - cheltuieli curente - dobândă credit - dobândă overdraft</div>
-<div class="decision-row primary"><strong>Rata lunară prevăzută în contract:</strong> {display_euro(loan_obligation)}</div>
+<div class="decision-row positive"><strong>{t("simulation.income_total_label")}:</strong> {display_euro(income_total)}</div>
+<div class="decision-row risk"><strong>{t("simulation.expenses_total_label")}:</strong> {display_euro(expenses_total)}</div>
+<div class="decision-row risk"><strong>{t("simulation.overdraft_interest_label")}:</strong> {display_euro(overdraft_interest)} | <strong>{t("simulation.credit_interest_label")}:</strong> {display_euro(credit_interest)}</div>
+<div class="decision-row risk"><strong>{t("simulation.remaining_credit_label")}:</strong> {display_euro(loan.balance)} | <strong>{t("simulation.used_overdraft_label")}:</strong> {display_euro(overdraft.balance)}</div>
+<div class="decision-row positive"><strong>{t("simulation.available_before_payment_label")}:</strong> {display_euro(liquidity_after_charges)}</div>
+<div class="decision-row formula">{t("simulation.available_before_payment_formula")}</div>
+<div class="decision-row primary"><strong>{t("simulation.contract_rate_label")}:</strong> {display_euro(loan_obligation)}</div>
 </div>
 """,
         unsafe_allow_html=True,
     )
 
     if blocked:
-        st.error(
-            "Cheltuielile lunii depășesc lichiditatea disponibilă și limita de overdraft. "
-            "Plata creditului nu poate fi executată. Pentru această lună, scorul este 0."
-        )
+        st.error(t("simulation.blocked_error"))
 
-    st.markdown('<div class="payment-label">Sumă de rambursat din credit (€)</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="payment-label">{t("simulation.payment_label")}</div>', unsafe_allow_html=True)
     payment = st.number_input(
-        "Sumă de rambursat din credit (€)",
+        t("simulation.payment_label"),
         min_value=0.0,
         step=1.0,
         value=None,
         format="%g",
-        placeholder="Introduceți o sumă numerică mai mare sau egală cu 0.",
+        placeholder=t("simulation.payment_placeholder"),
         key=f"payment_{month}",
         label_visibility="collapsed",
     )
@@ -2068,22 +1650,22 @@ elif st.session_state.page == "simulation":
         """
 <div class="auth-info payment-note">
   <span class="auth-info-icon">i</span>
-  <span>După confirmare, decizia nu mai poate fi modificată.</span>
+  <span>{t("simulation.payment_note")}</span>
 </div>
 """,
         unsafe_allow_html=True,
     )
     st.markdown('<div class="payment-button-gap"></div>', unsafe_allow_html=True)
 
-    if st.button("Confirmă decizia", type="primary"):
+    if st.button(t("simulation.confirm_button"), type="primary"):
         if payment is None:
-            st.warning("Vă rugăm să introduceți o sumă numerică validă, mai mare sau egală cu 0.")
+            st.warning(t("simulation.payment_validation_warning"))
             st.stop()
 
         result = normalize_month_result_score(compute_month_result(month, data, loan, overdraft, payment))
         st.session_state.pending_month_result = result
         if not persist_month_result_snapshot(result, bonus_max_session=get_bonus_max_session()):
-            st.error("Eroare la salvarea lunii curente. Te rugăm să reîncarci pagina și să încerci din nou.")
+            st.error(t("simulation.save_error"))
             st.stop()
         goto("month_feedback")
 
@@ -2099,26 +1681,24 @@ elif st.session_state.page == "month_feedback":
     st.session_state.pending_month_result = result
 
     month = result["month"]
-    st.title(f"Luna {month} - feedback")
+    st.title(t("simulation.feedback_title", month=month))
 
-    st.markdown("### Rezultatul deciziei")
-    st.write(f"**Suma introdusă:** {display_euro(result['payment_input'])}")
-    st.write(f"**Plata acceptată la credit:** {display_euro(result['accepted_payment'])}")
-    st.write(
-        f"**Sold disponibil după plata ratei = Sold inițial + Venituri − Cheltuieli curente − Dobândă overdraft − Rata − Dobânda credit:** {display_euro(result['cash_final'])}"
-    )
-    st.write(f"**Sold credit rămas:** {display_euro(result['credit_final'])}")
-    st.write(f"**Overdraft utilizat final:** {display_euro(result['overdraft_final'])}")
-    st.write(f"**Dobândă credit luna aceasta:** {display_euro(result['credit_interest'])}")
-    st.write(f"**Dobândă overdraft luna aceasta:** {display_euro(result['overdraft_interest'])}")
+    st.markdown(t("simulation.decision_result_heading"))
+    st.write(t("simulation.payment_entered", value=display_euro(result["payment_input"])))
+    st.write(t("simulation.payment_accepted", value=display_euro(result["accepted_payment"])))
+    st.write(t("simulation.cash_after_payment", value=display_euro(result["cash_final"])))
+    st.write(t("simulation.credit_remaining", value=display_euro(result["credit_final"])))
+    st.write(t("simulation.overdraft_final", value=display_euro(result["overdraft_final"])))
+    st.write(t("simulation.credit_interest_month", value=display_euro(result["credit_interest"])))
+    st.write(t("simulation.overdraft_interest_month", value=display_euro(result["overdraft_interest"])))
     if result["penalties"] > 0:
-        st.write(f"**Penalități luna aceasta:** {display_euro(result['penalties'])}")
-    st.markdown("### Scorul lunii")
-    st.write(f"**Scor rambursare:** {display_number(result['score_repayment'])} / 40")
-    st.write(f"**Scor lichiditate:** {display_number(result['score_liquidity'])} / 30")
-    st.write(f"**Scor overdraft:** {display_number(result['score_overdraft'])} / 30")
-    st.metric("Scor lunar", f"{display_number(result['monthly_score'])} / 100")
-    st.metric("Scor acumulat", display_number(st.session_state.total_score + result["monthly_score"]))
+        st.write(t("simulation.penalties_month", value=display_euro(result["penalties"])))
+    st.markdown(t("simulation.monthly_score_heading"))
+    st.write(t("simulation.score_repayment", value=display_number(result["score_repayment"])))
+    st.write(t("simulation.score_liquidity", value=display_number(result["score_liquidity"])))
+    st.write(t("simulation.score_overdraft", value=display_number(result["score_overdraft"])))
+    st.metric(t("simulation.monthly_score_metric"), f"{display_number(result['monthly_score'])} / 100")
+    st.metric(t("simulation.score_accumulated"), display_number(st.session_state.total_score + result["monthly_score"]))
 
     if result["pre_credit_impossible"]:
         st.error(result["feedback_message"])
@@ -2127,7 +1707,7 @@ elif st.session_state.page == "month_feedback":
     else:
         st.warning(result["feedback_message"])
 
-    if st.button("Continuă către luna următoare", type="primary"):
+    if st.button(t("simulation.continue_month_button"), type="primary"):
         st.session_state.loan.balance = result["credit_final"]
         st.session_state.overdraft.balance = result["overdraft_final"]
         st.session_state.total_score += result["monthly_score"]
@@ -2143,50 +1723,51 @@ elif st.session_state.page == "month_feedback":
 # ==================== POST-SIMULATION QUESTIONS ====================
 elif st.session_state.page.startswith("post_question_"):
     scroll_top_anchor()
+    post_sections = get_display_post_sections()
     try:
         post_index = int(st.session_state.page.rsplit("_", 1)[1])
     except Exception:
         goto("post_question_0")
 
-    if post_index >= len(POST_SECTIONS):
+    if post_index >= len(post_sections):
         goto("final_score")
 
-    section = POST_SECTIONS[post_index]
-    next_page = "final_score" if post_index + 1 >= len(POST_SECTIONS) else f"post_question_{post_index + 1}"
-    question_offset = sum(len(post_section["questions"]) for post_section in POST_SECTIONS[:post_index])
+    section = post_sections[post_index]
+    next_page = "final_score" if post_index + 1 >= len(post_sections) else f"post_question_{post_index + 1}"
+    question_offset = sum(len(post_section["questions"]) for post_section in post_sections[:post_index])
 
-    st.title("Chestionar post-experiment")
-    st.caption(f"Capitolul {post_index + 1} din {len(POST_SECTIONS)}")
-    st.progress((post_index + 1) / len(POST_SECTIONS))
+    st.title(t("quiz.post_title"))
+    st.caption(t("quiz.chapter_label", current=post_index + 1, total=len(post_sections)))
+    st.progress((post_index + 1) / len(post_sections))
     render_question_section(section, post_index + 1, question_offset)
 
     if not all_answered([section]):
-        st.warning("Te rugăm să răspunzi la toate întrebările din acest capitol înainte de a continua.")
+        st.warning(t("quiz.chapter_required_warning"))
 
-    if post_index + 1 >= len(POST_SECTIONS):
-        st.markdown("### Feedback opțional")
+    if post_index + 1 >= len(post_sections):
+        st.markdown(t("quiz.post_optional_feedback_title"))
         st.session_state.answers["feedback"] = st.text_area(
-            "Ce parte a scenariului ți s-a părut cea mai provocatoare sau realistă?",
+            t("quiz.post_optional_feedback_prompt"),
             value=st.session_state.answers.get("feedback", ""),
         )
 
-    if st.button("Skip all chapters", type="secondary", key=f"skip_post_question_{post_index}"):
+    if st.button(t("quiz.skip_all_button"), type="secondary", key=f"skip_post_question_{post_index}"):
         st.session_state.scroll_to_top = True
         goto("final_score")
 
     if DEV:
-        if st.button("⚡ DEV: Randomizează acest capitol și continuă", type="secondary", key=f"dev_post_question_{post_index}"):
+        if st.button(t("quiz.dev_randomize"), type="secondary", key=f"dev_post_question_{post_index}"):
             randomize_section(section)
             st.session_state.scroll_to_top = True
             goto(next_page)
 
-    button_label = "Finalizează →" if post_index + 1 >= len(POST_SECTIONS) else "Continuă →"
+    button_label = t("quiz.post_finish_button") if post_index + 1 >= len(post_sections) else t("quiz.continue_button")
     if st.button(button_label, type="primary", key=f"continue_post_question_{post_index}"):
         if all_answered([section]):
             st.session_state.scroll_to_top = True
             goto(next_page)
         else:
-            st.error("Sunt întrebări fără răspuns.")
+            st.error(t("quiz.chapter_missing_error"))
 
 
 # ==================== FINAL SCORE ====================
@@ -2197,13 +1778,13 @@ elif st.session_state.page == "final_score":
 
     breakdown = get_final_score_breakdown()
 
-    st.title("Scor final")
-    st.markdown("Ai finalizat cele 24 de luni ale scenariului.")
-    st.markdown("### Scor comportamental final")
+    st.title(t("final_score.title"))
+    st.markdown(t("final_score.intro"))
+    st.markdown(t("final_score.heading"))
     st.markdown(
         f"""
 <div class="final-score-card">
-  <span class="final-score-label">Scor comportamental final</span>
+  <span class="final-score-label">{t("final_score.card_label")}</span>
   <span class="final-score-value">{display_number(breakdown["final_score"])} / 100</span>
 </div>
 """,
@@ -2211,26 +1792,23 @@ elif st.session_state.page == "final_score":
     )
     st.markdown(
         f"""
-**Bonus final obținut:** {display_euro(breakdown["bonus_final"])}
+**{t("final_score.bonus_label")}:** {display_euro(breakdown["bonus_final"])}
 
-### Rezumat financiar final
+{t("final_score.summary_heading")}
 
-**Total rambursat din credit:** {display_euro(breakdown["total_repaid"])}
+**{t("final_score.total_repaid")}:** {display_euro(breakdown["total_repaid"])}
 
-**Credit rămas la final:** {display_euro(breakdown["remaining_credit"])}
+**{t("final_score.remaining_credit")}:** {display_euro(breakdown["remaining_credit"])}
 
-**Overdraft utilizat la final:** {display_euro(breakdown["remaining_overdraft"])}
+**{t("final_score.remaining_overdraft")}:** {display_euro(breakdown["remaining_overdraft"])}
 
-**Dobânzi totale acumulate:** {display_euro(breakdown["interest_total"])}
+**{t("final_score.interest_total")}:** {display_euro(breakdown["interest_total"])}
 """
     )
-    st.info(
-        "Scorul comportamental final a fost calculat automat pe baza deciziilor lunare privind "
-        "rambursarea creditului, lichiditatea rămasă după plată și utilizarea overdraftului."
-    )
-    st.caption("Datele generate în scenariu vor fi folosite doar în scopul cercetării, conform acordului de participare.")
+    st.info(t("final_score.info"))
+    st.caption(t("final_score.caption"))
 
-    if st.button("Continuă →", type="primary"):
+    if st.button(t("final_score.button"), type="primary"):
         st.session_state.scroll_to_top = True
         goto("done")
 
@@ -2256,31 +1834,31 @@ elif st.session_state.page == "done":
                     **breakdown,
                     "scenario_version": SCENARIO_VERSION,
                 },
-                pre_sections=PRE_SECTIONS,
-                post_sections=POST_SECTIONS,
+                pre_sections=PRE_SECTIONS_RO,
+                post_sections=POST_SECTIONS_RO,
             )
             st.session_state.saved = True
         except Exception as e:
-            st.error(f"Eroare la salvarea datelor: {e}")
+            st.error(t("done.save_error", error=e))
 
-    st.title("Mulțumim pentru participare!")
-    st.metric("Scor comportamental final", f"{display_number(st.session_state.final_score)} / 100")
-    st.markdown(f"**Bonus final obținut:** {display_euro(breakdown['bonus_final'])}")
+    st.title(t("done.title"))
+    st.metric(t("done.score_metric"), f"{display_number(st.session_state.final_score)} / 100")
+    st.markdown(f"**{t('done.bonus_label')}:** {display_euro(breakdown['bonus_final'])}")
     st.markdown(
         f"""
-Credit rămas: **{display_euro(st.session_state.loan.balance)}**
+{t("done.remaining_credit")}: **{display_euro(st.session_state.loan.balance)}**
 
-Overdraft utilizat: **{display_euro(st.session_state.overdraft.balance)}**
+{t("done.remaining_overdraft")}: **{display_euro(st.session_state.overdraft.balance)}**
 
-Răspunsurile tale au fost înregistrate. Rezultatele studiului vor fi disponibile după finalizarea colectării datelor.
+{t("done.registered_text")}
 
-Contact: coita.iflorina@gmail.com
+{t("done.contact")}: coita.iflorina@gmail.com
 """
     )
 
     if REPEAT_SCENARIO_DEV_MODE:
-        st.caption("Mod de testare activ: poți parcurge din nou scenariul cu același cont.")
-        if st.button("Începe un scenariu nou (test)", type="primary", key="new_test_scenario"):
+        st.caption(t("done.dev_caption"))
+        if st.button(t("done.dev_button"), type="primary", key="new_test_scenario"):
             start_new_scenario()
             st.rerun()
 
