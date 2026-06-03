@@ -162,7 +162,7 @@ def runtime_defaults():
     return {
         "page": "home",
         "session_id": None,
-        "language": "ro",
+        "language": "en",
         "month": 1,
         "loan": Loan(balance=7000.0, annual_interest=0.0835, months=24),
         "overdraft": Overdraft(limit=3000.0, annual_interest=0.18),
@@ -193,7 +193,7 @@ def collect_checkpoint():
     return {
         "scenario_version": SCENARIO_VERSION,
         "page": st.session_state.get("page", "home"),
-        "language": st.session_state.get("language", "ro"),
+        "language": st.session_state.get("language", "en"),
         "month": st.session_state.get("month", 1),
         "loan_balance": st.session_state.loan.balance,
         "overdraft_balance": st.session_state.overdraft.balance,
@@ -266,7 +266,7 @@ def hydrate_from_checkpoint(checkpoint):
         page = "simulation"
 
     st.session_state.page = page
-    st.session_state.language = checkpoint.get("language", "ro")
+    st.session_state.language = checkpoint.get("language", "en")
     st.session_state.month = int(checkpoint.get("month", 1))
     st.session_state.loan = Loan(
         balance=float(checkpoint.get("loan_balance", 7000.0)),

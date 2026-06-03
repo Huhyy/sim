@@ -1314,9 +1314,9 @@ CATEGORY_LABELS = {
 
 
 def ensure_language():
-    language = st.session_state.get("language", "ro")
+    language = st.session_state.get("language", "en")
     if language not in SUPPORTED_LANGUAGES:
-        language = "ro"
+        language = "en"
     st.session_state.language = language
     return language
 
@@ -1326,7 +1326,7 @@ def get_language():
 
 
 def set_language(language):
-    st.session_state.language = language if language in SUPPORTED_LANGUAGES else "ro"
+    st.session_state.language = language if language in SUPPORTED_LANGUAGES else "en"
 
 
 def _lookup(mapping, key):

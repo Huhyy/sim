@@ -702,17 +702,7 @@ def render_language_selector():
     ensure_language()
     current_language = get_language()
     with st.container():
-        col_ro, col_en, _ = st.columns([0.08, 0.08, 0.84])
-        with col_ro:
-            if st.button(
-                t("language.ro"),
-                type="primary" if current_language == "ro" else "secondary",
-                key="lang_ro",
-                use_container_width=True,
-            ):
-                if current_language != "ro":
-                    set_language("ro")
-                    st.rerun()
+        col_en, col_ro, _ = st.columns([0.08, 0.08, 0.84])
         with col_en:
             if st.button(
                 t("language.en"),
@@ -722,6 +712,16 @@ def render_language_selector():
             ):
                 if current_language != "en":
                     set_language("en")
+                    st.rerun()
+        with col_ro:
+            if st.button(
+                t("language.ro"),
+                type="primary" if current_language == "ro" else "secondary",
+                key="lang_ro",
+                use_container_width=True,
+            ):
+                if current_language != "ro":
+                    set_language("ro")
                     st.rerun()
 
 
