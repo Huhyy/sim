@@ -103,6 +103,13 @@ header {visibility: hidden;}
     font: 700 0.78rem/1 'Manrope', sans-serif !important;
 }
 
+.st-key-account_lang_en button,
+.st-key-account_lang_ro button {
+    min-height: 2.2rem;
+    border-radius: 999px !important;
+    font: 700 0.76rem/1 'Manrope', sans-serif !important;
+}
+
 .language-bar {
     display: flex;
     align-items: center;
@@ -309,6 +316,17 @@ div[data-testid="stExpander"] details[open] > summary svg {
     margin-top: 0 !important;
 }
 
+div[data-testid="stNumberInput"] input {
+    background: #f6f0e5 !important;
+    color: var(--scenario-text) !important;
+    border-color: #d8cfbd !important;
+}
+
+div[data-testid="stNumberInput"] > div {
+    background: #f6f0e5 !important;
+    border-radius: 0.9rem !important;
+}
+
 .final-score-card {
     display: inline-flex;
     flex-direction: column;
@@ -394,6 +412,15 @@ div[data-testid="stExpander"] details[open] > summary svg {
     color: #65716e;
     font-size: 0.78rem;
     font-weight: 700;
+}
+
+.account-language-label {
+    margin: 0 0 0.5rem;
+    color: #65716e;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .stButton > button {
@@ -698,16 +725,16 @@ def randomize_section(section):
         st.session_state.answers[key] = random.choice(section["scale"])
 
 
-def render_language_selector():
+def render_language_buttons(prefix="lang"):
     ensure_language()
     current_language = get_language()
     with st.container():
-        col_en, col_ro, _ = st.columns([0.08, 0.08, 0.84])
+        col_en, col_ro = st.columns(2)
         with col_en:
             if st.button(
                 t("language.en"),
                 type="primary" if current_language == "en" else "secondary",
-                key="lang_en",
+                key=f"{prefix}_en",
                 use_container_width=True,
             ):
                 if current_language != "en":
@@ -717,12 +744,16 @@ def render_language_selector():
             if st.button(
                 t("language.ro"),
                 type="primary" if current_language == "ro" else "secondary",
-                key="lang_ro",
+                key=f"{prefix}_ro",
                 use_container_width=True,
             ):
                 if current_language != "ro":
                     set_language("ro")
                     st.rerun()
+
+
+def render_language_selector():
+    render_language_buttons("lang")
 
 
 def render_login_page():
@@ -902,11 +933,12 @@ def render_account_menu():
     email = st.user.get("email") or st.user.get("name") or t("auth.account_fallback")
     with st.container(key="account_menu"):
         with st.expander(email):
+            st.markdown(f'<div class="account-language-label">{t("auth.language_label")}</div>', unsafe_allow_html=True)
+            render_language_buttons("account_lang")
             if st.button(t("auth.logout"), icon=":material/logout:", key="account_logout", use_container_width=True):
                 st.logout()
 
 
-render_language_selector()
 render_account_menu()
 
 
@@ -1226,7 +1258,7 @@ if st.session_state.page == "already_completed":
 # ==================== HOME ====================
 elif st.session_state.page == "home":
     scroll_top_anchor()
-    st.markdown("""
+    st.markdown(f"""
 <style>
 .home-title { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
 .home-body { text-align: justify; }
@@ -1647,7 +1679,7 @@ elif st.session_state.page == "simulation":
     )
     attach_payment_keyboard_bridge()
     st.markdown(
-        """
+        f"""
 <div class="auth-info payment-note">
   <span class="auth-info-icon">i</span>
   <span>{t("simulation.payment_note")}</span>
@@ -1749,6 +1781,10 @@ elif st.session_state.page.startswith("post_question_"):
         st.session_state.answers["feedback"] = st.text_area(
             t("quiz.post_optional_feedback_prompt"),
             value=st.session_state.answers.get("feedback", ""),
+        )
+        st.session_state.answers["strategy_feedback"] = st.text_area(
+            t("quiz.post_strategy_prompt"),
+            value=st.session_state.answers.get("strategy_feedback", ""),
         )
 
     if st.button(t("quiz.skip_all_button"), type="secondary", key=f"skip_post_question_{post_index}"):

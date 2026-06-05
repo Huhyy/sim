@@ -29,8 +29,9 @@ UI_TEXT = {
                 "Răspunsuri separate",
             ],
             "google_button": "Continuă cu Google",
-            "privacy_html": "<strong>Confidențialitate:</strong> Platforma folosește autentificarea Google pentru identificarea sesiunii, prevenirea participărilor multiple și reluarea progresului în caz de întrerupere. Aplicația poate accesa numele, fotografia de profil și adresa de e-mail asociate contului Google. Aceste date de identificare vor fi stocate separat de răspunsurile experimentale. Analiza statistică se va realiza pe date pseudonimizate, folosind un cod unic de participant, fără includerea adresei de e-mail, numelui sau fotografiei de profil în setul de date analizat.",
+            "privacy_html": "<strong>Confidențialitate:</strong> Platforma folosește autentificarea Google pentru identificarea sesiunii, prevenirea participărilor multiple și reluarea progresului în caz de întrerupere. Aplicația poate accesa numele, fotografia de profil și adresa de e-mail asociate contului Google. Aceste date de identificare vor fi stocate separat de răspunsurile experimentale. Analiza statistică se va realiza pe date anonime, folosind un cod unic de participant, fără includerea adresei de e-mail, numelui sau fotografiei de profil în setul de date analizat.",
             "privacy_note": "Răspunsurile tale vor fi analizate în mod anonim și vor ajuta la înțelegerea legăturii dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții incerte sau stresante.",
+            "language_label": "Limbă",
             "account_fallback": "Cont conectat",
             "logout": "Log out",
         },
@@ -46,6 +47,7 @@ UI_TEXT = {
             "post_title": "Chestionar post-experiment",
             "post_optional_feedback_title": "### Feedback opțional",
             "post_optional_feedback_prompt": "Ce parte a scenariului ți s-a părut cea mai provocatoare sau realistă?",
+            "post_strategy_prompt": "Ce strategie ați folosit în timpul experimentului?",
             "post_finish_button": "Finalizează →",
             "dev_randomize": "⚡ DEV: Randomizează acest capitol și continuă",
         },
@@ -70,120 +72,82 @@ procesul decizional în situații economice riscante.""",
             "button": "Începe scenariul →",
         },
         "consent": {
-            "markdown": """## Acord de participare și consimțământ informat
+            "markdown": """## Acord de participare ?i consim??m?nt informat
 
-### Titlul studiului
+Percep?ia riscului ?i decizia financiar? ?n condi?ii de incertitudine
 
-Percepția riscului și decizia financiară în condiții de incertitudine
+E?ti invitat(?) s? participi la un studiu de cercetare despre modul ?n care persoanele iau decizii financiare ?n condi?ii de incertitudine. Studiul include un experiment financiar structurat, ?n care vei lua decizii lunare privind rambursarea unui credit, pe baza unor informa?ii despre venituri, cheltuieli, sold disponibil ?i evolu?ia obliga?iilor financiare.
 
-### Invitație de participare
+Participarea este voluntar?. Te rug?m s? cite?ti cu aten?ie informa?iile de mai jos ?nainte de a decide dac? dore?ti s? continui.
 
-Ești invitat(ă) să participi la un studiu de cercetare despre modul în care persoanele iau decizii financiare în condiții de incertitudine. Studiul include un experiment financiar structurat, în care vei lua decizii lunare privind rambursarea unui credit, pe baza unor informații despre venituri, cheltuieli, sold disponibil și evoluția obligațiilor financiare.
+Scopul studiului este de a analiza rela?ia dintre profilul psihologic, percep?ia riscului, nivelul de stres ?i deciziile financiare luate ?ntr-un experiment de credit.
 
-Participarea este voluntară. Te rugăm să citești cu atenție informațiile de mai jos înainte de a decide dacă dorești să continui.
+Dac? accep?i s? participi, vei parcurge urm?toarele etape:
 
-### Scopul studiului
-
-Scopul studiului este de a analiza relația dintre profilul psihologic, percepția riscului, nivelul de stres și deciziile financiare luate într-un experiment de credit.
-
-Studiul urmărește să înțeleagă cum variază deciziile de rambursare în funcție de factori precum impulsivitatea, reglarea emoțională, toleranța la incertitudine, încrederea în propriile judecăți și reacțiile afective produse de sarcina financiară.
-
-### Ce presupune participarea
-
-Dacă accepți să participi, vei parcurge următoarele etape:
-
-- vei citi informațiile despre studiu și vei confirma consimțământul informat;
+- vei citi informa?iile despre studiu ?i vei confirma consim??m?ntul informat;
 - vei completa un scurt profil demografic;
-- vei răspunde la un chestionar psihologic inițial;
-- vei parcurge un experiment financiar structurat pe mai multe luni, în care vei lua decizii privind rambursarea unui credit;
-- vei completa un chestionar final despre starea ta psihologică după experiment și despre percepția asupra sarcinii.
+- vei r?spunde la un chestionar psihologic ini?ial;
+- vei parcurge un experiment financiar structurat pe mai multe luni, ?n care vei lua decizii privind rambursarea unui credit;
+- vei completa un chestionar final despre starea ta psihologic? dup? experiment ?i despre percep?ia asupra sarcinii.
 
-În cadrul experimentului, vei primi informații financiare lunare și vei decide suma pe care dorești să o aloci rambursării creditului. Experimentul este construit pentru a reflecta situații financiare realiste, fără a implica acces la conturi bancare reale sau modificări asupra unor obligații financiare personale.
+?n cadrul experimentului, vei primi informa?ii financiare lunare ?i vei decide suma pe care dore?ti s? o aloci ramburs?rii creditului. Experimentul este construit pentru a reflecta situa?ii financiare realiste, f?r? a implica acces la conturi bancare reale sau modific?ri asupra unor obliga?ii financiare personale.
 
-### Durata estimată
+Participarea dureaz? aproximativ 30?45 de minute, ?n func?ie de ritmul de completare.
 
-Participarea durează aproximativ 30–45 de minute, în funcție de ritmul de completare.
+?n cadrul studiului pot fi colectate urm?toarele categorii de date:
 
-### Tipuri de date colectate
+- r?spunsuri la ?ntreb?ri demografice generale;
+- r?spunsuri la chestionare psihometrice;
+- deciziile introduse ?n cadrul experimentului financiar;
+- indicatori calcula?i automat pe baza deciziilor luate ?n experiment, precum soldul creditului, utilizarea overdraftului, penalit??i, dob?nzi ?i scoruri experimentale;
+- r?spunsuri la ?ntreb?ri finale despre experien?a ?n cadrul experimentului.
 
-În cadrul studiului pot fi colectate următoarele categorii de date:
+Nu ?i se va cere s? furnizezi date bancare reale, parole, coduri de acces, extrase de cont reale sau informa?ii financiare identificabile.
 
-- răspunsuri la întrebări demografice generale;
-- răspunsuri la chestionare psihometrice;
-- deciziile introduse în cadrul experimentului financiar;
-- indicatori calculați automat pe baza deciziilor luate în experiment, precum soldul creditului, utilizarea overdraftului, penalități, dobânzi și scoruri experimentale;
-- răspunsuri la întrebări finale despre experiența în cadrul experimentului.
+Situa?iile financiare, evenimentele lunare ?i informa?iile prezentate ?n cadrul experimentului sunt construite pentru scopuri de cercetare. Acestea nu reprezint? o evaluare a situa?iei tale financiare personale ?i nu produc efecte asupra vreunui credit real, cont bancar sau raport de credit.
 
-Nu ți se va cere să furnizezi date bancare reale, parole, coduri de acces, extrase de cont reale sau informații financiare identificabile.
+Deciziile tale din cadrul experimentului sunt folosite exclusiv ?n scop de cercetare.
 
-Dacă studiul va include în viitor date suplimentare, precum date open banking, profil profesional sau date din alte surse, acestea vor fi prezentate separat și vor necesita consimțământ distinct. În această versiune a studiului, sarcina financiară se bazează exclusiv pe informațiile prezentate în platforma experimentală.
+Studiul include situa?ii legate de credit, datorii, presiune financiar?, stres, obliga?ii lunare ?i incertitudine.
 
-### Natura experimentului
+Nu exist? r?spunsuri corecte sau gre?ite. Nu evalu?m competen?a ta financiar? ?i nu formul?m judec??i individuale despre deciziile tale.
 
-Situațiile financiare, evenimentele lunare și informațiile prezentate în cadrul experimentului sunt construite pentru scopuri de cercetare. Acestea nu reprezintă o evaluare a situației tale financiare personale și nu produc efecte asupra vreunui credit real, cont bancar sau raport de credit.
+Po?i ?ntrerupe participarea ?n orice moment, f?r? s? oferi explica?ii.
 
-Deciziile tale din cadrul experimentului sunt folosite exclusiv în scop de cercetare.
+Datele vor fi analizate anonim. R?spunsurile individuale nu vor fi publicate ?n mod identificabil.
 
-### Posibile riscuri sau disconfort
+Dac? platforma folose?te un cod de participant, acesta va fi utilizat doar pentru a lega r?spunsurile ini?iale, deciziile din cadrul experimentului ?i r?spunsurile finale. Codul nu va fi folosit pentru identificarea public? a participantului.
 
-Studiul include situații legate de credit, datorii, presiune financiară, stres, obligații lunare și incertitudine. Unele persoane pot resimți ușor disconfort, tensiune sau oboseală în timpul parcurgerii experimentului.
+Rezultatele vor fi raportate agregat, de exemplu sub form? de medii, corela?ii, modele statistice sau grafice.
 
-Nu există răspunsuri corecte sau greșite. Nu evaluăm competența ta financiară și nu formulăm judecăți individuale despre deciziile tale.
+Participarea este voluntar?. Ai dreptul:
 
-Poți întrerupe participarea în orice moment, fără să oferi explicații.
+- s? refuzi participarea;
+- s? ?ntrerupi completarea ?n orice moment;
+- s? nu r?spunzi la o ?ntrebare, dac? aceasta permite op?iune de necompletare;
+- s? solici?i informa?ii suplimentare despre studiu.
 
-### Beneficii
+Retragerea din studiu nu va avea consecin?e negative asupra ta.
 
-Nu există un beneficiu personal direct garantat. Participarea ta poate contribui la o mai bună înțelegere a modului în care oamenii iau decizii financiare în contexte incerte sau stresante.
+Participarea la acest studiu poate include o compensa?ie fix? pentru participare ?i/sau o recompens? experimental? calculat? pe baza deciziilor luate ?n cadrul experimentului financiar.
 
-Rezultatele pot fi folosite pentru cercetare academică, dezvoltarea unor modele de analiză comportamentală și proiectarea unor instrumente educaționale sau experimentale în domeniul finanțelor comportamentale.
+Recompensa experimental? are rol exclusiv de stimulent ?n cadrul studiului ?i nu reprezint? o evaluare real? a situa?iei financiare, a competen?ei financiare sau a bonit??ii participantului.
 
-### Confidențialitate și anonimitate
+Datele colectate pot fi utilizate pentru: analize statistice; lucr?ri ?tiin?ifice; prezent?ri academice; rapoarte de cercetare; dezvoltarea unor modele experimentale privind decizia financiar?.
 
-Datele vor fi analizate în formă anonimă sau pseudonimizată. Răspunsurile individuale nu vor fi publicate în mod identificabil.
+Nicio publica?ie sau prezentare nu va include informa?ii care s? permit? identificarea direct? a participan?ilor.
 
-Dacă platforma folosește un cod de participant, acesta va fi utilizat doar pentru a lega răspunsurile inițiale, deciziile din cadrul experimentului și răspunsurile finale. Codul nu va fi folosit pentru identificarea publică a participantului.
-
-Rezultatele vor fi raportate agregat, de exemplu sub formă de medii, corelații, modele statistice sau grafice.
-
-### Participare voluntară și retragere
-
-Participarea este voluntară. Ai dreptul:
-
-- să refuzi participarea;
-- să întrerupi completarea în orice moment;
-- să nu răspunzi la o întrebare, dacă aceasta permite opțiune de necompletare;
-- să soliciți informații suplimentare despre studiu.
-
-Retragerea din studiu nu va avea consecințe negative asupra ta.
-
-### Compensație
-
-Participarea la acest studiu poate include o compensație fixă pentru participare și/sau o recompensă experimentală calculată pe baza deciziilor luate în cadrul experimentului financiar.
-
-Recompensa experimentală are rol exclusiv de stimulent în cadrul studiului și nu reprezintă o evaluare reală a situației financiare, a competenței financiare sau a bonității participantului.
-
-### Utilizarea rezultatelor
-
-Datele colectate pot fi utilizate pentru: analize statistice; lucrări științifice; prezentări academice; rapoarte de cercetare; dezvoltarea unor modele experimentale privind decizia financiară.
-
-Nicio publicație sau prezentare nu va include informații care să permită identificarea directă a participanților.
-
-### Contact
-
-Pentru întrebări despre studiu sau despre utilizarea datelor, poți contacta echipa de cercetare la:
+Pentru ?ntreb?ri despre studiu sau despre utilizarea datelor, po?i contacta echipa de cercetare la:
 
 coita.iflorina@gmail.com
 
-### Declarație de consimțământ
-
-Te rugăm să confirmi următoarele afirmații înainte de a continua:""",
+Te rug?m s? confirmi urm?toarele afirma?ii ?nainte de a continua:""",
             "items": [
                 "Am citit și am înțeles informațiile despre studiu.",
                 "Am înțeles că participarea este voluntară.",
                 "Am înțeles că pot întrerupe participarea în orice moment.",
                 "Am înțeles că voi parcurge un experiment financiar care poate include situații de presiune financiară, stres și incertitudine.",
-                "Am înțeles că datele mele vor fi analizate anonim sau pseudonimizat.",
+                "Am înțeles că datele mele vor fi analizate anonim.",
                 "Am înțeles că nu mi se cer date bancare reale sau informații financiare identificabile.",
                 "Am înțeles că deciziile luate în cadrul experimentului nu afectează un credit real, un cont bancar sau un raport de credit.",
                 "Sunt de acord să particip la acest studiu.",
@@ -467,7 +431,7 @@ Andrei se percepe ca având un job „sigur".""",
                 },
                 {
                     "title": "Situație personală și emoțională",
-                    "body": """- **Status relațional:** căsătorit cu Maria. Maria are un venit net lunar în jur de 800 euro.
+                    "body": """- Maria are un venit net lunar în jur de 800 euro.
 - Are un cerc restrâns de prieteni, mulți dintre ei deja căsătoriți, cu copii, cu rate la casă.
 
 Andrei nu este impulsiv emoțional, dar:
@@ -552,10 +516,7 @@ lunare depășesc suma disponibilă în cont.
 lichiditatea disponibilă, diferența este acoperită automat din overdraft, în limita disponibilă.
 Participanții nu activează manual overdraftul, dar decizia lor de plată poate conduce la utilizarea lui.
 
-**Dobândă overdraft:** sumele utilizate generează dobândă lunară, care se adaugă la datoria acumulată.
-
-**Rambursarea overdraftului:** orice sumă rămasă în cont după efectuarea plăților lunare reduce automat
-soldul overdraftului utilizat.""",
+""",
                 },
             ],
             "button": "Începe scenariul →",
@@ -654,8 +615,9 @@ soldul overdraftului utilizat.""",
                 "Separate responses",
             ],
             "google_button": "Continue with Google",
-            "privacy_html": "<strong>Privacy:</strong> The platform uses Google authentication for session identification, duplicate-participation prevention, and progress recovery after interruption. The app may access the name, profile photo, and email address associated with the Google account. This identifying data will be stored separately from the experimental responses. Statistical analysis will be conducted on pseudonymized data, using a unique participant code, without including the email address, name, or profile photo in the analyzed dataset.",
+            "privacy_html": "<strong>Privacy:</strong> The platform uses Google authentication for session identification, duplicate-participation prevention, and progress recovery after interruption. The app may access the name, profile photo, and email address associated with the Google account. This identifying data will be stored separately from the experimental responses. Statistical analysis will be conducted on anonymous data, using a unique participant code, without including the email address, name, or profile photo in the analyzed dataset.",
             "privacy_note": "Your responses will be analyzed anonymously and will help us understand the link between individual traits and how people make financial decisions under uncertain or stressful conditions.",
+            "language_label": "Language",
             "account_fallback": "Connected account",
             "logout": "Log out",
         },
@@ -671,6 +633,7 @@ soldul overdraftului utilizat.""",
             "post_title": "Post-experiment questionnaire",
             "post_optional_feedback_title": "### Optional feedback",
             "post_optional_feedback_prompt": "Which part of the scenario felt the most challenging or realistic to you?",
+            "post_strategy_prompt": "What strategy did you use during the experiment?",
             "post_finish_button": "Finish →",
             "dev_randomize": "⚡ DEV: Randomize this chapter and continue",
         },
@@ -697,23 +660,13 @@ decision-making in risky economic situations.""",
         "consent": {
             "markdown": """## Participation agreement and informed consent
 
-### Study title
-
 Risk perception and financial decision-making under uncertainty
-
-### Invitation to participate
 
 You are invited to take part in a research study on how people make financial decisions under conditions of uncertainty. The study includes a structured financial experiment in which you will make monthly decisions about repaying a loan based on information about income, expenses, available balance, and the evolution of financial obligations.
 
 Participation is voluntary. Please read the information below carefully before deciding whether you wish to continue.
 
-### Purpose of the study
-
 The purpose of the study is to analyze the relationship between psychological profile, risk perception, stress level, and financial decisions made in a credit-based experiment.
-
-The study seeks to understand how repayment decisions vary depending on factors such as impulsivity, emotion regulation, tolerance for uncertainty, confidence in one’s own judgment, and affective reactions triggered by the financial task.
-
-### What participation involves
 
 If you agree to participate, you will go through the following stages:
 
@@ -725,11 +678,7 @@ If you agree to participate, you will go through the following stages:
 
 During the experiment, you will receive monthly financial information and decide how much you want to allocate to loan repayment. The experiment is designed to reflect realistic financial situations, without involving access to real bank accounts or changes to any personal financial obligations.
 
-### Estimated duration
-
-Participation takes approximately 30–45 minutes, depending on your pace of completion.
-
-### Types of data collected
+Participation takes approximately 30?45 minutes, depending on your pace of completion.
 
 The following categories of data may be collected in this study:
 
@@ -741,37 +690,21 @@ The following categories of data may be collected in this study:
 
 You will not be asked to provide real banking data, passwords, access codes, real account statements, or identifiable financial information.
 
-If the study includes additional data in the future, such as open banking data, professional profile, or data from other sources, these will be presented separately and will require distinct consent. In this version of the study, the financial task is based exclusively on the information presented in the experimental platform.
-
-### Nature of the experiment
-
 The financial situations, monthly events, and information presented during the experiment are constructed for research purposes. They do not represent an assessment of your personal financial situation and do not produce effects on any real loan, bank account, or credit report.
 
 Your decisions in the experiment are used exclusively for research purposes.
 
-### Possible risks or discomfort
-
-The study includes situations related to credit, debt, financial pressure, stress, monthly obligations, and uncertainty. Some people may experience mild discomfort, tension, or fatigue while going through the experiment.
+The study includes situations related to credit, debt, financial pressure, stress, monthly obligations, and uncertainty.
 
 There are no correct or incorrect answers. We are not evaluating your financial competence, and we do not make individual judgments about your decisions.
 
 You may stop participating at any time without having to provide an explanation.
 
-### Benefits
-
-There is no guaranteed direct personal benefit. Your participation may contribute to a better understanding of how people make financial decisions in uncertain or stressful contexts.
-
-The results may be used for academic research, the development of behavioral analysis models, and the design of educational or experimental tools in the field of behavioral finance.
-
-### Confidentiality and anonymity
-
-The data will be analyzed in anonymous or pseudonymized form. Individual responses will not be published in an identifiable way.
+The data will be analyzed anonymously. Individual responses will not be published in an identifiable way.
 
 If the platform uses a participant code, it will only be used to link the initial responses, the decisions made during the experiment, and the final responses. The code will not be used for public identification of the participant.
 
 Results will be reported in aggregate form, for example as averages, correlations, statistical models, or graphs.
-
-### Voluntary participation and withdrawal
 
 Participation is voluntary. You have the right:
 
@@ -782,25 +715,17 @@ Participation is voluntary. You have the right:
 
 Withdrawing from the study will not have negative consequences for you.
 
-### Compensation
-
 Participation in this study may include a fixed compensation for participation and/or an experimental reward calculated on the basis of the decisions made during the financial experiment.
 
-The experimental reward serves exclusively as an incentive within the study and does not represent a real evaluation of the participant’s financial situation, financial competence, or creditworthiness.
-
-### Use of results
+The experimental reward serves exclusively as an incentive within the study and does not represent a real evaluation of the participant?s financial situation, financial competence, or creditworthiness.
 
 The collected data may be used for: statistical analyses; scientific papers; academic presentations; research reports; and the development of experimental models of financial decision-making.
 
 No publication or presentation will include information that could directly identify participants.
 
-### Contact
-
 For questions about the study or the use of data, you may contact the research team at:
 
 coita.iflorina@gmail.com
-
-### Consent statement
 
 Please confirm the following statements before continuing:""",
             "items": [
@@ -808,7 +733,7 @@ Please confirm the following statements before continuing:""",
                 "I understand that participation is voluntary.",
                 "I understand that I may stop participating at any time.",
                 "I understand that I will go through a financial experiment that may include situations of financial pressure, stress, and uncertainty.",
-                "I understand that my data will be analyzed anonymously or pseudonymized.",
+                "I understand that my data will be analyzed anonymously.",
                 "I understand that I am not asked to provide real banking data or identifiable financial information.",
                 "I understand that the decisions made during the experiment do not affect a real loan, bank account, or credit report.",
                 "I agree to participate in this study.",
@@ -996,7 +921,7 @@ Each month, the score can vary between 0 and 100 points.
 The monthly score takes into account three aspects:
 
 1. the amount repaid toward the loan;
-2. the money remaining after payment;
+2. the monthly liquidity balance;
 3. the level of overdraft used.
 
 A larger loan payment can increase the repayment score, but it must be supported by the month’s financial situation.
@@ -1092,7 +1017,7 @@ Andrei sees his job as “secure.”""",
                 },
                 {
                     "title": "Personal and emotional situation",
-                    "body": """- **Relationship status:** married to Maria. Maria has a monthly net income of around 800 euro.
+                    "body": """- Maria has a monthly net income of around 800 euro.
 - He has a small circle of friends, many of them already married, with children, and mortgage payments.
 
 Andrei is not emotionally impulsive, but:
@@ -1175,12 +1100,7 @@ expenses exceed the amount available in the account.
 
 **How it is used:** if total monthly expenses and the amount entered for loan payment exceed
 the available liquidity, the difference is covered automatically from the overdraft, within the available limit.
-Participants do not activate the overdraft manually, but their payment decision can lead to its use.
-
-**Overdraft interest:** the amounts used generate monthly interest, which is added to the accumulated debt.
-
-**Overdraft repayment:** any amount remaining in the account after monthly payments are made automatically reduces
-the overdraft balance used.""",
+Participants do not activate the overdraft manually, but their payment decision can lead to its use.""",
                 },
             ],
             "button": "Start the scenario →",
@@ -1243,7 +1163,7 @@ the overdraft balance used.""",
             "remaining_credit": "Remaining loan balance at the end",
             "remaining_overdraft": "Overdraft used at the end",
             "interest_total": "Total accumulated interest",
-            "info": "The final behavioral score was calculated automatically based on monthly decisions regarding loan repayment, the liquidity remaining after payment, and overdraft use.",
+            "info": "The final behavioral score was calculated automatically based on monthly decisions regarding loan repayment, the monthly liquidity balance, and overdraft use.",
             "caption": "The data generated in the scenario will be used only for research purposes, in accordance with the participation agreement.",
             "button": "Continue →",
         },
