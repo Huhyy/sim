@@ -1260,8 +1260,8 @@ elif st.session_state.page == "home":
     scroll_top_anchor()
     st.markdown(f"""
 <style>
-.home-title { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
-.home-body { text-align: justify; }
+.home-title {{ text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }}
+.home-body {{ text-align: justify; }}
 </style>
 <div class="home-title">{t("home.title")}</div>
 """, unsafe_allow_html=True)
