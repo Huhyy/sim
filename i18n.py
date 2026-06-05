@@ -464,7 +464,7 @@ Are următoarele obiceiuri:
                 {
                     "title": "Economii",
                     "body": """La începutul scenariului:
-- are aproximativ **350 euro** economii
+- are aproximativ **150 euro** economii
 - ținute în cont curent, nu separat
 - nu are un „fond de urgență" clar definit
 
@@ -1050,7 +1050,7 @@ He has the following habits:
                 {
                     "title": "Savings",
                     "body": """At the start of the scenario:
-- he has approximately **350 euro** in savings
+- he has approximately **150 euro** in savings
 - kept in the current account, not separately
 - he does not have a clearly defined “emergency fund”
 
