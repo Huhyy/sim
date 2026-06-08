@@ -943,6 +943,7 @@ def render_account_menu():
             )
             if is_admin_user():
                 if st.button(t("auth.admin_page"), key="account_admin", use_container_width=True):
+                    st.session_state.admin_return_page = st.session_state.get("page", "home")
                     goto("admin")
             if st.button(t("auth.logout"), icon=":material/logout:", key="account_logout", use_container_width=True):
                 st.logout()
@@ -1259,12 +1260,15 @@ if st.session_state.page == "admin":
     if not is_admin_user():
         goto("home")
     scroll_top_anchor()
+    admin_return_page = st.session_state.get("admin_return_page", "home")
+    if admin_return_page == "admin":
+        admin_return_page = "home"
     st.title(t("admin.title"))
     st.markdown(t("admin.body"))
     if st.button(t("admin.start_session"), type="primary"):
         st.info(t("admin.coming_soon"))
     if st.button(t("admin.back_home")):
-        goto("home")
+        goto(admin_return_page)
 
 
 # ==================== COMPLETED ACCOUNT ====================

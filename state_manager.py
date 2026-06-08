@@ -193,6 +193,7 @@ def collect_checkpoint():
     return {
         "scenario_version": SCENARIO_VERSION,
         "page": st.session_state.get("page", "home"),
+        "admin_return_page": st.session_state.get("admin_return_page"),
         "language": st.session_state.get("language", "en"),
         "month": st.session_state.get("month", 1),
         "loan_balance": st.session_state.loan.balance,
@@ -266,6 +267,7 @@ def hydrate_from_checkpoint(checkpoint):
         page = "simulation"
 
     st.session_state.page = page
+    st.session_state.admin_return_page = checkpoint.get("admin_return_page")
     st.session_state.language = checkpoint.get("language", "en")
     st.session_state.month = int(checkpoint.get("month", 1))
     st.session_state.loan = Loan(
