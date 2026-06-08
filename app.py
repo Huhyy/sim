@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import pandas as pd
 
-from auth_manager import is_logged_in
+from auth_manager import is_admin_user, is_logged_in
 from tables import get_month
 from questions import PRE_SECTIONS as PRE_SECTIONS_RO
 from questions import POST_SECTIONS as POST_SECTIONS_RO
@@ -935,6 +935,9 @@ def render_account_menu():
         with st.expander(email):
             st.markdown(f'<div class="account-language-label">{t("auth.language_label")}</div>', unsafe_allow_html=True)
             render_language_buttons("account_lang")
+            if is_admin_user():
+                if st.button(t("auth.admin_page"), key="account_admin", use_container_width=True):
+                    goto("admin")
             if st.button(t("auth.logout"), icon=":material/logout:", key="account_logout", use_container_width=True):
                 st.logout()
 
@@ -1246,7 +1249,20 @@ def get_final_score_breakdown():
 
 
 # ==================== COMPLETED ACCOUNT ====================
-if st.session_state.page == "already_completed":
+if st.session_state.page == "admin":
+    if not is_admin_user():
+        goto("home")
+    scroll_top_anchor()
+    st.title(t("admin.title"))
+    st.markdown(t("admin.body"))
+    if st.button(t("admin.start_session"), type="primary"):
+        st.info(t("admin.coming_soon"))
+    if st.button(t("admin.back_home")):
+        goto("home")
+
+
+# ==================== COMPLETED ACCOUNT ====================
+elif st.session_state.page == "already_completed":
     scroll_top_anchor()
     st.title(t("already_completed.title"))
     st.info(t("already_completed.body"))

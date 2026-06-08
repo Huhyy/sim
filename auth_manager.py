@@ -22,6 +22,41 @@ def is_logged_in():
         return False
 
 
+def current_user_email():
+    if not is_logged_in():
+        return None
+
+    email = st.user.get("email")
+    if not email:
+        return None
+    return str(email).strip().lower()
+
+
+def _parse_admin_emails(raw_value):
+    if not raw_value:
+        return set()
+
+    if isinstance(raw_value, str):
+        parts = raw_value.replace(";", ",").split(",")
+        return {part.strip().lower() for part in parts if part.strip()}
+
+    if isinstance(raw_value, (list, tuple, set)):
+        return {str(part).strip().lower() for part in raw_value if str(part).strip()}
+
+    return set()
+
+
+def admin_emails():
+    return _parse_admin_emails(_get_secret("ADMIN_EMAILS"))
+
+
+def is_admin_user():
+    email = current_user_email()
+    if not email:
+        return False
+    return email in admin_emails()
+
+
 def current_account_key():
     if not is_logged_in():
         return None

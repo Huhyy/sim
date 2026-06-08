@@ -33,7 +33,15 @@ UI_TEXT = {
             "privacy_note": "Răspunsurile tale vor fi analizate în mod anonim și vor ajuta la înțelegerea legăturii dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții incerte sau stresante.",
             "language_label": "Limbă",
             "account_fallback": "Cont conectat",
+            "admin_page": "Admin",
             "logout": "Log out",
+        },
+        "admin": {
+            "title": "Panou administrator",
+            "body": "Această pagină este disponibilă doar conturilor de administrator configurate prin adresă de e-mail.",
+            "start_session": "Start a session",
+            "coming_soon": "Acest buton este pregătit, dar nu lansează încă o sesiune.",
+            "back_home": "Înapoi la scenariu",
         },
         "quiz": {
             "chapter_label": "Capitolul {current} din {total}",
@@ -619,7 +627,15 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "privacy_note": "Your responses will be analyzed anonymously and will help us understand the link between individual traits and how people make financial decisions under uncertain or stressful conditions.",
             "language_label": "Language",
             "account_fallback": "Connected account",
+            "admin_page": "Admin",
             "logout": "Log out",
+        },
+        "admin": {
+            "title": "Admin panel",
+            "body": "This page is available only to administrator accounts configured by email address.",
+            "start_session": "Start a session",
+            "coming_soon": "This button is ready, but it does not launch a session yet.",
+            "back_home": "Back to scenario",
         },
         "quiz": {
             "chapter_label": "Chapter {current} of {total}",
