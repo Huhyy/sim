@@ -34,6 +34,11 @@ UI_TEXT = {
             "language_label": "Limbă",
             "account_fallback": "Cont conectat",
             "admin_page": "Admin",
+            "admin_debug": "Debug admin",
+            "admin_email": "Email detectat",
+            "admin_status": "Este admin",
+            "admin_yes": "Da",
+            "admin_no": "Nu",
             "logout": "Log out",
         },
         "admin": {
@@ -628,6 +633,11 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "language_label": "Language",
             "account_fallback": "Connected account",
             "admin_page": "Admin",
+            "admin_debug": "Admin debug",
+            "admin_email": "Detected email",
+            "admin_status": "Is admin",
+            "admin_yes": "Yes",
+            "admin_no": "No",
             "logout": "Log out",
         },
         "admin": {
