@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import pandas as pd
 
-from auth_manager import current_user_email, is_admin_user, is_logged_in
+from auth_manager import configured_admin_emails_text, current_user_email, is_admin_user, is_logged_in
 from tables import get_month
 from questions import PRE_SECTIONS as PRE_SECTIONS_RO
 from questions import POST_SECTIONS as POST_SECTIONS_RO
@@ -932,13 +932,14 @@ else:
 def render_account_menu():
     email = st.user.get("email") or st.user.get("name") or t("auth.account_fallback")
     detected_email = current_user_email() or "none"
+    configured_admins = configured_admin_emails_text()
     admin_status = t("auth.admin_yes") if is_admin_user() else t("auth.admin_no")
     with st.container(key="account_menu"):
         with st.expander(email):
             st.markdown(f'<div class="account-language-label">{t("auth.language_label")}</div>', unsafe_allow_html=True)
             render_language_buttons("account_lang")
             st.caption(
-                f"{t('auth.admin_debug')}: {t('auth.admin_email')} = {detected_email} | {t('auth.admin_status')} = {admin_status}"
+                f"{t('auth.admin_debug')}: {t('auth.admin_email')} = {detected_email} | {t('auth.admin_configured')} = {configured_admins} | {t('auth.admin_status')} = {admin_status}"
             )
             if is_admin_user():
                 if st.button(t("auth.admin_page"), key="account_admin", use_container_width=True):

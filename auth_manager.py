@@ -1,15 +1,30 @@
 import hashlib
 import hmac
 import os
+import ast
 
 import streamlit as st
 
 
 def _get_secret(name):
     try:
+        if name in st.secrets:
+            value = st.secrets[name]
+            if value is not None:
+                return value
         value = st.secrets.get(name)
-        if value:
+        if value is not None:
             return value
+        auth_section = st.secrets.get("auth")
+        if auth_section and name in auth_section:
+            value = auth_section[name]
+            if value is not None:
+                return value
+        admin_section = st.secrets.get("admin")
+        if admin_section and name in admin_section:
+            value = admin_section[name]
+            if value is not None:
+                return value
     except Exception:
         pass
     return os.getenv(name)
@@ -37,8 +52,21 @@ def _parse_admin_emails(raw_value):
         return set()
 
     if isinstance(raw_value, str):
-        parts = raw_value.replace(";", ",").split(",")
-        return {part.strip().lower() for part in parts if part.strip()}
+        parsed = raw_value.strip()
+        if parsed.startswith("[") and parsed.endswith("]"):
+            try:
+                loaded = ast.literal_eval(parsed)
+                if isinstance(loaded, (list, tuple, set)):
+                    return {str(part).strip().lower() for part in loaded if str(part).strip()}
+            except Exception:
+                parsed = parsed[1:-1]
+        parts = parsed.replace(";", ",").split(",")
+        cleaned = set()
+        for part in parts:
+            item = part.strip().strip('"').strip("'").lower()
+            if item:
+                cleaned.add(item)
+        return cleaned
 
     if isinstance(raw_value, (list, tuple, set)):
         return {str(part).strip().lower() for part in raw_value if str(part).strip()}
@@ -48,6 +76,13 @@ def _parse_admin_emails(raw_value):
 
 def admin_emails():
     return _parse_admin_emails(_get_secret("ADMIN_EMAILS"))
+
+
+def configured_admin_emails_text():
+    emails = sorted(admin_emails())
+    if not emails:
+        return "none"
+    return ", ".join(emails)
 
 
 def is_admin_user():
