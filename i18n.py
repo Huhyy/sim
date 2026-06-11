@@ -33,20 +33,33 @@ UI_TEXT = {
             "privacy_note": "Răspunsurile tale vor fi analizate în mod anonim și vor ajuta la înțelegerea legăturii dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții incerte sau stresante.",
             "language_label": "Limbă",
             "account_fallback": "Cont conectat",
-            "admin_page": "Admin",
-            "admin_debug": "Debug admin",
-            "admin_email": "Email detectat",
-            "admin_configured": "Admini configurați",
-            "admin_status": "Este admin",
-            "admin_yes": "Da",
-            "admin_no": "Nu",
-            "logout": "Log out",
+        "admin_page": "Admin",
+        "admin_debug": "Debug admin",
+        "admin_email": "Email detectat",
+        "admin_configured": "Admini configurați",
+        "admin_status": "Este admin",
+        "admin_yes": "Da",
+        "admin_no": "Nu",
+        "logout": "Log out",
+        },
+        "study_session": {
+            "title": "Codul sesiunii",
+            "body": "Introdu codul de 6 cifre primit de la administrator pentru a participa la sesiunea activă.",
+            "input_label": "Cod de sesiune",
+            "input_help": "Codul trebuie să conțină exact 6 cifre.",
+            "button": "Continuă",
+            "invalid": "Codul introdus nu corespunde unei sesiuni active.",
+            "missing": "Te rugăm să introduci un cod valid din 6 cifre.",
         },
         "admin": {
             "title": "Panou administrator",
             "body": "Această pagină este disponibilă doar conturilor de administrator configurate prin adresă de e-mail.",
             "start_session": "Start a session",
-            "coming_soon": "Acest buton este pregătit, dar nu lansează încă o sesiune.",
+            "created_success": "Sesiunea a fost creată. Distribuie codul de mai jos participanților.",
+            "active_sessions": "Sesiuni active",
+            "code_label": "Cod",
+            "created_at": "Creată la",
+            "status": "Status",
             "back_home": "Înapoi la scenariu",
         },
         "quiz": {
@@ -71,13 +84,11 @@ UI_TEXT = {
             "button": "Începe un scenariu nou (test)",
         },
         "home": {
-            "title": "Percepția riscului și decizia financiară în condiții de incertitudine",
+            "title": "Prezentarea studiului",
             "body": """Acest studiu își propune să investigheze modul în care indivizii percep și evaluează riscul
 atunci când iau decizii financiare în contexte incerte sau instabile. Vei fi invitat(ă) să
 parcurgi o serie de scenarii realiste de creditare, în care va trebui să formulezi estimări
-și să iei decizii care implică bani, timp și responsabilitate. În paralel, vom analiza
-reacțiile tale subiective privind nivelul de stres, presiunea socială, încărcătura
-emoțională și încrederea în propriile judecăți.
+și să iei decizii care implică bani, timp și responsabilitate.
 
 Scopul este de a înțelege cum interacționează stările afective și profilul psihologic cu
 procesul decizional în situații economice riscante.""",
@@ -106,7 +117,7 @@ Dac? accep?i s? participi, vei parcurge urm?toarele etape:
 
 ?n cadrul experimentului, vei primi informa?ii financiare lunare ?i vei decide suma pe care dore?ti s? o aloci ramburs?rii creditului. Experimentul este construit pentru a reflecta situa?ii financiare realiste, f?r? a implica acces la conturi bancare reale sau modific?ri asupra unor obliga?ii financiare personale.
 
-Participarea dureaz? aproximativ 30?45 de minute, ?n func?ie de ritmul de completare.
+Participarea dureaz? aproximativ 30-45 de minute, ?n func?ie de ritmul de completare.
 
 ?n cadrul studiului pot fi colectate urm?toarele categorii de date:
 
@@ -249,10 +260,10 @@ Te rug?m s? confirmi urm?toarele afirma?ii ?nainte de a continua:""",
 
 Experimentul se desfasoara pe parcursul a 24 de luni.
 
-În fiecare lună vei vedea informații despre situația financiară a lunii respective:
+În fiecare lună vei vedea informațiile financiare ale lunii:
 
-- veniturile lunii;
-- cheltuielile lunii;
+- venituri;
+- cheltuieli;
 - dobânda creditului;
 - dobânda overdraftului, dacă există;
 - banii disponibili înainte de plata creditului;
@@ -287,15 +298,16 @@ Această sumă arată cât este disponibil înainte ca tu să introduci plata pe
 
 ### Cum funcționează decizia lunară
 
-În fiecare lună vei introduce o singură sumă:
-
-suma pe care dorești să o plătești pentru credit în luna respectivă.
-
-Apoi apeși:
-
-Confirmă decizia
-
-După confirmare, decizia nu mai poate fi modificată.
+<div style="border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 12px; padding: 0.9rem 1rem; margin: 1rem 0; background: rgba(255, 255, 255, 0.03);">
+<strong>Pașii deciziei lunare</strong>
+<ul>
+<li>Introdu suma pe care vrei să o plătești din credit pentru luna respectivă.</li>
+<li>Apoi apeși <strong>Confirmă decizia</strong>.</li>
+<li>După confirmare, decizia nu mai poate fi modificată.</li>
+<li>Vei vedea ecranul de feedback pentru luna curentă.</li>
+<li>Apoi apeși <strong>Continuă către luna următoare</strong>.</li>
+</ul>
+</div>
 
 Platforma va calcula automat:
 
@@ -305,10 +317,6 @@ Platforma va calcula automat:
 - care este suma rămasă după plată;
 - care este overdraftul final al lunii;
 - ce scor primești pentru luna respectivă.
-
-După confirmare, vei vedea un ecran de feedback pentru luna curentă. Acolo vei vedea rezultatul deciziei tale. Apoi vei apăsa:
-
-Continuă către luna următoare
 
 ### Ce se întâmplă dacă introduci o sumă posibilă
 
@@ -381,7 +389,7 @@ La finalul experimentului vei vedea:
 - bonusul final obținut;
 - creditul rămas la final;
 - overdraftul utilizat la final;
-- dobânzile totale acumulate, dacă sunt afișate în versiunea finală a platformei.
+- dobânzile totale acumulate.
 
 ### Regula generală a experimentului
 
@@ -434,7 +442,7 @@ Nu este la început de drum, dar nici într-o poziție foarte bine plătită.
 | | |
 |---|---|
 | **Contract** | Perioadă nedeterminată |
-| **Venit lunar net** | Aproximativ 1.150 euro |
+| **Venit lunar net** | Aproximativ 1.000 euro |
 
 Venitul este relativ stabil, dar:
 - fără bonusuri garantate
@@ -445,7 +453,7 @@ Andrei se percepe ca având un job „sigur".""",
                 },
                 {
                     "title": "Situație personală și emoțională",
-                    "body": """- Maria are un venit net lunar în jur de 800 euro.
+                    "body": """- Maria are un venit net lunar în jur de 720 euro.
 - Are un cerc restrâns de prieteni, mulți dintre ei deja căsătoriți, cu copii, cu rate la casă.
 
 Andrei nu este impulsiv emoțional, dar:
@@ -632,21 +640,34 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "privacy_html": "<strong>Privacy:</strong> The platform uses Google authentication for session identification, duplicate-participation prevention, and progress recovery after interruption. The app may access the name, profile photo, and email address associated with the Google account. This identifying data will be stored separately from the experimental responses. Statistical analysis will be conducted on anonymous data, using a unique participant code, without including the email address, name, or profile photo in the analyzed dataset.",
             "privacy_note": "Your responses will be analyzed anonymously and will help us understand the link between individual traits and how people make financial decisions under uncertain or stressful conditions.",
             "language_label": "Language",
-            "account_fallback": "Connected account",
-            "admin_page": "Admin",
-            "admin_debug": "Admin debug",
-            "admin_email": "Detected email",
-            "admin_configured": "Configured admins",
-            "admin_status": "Is admin",
-            "admin_yes": "Yes",
-            "admin_no": "No",
-            "logout": "Log out",
+        "account_fallback": "Connected account",
+        "admin_page": "Admin",
+        "admin_debug": "Admin debug",
+        "admin_email": "Detected email",
+        "admin_configured": "Configured admins",
+        "admin_status": "Is admin",
+        "admin_yes": "Yes",
+        "admin_no": "No",
+        "logout": "Log out",
+        },
+        "study_session": {
+            "title": "Session code",
+            "body": "Enter the 6-digit code received from the administrator to join the active session.",
+            "input_label": "Session code",
+            "input_help": "The code must contain exactly 6 digits.",
+            "button": "Continue",
+            "invalid": "The code you entered does not match an active session.",
+            "missing": "Please enter a valid 6-digit code.",
         },
         "admin": {
             "title": "Admin panel",
             "body": "This page is available only to administrator accounts configured by email address.",
             "start_session": "Start a session",
-            "coming_soon": "This button is ready, but it does not launch a session yet.",
+            "created_success": "The session has been created. Share the code below with participants.",
+            "active_sessions": "Active sessions",
+            "code_label": "Code",
+            "created_at": "Created at",
+            "status": "Status",
             "back_home": "Back to scenario",
         },
         "quiz": {
@@ -671,13 +692,11 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "button": "Start a new scenario (test)",
         },
         "home": {
-            "title": "Risk perception and financial decision-making under uncertainty",
+            "title": "Study overview",
             "body": """This study aims to investigate how individuals perceive and evaluate risk
 when making financial decisions in uncertain or unstable contexts. You will be invited to
 go through a series of realistic credit scenarios in which you will need to make estimates
-and take decisions involving money, time, and responsibility. At the same time, we will analyze
-your subjective reactions regarding stress level, social pressure, emotional load,
-and confidence in your own judgment.
+and take decisions involving money, time, and responsibility.
 
 The goal is to understand how affective states and psychological profile interact with
 decision-making in risky economic situations.""",
@@ -687,8 +706,6 @@ decision-making in risky economic situations.""",
         },
         "consent": {
             "markdown": """## Participation agreement and informed consent
-
-Risk perception and financial decision-making under uncertainty
 
 You are invited to take part in a research study on how people make financial decisions under conditions of uncertainty. The study includes a structured financial experiment in which you will make monthly decisions about repaying a loan based on information about income, expenses, available balance, and the evolution of financial obligations.
 
@@ -706,7 +723,7 @@ If you agree to participate, you will go through the following stages:
 
 During the experiment, you will receive monthly financial information and decide how much you want to allocate to loan repayment. The experiment is designed to reflect realistic financial situations, without involving access to real bank accounts or changes to any personal financial obligations.
 
-Participation takes approximately 30?45 minutes, depending on your pace of completion.
+Participation takes approximately 30-45 minutes, depending on your pace of completion.
 
 The following categories of data may be collected in this study:
 
@@ -849,16 +866,16 @@ In this experiment you will take on the role of Andrei, a person who has a perso
 
 The experiment takes place over 24 months.
 
-Each month you will see information about that month’s financial situation:
+Each month you will see monthly financial information:
 
-- that month’s income;
-- that month’s expenses;
+- income;
+- expenses;
 - loan interest;
 - overdraft interest, if any;
-- the money available before loan payment;
-- the loan balance;
-- the overdraft used;
-- the monthly installment specified in the contract.
+- money available before loan payment;
+- loan balance;
+- overdraft used;
+- monthly installment specified in the contract.
 
 After reading the month’s information, you must enter the amount you want to repay toward the loan for that month.
 
@@ -887,15 +904,16 @@ This amount shows what is available before you enter the loan payment.
 
 ### How the monthly decision works
 
-Each month you will enter a single amount:
-
-the amount you want to pay toward the loan in that month.
-
-Then you press:
-
-Confirm decision
-
-After confirmation, the decision can no longer be changed.
+<div style="border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 12px; padding: 0.9rem 1rem; margin: 1rem 0; background: rgba(255, 255, 255, 0.03);">
+<strong>Monthly decision steps</strong>
+<ul>
+<li>Enter the amount you want to pay toward the loan for that month.</li>
+<li>Then press <strong>Confirm decision</strong>.</li>
+<li>After confirmation, the decision can no longer be changed.</li>
+<li>You will see the feedback screen for the current month.</li>
+<li>Then press <strong>Continue to the next month</strong>.</li>
+</ul>
+</div>
 
 The platform will automatically calculate:
 
@@ -905,10 +923,6 @@ The platform will automatically calculate:
 - what amount remains after payment;
 - what the final overdraft for the month is;
 - what score you receive for that month.
-
-After confirmation, you will see a feedback screen for the current month. There you will see the result of your decision. Then you will press:
-
-Continue to the next month
 
 ### What happens if you enter a feasible amount
 
@@ -981,7 +995,7 @@ At the end of the experiment you will see:
 - the final bonus obtained;
 - the remaining loan balance at the end;
 - the overdraft used at the end;
-- the total accumulated interest, if it is displayed in the final version of the platform.
+- the total accumulated interest.
 
 ### General rule of the experiment
 
@@ -1034,7 +1048,7 @@ He is not at the beginning of his career, but neither is he in a very well-paid 
 | | |
 |---|---|
 | **Contract** | Permanent contract |
-| **Monthly net income** | Approximately 1,150 euro |
+| **Monthly net income** | Approximately 1,000 euro |
 
 His income is relatively stable, but:
 - no guaranteed bonuses
@@ -1045,7 +1059,7 @@ Andrei sees his job as “secure.”""",
                 },
                 {
                     "title": "Personal and emotional situation",
-                    "body": """- Maria has a monthly net income of around 800 euro.
+                    "body": """- Maria has a monthly net income of around 720 euro.
 - He has a small circle of friends, many of them already married, with children, and mortgage payments.
 
 Andrei is not emotionally impulsive, but:
