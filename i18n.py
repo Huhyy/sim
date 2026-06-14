@@ -84,7 +84,7 @@ UI_TEXT = {
             "button": "Începe un scenariu nou (test)",
         },
         "home": {
-            "title": "Prezentarea studiului",
+            "title": "Percepția riscului și decizia financiară în condiții de incertitudine",
             "body": """Acest studiu își propune să investigheze modul în care indivizii percep și evaluează riscul
 atunci când iau decizii financiare în contexte incerte sau instabile. Vei fi invitat(ă) să
 parcurgi o serie de scenarii realiste de creditare, în care va trebui să formulezi estimări
@@ -692,7 +692,7 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "button": "Start a new scenario (test)",
         },
         "home": {
-            "title": "Study overview",
+            "title": "Risk perception and financial decision-making under uncertainty",
             "body": """This study aims to investigate how individuals perceive and evaluate risk
 when making financial decisions in uncertain or unstable contexts. You will be invited to
 go through a series of realistic credit scenarios in which you will need to make estimates
@@ -706,6 +706,8 @@ decision-making in risky economic situations.""",
         },
         "consent": {
             "markdown": """## Participation agreement and informed consent
+
+Risk perception and financial decision-making under uncertainty
 
 You are invited to take part in a research study on how people make financial decisions under conditions of uncertainty. The study includes a structured financial experiment in which you will make monthly decisions about repaying a loan based on information about income, expenses, available balance, and the evolution of financial obligations.
 
