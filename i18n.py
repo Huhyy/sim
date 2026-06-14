@@ -530,6 +530,7 @@ Creditul îl plătește Andrei, dar cheltuielile lunare sunt suportate împreun�
 |---|---|
 | **Tip instrument** | Linie de credit de tip overdraft atașată contului curent |
 | **Limită maximă** | Aproximativ 3.000 euro |
+| **Dobândă** | 18% pe an (1,5% pe lună) |
 
 **Rolul overdraftului:** funcționează ca o rezervă de lichiditate care poate fi utilizată atunci când cheltuielile
 lunare depășesc suma disponibilă în cont.
@@ -1138,6 +1139,7 @@ Andrei pays the loan, but monthly expenses are borne together.""",
 |---|---|
 | **Instrument type** | Overdraft credit line attached to the current account |
 | **Maximum limit** | Approximately 3,000 euro |
+| **Interest** | 18% per year (1.5% per month) |
 
 **Role of the overdraft:** it works as a liquidity reserve that can be used when monthly
 expenses exceed the amount available in the account.
