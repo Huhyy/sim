@@ -958,18 +958,6 @@ def has_study_session_assignment():
     return bool(st.session_state.get("study_session_id") and st.session_state.get("study_session_code"))
 
 
-def enforce_study_session_gate():
-    exempt_pages = {"admin", "already_completed", "enter_session_code"}
-    current_page = st.session_state.get("page", "home")
-    if current_page in exempt_pages:
-        return
-    if not has_study_session_assignment():
-        goto("enter_session_code")
-
-
-enforce_study_session_gate()
-
-
 def render_question_section(section, chapter_number, question_offset=0):
     st.markdown(f"### {t('quiz.chapter_heading', number=chapter_number)}")
     st.caption(section["instruction"])
@@ -1293,6 +1281,11 @@ if st.session_state.page == "enter_session_code":
         st.session_state.study_session_code = record["session_code"]
         st.session_state.scroll_to_top = True
         goto("home")
+    if st.button(t("study_session.skip_button"), type="secondary"):
+        st.session_state.study_session_id = None
+        st.session_state.study_session_code = None
+        st.session_state.scroll_to_top = True
+        goto("home")
 
 
 # ==================== ADMIN PAGE ====================
@@ -1357,6 +1350,9 @@ elif st.session_state.page == "home":
     if st.button(t("home.button"), type="primary"):
         st.session_state.scroll_to_top = True
         goto("consent")
+    if st.button(t("study_session.optional_button"), type="secondary"):
+        st.session_state.scroll_to_top = True
+        goto("enter_session_code")
 
 
 # ==================== INFORMED CONSENT ====================
