@@ -1,4 +1,6 @@
 import os
+import secrets
+import uuid
 from datetime import datetime, timezone
 
 import streamlit as st
@@ -115,6 +117,10 @@ def load_session_checkpoint(session_id: str):
     checkpoint = row.get("checkpoint") or {}
     if row.get("current_page") and "page" not in checkpoint:
         checkpoint["page"] = row["current_page"]
+    if row.get("study_session_id") and "study_session_id" not in checkpoint:
+        checkpoint["study_session_id"] = row["study_session_id"]
+    if row.get("study_session_code") and "study_session_code" not in checkpoint:
+        checkpoint["study_session_code"] = row["study_session_code"]
 
     return checkpoint
 
@@ -130,6 +136,11 @@ def save_session_checkpoint(session_id: str, checkpoint: dict, status: str = "in
         "checkpoint": checkpoint,
         "updated_at": _utcnow(),
     }
+
+    if checkpoint.get("study_session_id"):
+        row["study_session_id"] = checkpoint.get("study_session_id")
+    if checkpoint.get("study_session_code"):
+        row["study_session_code"] = checkpoint.get("study_session_code")
 
     if status == "completed":
         row["completed_at"] = _utcnow()
@@ -172,6 +183,62 @@ def save_resume_link(account_key: str, session_id: str):
         "updated_at": _utcnow(),
     }
     client.table("resume_links").upsert(row).execute()
+
+
+def create_admin_study_session(created_by_email: str):
+    client = _require_client()
+    email = str(created_by_email).strip().lower()
+
+    for _ in range(25):
+        session_code = f"{secrets.randbelow(1_000_000):06d}"
+        existing = load_admin_study_session_by_code(session_code, require_active=False)
+        if existing:
+            continue
+
+        row = {
+            "id": str(uuid.uuid4()),
+            "session_code": session_code,
+            "created_by_email": email,
+            "status": "active",
+            "created_at": _utcnow(),
+            "updated_at": _utcnow(),
+        }
+        client.table("admin_study_sessions").insert(row).execute()
+        return row
+
+    raise RuntimeError("Could not generate a unique 6-digit session code. Please try again.")
+
+
+def load_admin_study_session_by_code(session_code: str, require_active: bool = True):
+    client = _require_client()
+    query = (
+        client
+        .table("admin_study_sessions")
+        .select("*")
+        .eq("session_code", str(session_code).strip())
+        .limit(1)
+    )
+    if require_active:
+        query = query.eq("status", "active")
+    response = query.execute()
+    data = getattr(response, "data", None) or []
+    return data[0] if data else None
+
+
+def list_admin_study_sessions(created_by_email: str, only_active: bool = True, limit: int = 10):
+    client = _require_client()
+    query = (
+        client
+        .table("admin_study_sessions")
+        .select("*")
+        .eq("created_by_email", str(created_by_email).strip().lower())
+        .limit(limit)
+        .order("created_at", desc=True)
+    )
+    if only_active:
+        query = query.eq("status", "active")
+    response = query.execute()
+    return getattr(response, "data", None) or []
 
 
 def _active_resume_link_exists(client, account_key: str, session_id: str):
@@ -264,7 +331,7 @@ def save_psychometric_answers(session_id: str, answers: dict, pre_sections=None,
         ).execute()
 
 
-def _month_result_row(session_id: str, result: dict, bonus_max_session: float = 24.0):
+def _month_result_row(session_id: str, result: dict, bonus_max_session: float = 12.0):
     monthly_score = _float_or_none(result.get("monthly_score")) or 0.0
     bonus_lunar = monthly_score / 100.0 * (float(bonus_max_session) / 24.0)
 
@@ -306,7 +373,7 @@ def _month_result_row(session_id: str, result: dict, bonus_max_session: float = 
     }
 
 
-def save_month_result(session_id: str, result: dict, bonus_max_session: float = 24.0):
+def save_month_result(session_id: str, result: dict, bonus_max_session: float = 12.0):
     client = _require_client()
     row = _month_result_row(session_id, result, bonus_max_session=bonus_max_session)
     client.table("month_results").upsert(
@@ -315,7 +382,7 @@ def save_month_result(session_id: str, result: dict, bonus_max_session: float = 
     ).execute()
 
 
-def save_month_results(session_id: str, monthly_results, bonus_max_session: float = 24.0):
+def save_month_results(session_id: str, monthly_results, bonus_max_session: float = 12.0):
     client = _require_client()
     rows = [
         _month_result_row(session_id, result, bonus_max_session=bonus_max_session)
@@ -347,6 +414,10 @@ def save_session_summary(session_id: str, summary: dict, feedback=None):
         "feedback": feedback,
         "updated_at": _utcnow(),
     }
+    if summary.get("study_session_id"):
+        row["study_session_id"] = summary.get("study_session_id")
+    if summary.get("study_session_code"):
+        row["study_session_code"] = summary.get("study_session_code")
     return client.table("session_summaries").upsert(row, on_conflict="session_id").execute()
 
 
@@ -372,7 +443,7 @@ def finalize_participation(
         raise RuntimeError("No active session is associated with this participant.")
 
     summary = summary or {}
-    bonus_max_session = _float_or_none(summary.get("bonus_max_session")) or 24.0
+    bonus_max_session = _float_or_none(summary.get("bonus_max_session")) or 12.0
     feedback = answers.get("feedback") or None
 
     save_psychometric_answers(session_id, answers, pre_sections=pre_sections, post_sections=post_sections)

@@ -385,7 +385,7 @@ PRE_SECTIONS_EN = [
 POST_SECTIONS_EN = [
     {
         "title": "Chapter 1",
-        "instruction": "The following statements refer to how you felt during the financial scenario and immediately after completing it. Please answer based on your experience in this task, not based on your usual state.\n\nResponse scale\n1 = Not at all\n2 = A little\n3 = Moderately\n4 = A lot\n5 = Very much",
+        "instruction": "The following statements refer to how you felt during the financial experiment and immediately after completing it. Please answer based on your experience in this task, not based on your usual state.\n\nResponse scale\n1 = Not at all\n2 = A little\n3 = Moderately\n4 = A lot\n5 = Very much",
         "scale": SCALE_5_POST_STRESS_EN,
         "key_prefix": "post_stress",
         "questions": [

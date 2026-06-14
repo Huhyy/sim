@@ -22,8 +22,11 @@ from state_manager import (
     REPEAT_SCENARIO_DEV_MODE,
     SCENARIO_VERSION,
     bootstrap_authenticated_session,
+    create_admin_study_session,
     ensure_current_scenario_version,
     finalize_participant,
+    list_admin_study_sessions,
+    load_admin_study_session_by_code,
     persist_checkpoint,
     persist_month_result_snapshot,
     start_new_scenario,
@@ -32,18 +35,13 @@ from state_manager import (
 DEV = os.getenv("SCENARIO_DEV", "").lower() == "true"
 RECOMMENDED_BUFFER = 5.0
 SESSION_MONTHS = 24
+EURO_PER_MONTHLY_POINT = 0.005
+MAX_MONTHLY_SCORE = 100.0
+DEFAULT_BONUS_MAX_SESSION = SESSION_MONTHS * MAX_MONTHLY_SCORE * EURO_PER_MONTHLY_POINT
 
 
 def get_bonus_max_session():
-    try:
-        value = st.secrets.get("BONUS_MAXIM_SESIUNE", os.getenv("BONUS_MAXIM_SESIUNE", 24))
-    except Exception:
-        value = os.getenv("BONUS_MAXIM_SESIUNE", 24)
-
-    try:
-        return money(value)
-    except (TypeError, ValueError):
-        return 24.0
+    return money(DEFAULT_BONUS_MAX_SESSION)
 
 st.markdown("""
 <style>
@@ -952,6 +950,26 @@ def render_account_menu():
 render_account_menu()
 
 
+def normalize_study_session_code(value):
+    return re.sub(r"\D", "", str(value or ""))[:6]
+
+
+def has_study_session_assignment():
+    return bool(st.session_state.get("study_session_id") and st.session_state.get("study_session_code"))
+
+
+def enforce_study_session_gate():
+    exempt_pages = {"admin", "already_completed", "enter_session_code"}
+    current_page = st.session_state.get("page", "home")
+    if current_page in exempt_pages:
+        return
+    if not has_study_session_assignment():
+        goto("enter_session_code")
+
+
+enforce_study_session_gate()
+
+
 def render_question_section(section, chapter_number, question_offset=0):
     st.markdown(f"### {t('quiz.chapter_heading', number=chapter_number)}")
     st.caption(section["instruction"])
@@ -1003,7 +1021,6 @@ def render_quiz_chapter(
     next_page,
     dev_label,
     title,
-    skip_page=None,
     question_offset=0,
 ):
     st.title(title)
@@ -1017,11 +1034,6 @@ def render_quiz_chapter(
             randomize_section(section)
             st.session_state.scroll_to_top = True
             goto(next_page)
-
-    if skip_page is not None:
-        if st.button(t("quiz.skip_all_button"), type="secondary", key=f"skip_{section['key_prefix']}_{chapter_index}"):
-            st.session_state.scroll_to_top = True
-            goto(skip_page)
 
     if not all_answered([section]):
         st.warning(t("quiz.chapter_required_warning"))
@@ -1097,7 +1109,7 @@ def compute_monthly_score(accepted_payment, cash_final, overdraft_final, overdra
         "score_liquidity": money(liquidity_score),
         "score_overdraft": money(overdraft_score),
         "monthly_score": money(monthly_score),
-        "bonus_lunar": money(monthly_score / 100.0 * (get_bonus_max_session() / SESSION_MONTHS)),
+        "bonus_lunar": money(monthly_score * EURO_PER_MONTHLY_POINT),
     }
 
 
@@ -1234,9 +1246,9 @@ def compute_final_score():
 def get_final_score_breakdown():
     monthly_results = [normalize_month_result_score(result) for result in st.session_state.get("monthly_results", [])]
     monthly_score_sum = money(sum(float(result.get("monthly_score", 0.0)) for result in monthly_results))
-    final_score = money(min(100.0, max(0.0, monthly_score_sum / SESSION_MONTHS)))
+    final_score = money(min(MAX_MONTHLY_SCORE, max(0.0, monthly_score_sum / SESSION_MONTHS)))
     bonus_max_session = get_bonus_max_session()
-    bonus_final = money(final_score / 100.0 * bonus_max_session)
+    bonus_final = money(monthly_score_sum * EURO_PER_MONTHLY_POINT)
     total_repaid = money(sum(float(result.get("accepted_payment", 0.0)) for result in monthly_results))
     credit_interest_total = money(sum(float(result.get("credit_interest", 0.0)) for result in monthly_results))
     overdraft_interest_total = money(sum(float(result.get("overdraft_interest", 0.0)) for result in monthly_results))
@@ -1246,6 +1258,8 @@ def get_final_score_breakdown():
         "final_score": final_score,
         "bonus_max_session": bonus_max_session,
         "bonus_final": bonus_final,
+        "study_session_id": st.session_state.get("study_session_id"),
+        "study_session_code": st.session_state.get("study_session_code"),
         "total_repaid": total_repaid,
         "remaining_credit": money(st.session_state.loan.balance),
         "remaining_overdraft": money(st.session_state.overdraft.balance),
@@ -1255,8 +1269,34 @@ def get_final_score_breakdown():
     }
 
 
-# ==================== COMPLETED ACCOUNT ====================
-if st.session_state.page == "admin":
+# ==================== STUDY SESSION CODE ====================
+if st.session_state.page == "enter_session_code":
+    scroll_top_anchor()
+    st.title(t("study_session.title"))
+    st.markdown(t("study_session.body"))
+    code_value = st.text_input(
+        t("study_session.input_label"),
+        value=st.session_state.get("study_session_code", ""),
+        max_chars=6,
+        help=t("study_session.input_help"),
+    )
+    if st.button(t("study_session.button"), type="primary"):
+        session_code = normalize_study_session_code(code_value)
+        if len(session_code) != 6:
+            st.warning(t("study_session.missing"))
+            st.stop()
+        record = load_admin_study_session_by_code(session_code)
+        if not record:
+            st.error(t("study_session.invalid"))
+            st.stop()
+        st.session_state.study_session_id = record["id"]
+        st.session_state.study_session_code = record["session_code"]
+        st.session_state.scroll_to_top = True
+        goto("home")
+
+
+# ==================== ADMIN PAGE ====================
+elif st.session_state.page == "admin":
     if not is_admin_user():
         goto("home")
     scroll_top_anchor()
@@ -1266,7 +1306,24 @@ if st.session_state.page == "admin":
     st.title(t("admin.title"))
     st.markdown(t("admin.body"))
     if st.button(t("admin.start_session"), type="primary"):
-        st.info(t("admin.coming_soon"))
+        created = create_admin_study_session(current_user_email())
+        st.session_state.admin_last_created_session = created
+        st.success(t("admin.created_success"))
+    latest_created = st.session_state.get("admin_last_created_session")
+    if latest_created:
+        st.metric(t("admin.code_label"), latest_created["session_code"])
+    active_sessions = list_admin_study_sessions(current_user_email())
+    if active_sessions:
+        st.markdown(f"### {t('admin.active_sessions')}")
+        admin_rows = [
+            {
+                t("admin.code_label"): row.get("session_code"),
+                t("admin.status"): row.get("status"),
+                t("admin.created_at"): row.get("created_at"),
+            }
+            for row in active_sessions
+        ]
+        st.dataframe(pd.DataFrame(admin_rows), use_container_width=True, hide_index=True)
     if st.button(t("admin.back_home")):
         goto(admin_return_page)
 
@@ -1534,7 +1591,6 @@ elif st.session_state.page.startswith("pre_question_"):
         next_page,
         t("quiz.dev_randomize"),
         t("quiz.pre_title"),
-        skip_page="instructions",
         question_offset=sum(len(section["questions"]) for section in pre_sections[:pre_index]),
     )
 
@@ -1812,10 +1868,6 @@ elif st.session_state.page.startswith("post_question_"):
             t("quiz.post_strategy_prompt"),
             value=st.session_state.answers.get("strategy_feedback", ""),
         )
-
-    if st.button(t("quiz.skip_all_button"), type="secondary", key=f"skip_post_question_{post_index}"):
-        st.session_state.scroll_to_top = True
-        goto("final_score")
 
     if DEV:
         if st.button(t("quiz.dev_randomize"), type="secondary", key=f"dev_post_question_{post_index}"):

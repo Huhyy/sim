@@ -8,6 +8,7 @@ Run `setup.sql` or `migration_structured_results.sql` once in the Supabase SQL E
 
 The schema:
 
+- creates `admin_study_sessions` for admin-created 6-digit participant access codes;
 - creates `participant_sessions` as the session connector and recovery checkpoint table;
 - creates `psychometric_pre_answers` with one row per pre-questionnaire answer;
 - creates `psychometric_post_answers` with one row per post-questionnaire answer;
@@ -69,6 +70,7 @@ At final submission:
 - `psychometric_post_answers` stores post-questionnaire answers by `session_id`;
 - `month_results` stores monthly decisions and calculated financial state by `session_id` and `month_number`;
 - `session_summaries` stores the final score and financial summary by `session_id`;
+- `participant_sessions` and `session_summaries` also keep the linked `study_session_code` / `study_session_id`;
 - `completed_accounts` stores only the opaque account key for duplicate prevention;
 - the temporary `resume_links` row is deleted.
 

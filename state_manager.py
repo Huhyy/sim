@@ -18,6 +18,9 @@ load_linked_session_id = getattr(db_module, "load_linked_session_id", lambda *_a
 save_resume_link = getattr(db_module, "save_resume_link", lambda *_args, **_kwargs: None)
 db_save_month_result = getattr(db_module, "save_month_result", lambda *_args, **_kwargs: None)
 db_finalize_participation = getattr(db_module, "finalize_participation")
+load_admin_study_session_by_code = getattr(db_module, "load_admin_study_session_by_code", lambda *_args, **_kwargs: None)
+create_admin_study_session = getattr(db_module, "create_admin_study_session", lambda *_args, **_kwargs: None)
+list_admin_study_sessions = getattr(db_module, "list_admin_study_sessions", lambda *_args, **_kwargs: [])
 
 
 def _feature_flag(name, default):
@@ -101,7 +104,7 @@ def resolve_session_id():
     return None
 
 
-def persist_month_result_snapshot(result, bonus_max_session=24.0):
+def persist_month_result_snapshot(result, bonus_max_session=12.0):
     session_id = resolve_session_id()
     if not session_id:
         return False
@@ -164,6 +167,8 @@ def runtime_defaults():
         "session_id": None,
         "language": "en",
         "month": 1,
+        "study_session_id": None,
+        "study_session_code": None,
         "loan": Loan(balance=7000.0, annual_interest=0.0835, months=24),
         "overdraft": Overdraft(limit=3000.0, annual_interest=0.18),
         "savings": None,
@@ -196,6 +201,8 @@ def collect_checkpoint():
         "admin_return_page": st.session_state.get("admin_return_page"),
         "language": st.session_state.get("language", "en"),
         "month": st.session_state.get("month", 1),
+        "study_session_id": st.session_state.get("study_session_id"),
+        "study_session_code": st.session_state.get("study_session_code"),
         "loan_balance": st.session_state.loan.balance,
         "overdraft_balance": st.session_state.overdraft.balance,
         "savings": st.session_state.get("savings"),
@@ -270,6 +277,8 @@ def hydrate_from_checkpoint(checkpoint):
     st.session_state.admin_return_page = checkpoint.get("admin_return_page")
     st.session_state.language = checkpoint.get("language", "en")
     st.session_state.month = int(checkpoint.get("month", 1))
+    st.session_state.study_session_id = checkpoint.get("study_session_id")
+    st.session_state.study_session_code = checkpoint.get("study_session_code")
     st.session_state.loan = Loan(
         balance=float(checkpoint.get("loan_balance", 7000.0)),
         annual_interest=0.0835,
@@ -306,7 +315,7 @@ def reset_current_session_for_scenario_version():
         "ok": False,
         "source": "supabase",
         "session_id": session_id,
-        "reset_reason": "Scenario data changed; old checkpoint was reset.",
+        "reset_reason": "Experiment data changed; old checkpoint was reset.",
         "scenario_version": SCENARIO_VERSION,
     }
 
@@ -322,7 +331,7 @@ def ensure_current_scenario_version():
 def bootstrap_authenticated_session():
     account_key = current_account_key()
     if not account_key:
-        raise RuntimeError("Authentication is required before starting the scenario.")
+        raise RuntimeError("Authentication is required before starting the experiment.")
 
     if not REPEAT_SCENARIO_DEV_MODE and account_has_completed(account_key):
         defaults = runtime_defaults()
@@ -390,7 +399,7 @@ def bootstrap_authenticated_session():
                 "ok": False,
                 "source": "supabase",
                 "session_id": session_id,
-                "reset_reason": "Scenario data changed; old checkpoint was reset.",
+                "reset_reason": "Experiment data changed; old checkpoint was reset.",
                 "scenario_version": SCENARIO_VERSION,
             }
 
@@ -412,12 +421,16 @@ def start_new_scenario():
 
     account_key = current_account_key()
     if not account_key:
-        raise RuntimeError("Authentication is required before starting a new scenario.")
+        raise RuntimeError("Authentication is required before starting a new experiment.")
 
+    current_study_session_id = st.session_state.get("study_session_id")
+    current_study_session_code = st.session_state.get("study_session_code")
     defaults = runtime_defaults()
     clear_payment_values()
     for key, value in defaults.items():
         st.session_state[key] = value
+    st.session_state.study_session_id = current_study_session_id
+    st.session_state.study_session_code = current_study_session_code
 
     session_id = str(uuid.uuid4())
     st.session_state.session_id = session_id

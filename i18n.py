@@ -20,9 +20,9 @@ UI_TEXT = {
             "en": "EN",
         },
         "auth": {
-            "brand": "ScenariuCredit",
+            "brand": "ExperimentCredit",
             "title": "Decizii financiare sub presiune",
-            "copy": "Autentifică-te pentru a începe sau relua scenariul exact din punctul în care ai rămas.",
+            "copy": "Autentifică-te pentru a începe sau relua experimentul exact din punctul în care ai rămas.",
             "chips": [
                 "Progres salvat",
                 "Reluare după întrerupere",
@@ -60,7 +60,7 @@ UI_TEXT = {
             "code_label": "Cod",
             "created_at": "Creată la",
             "status": "Status",
-            "back_home": "Înapoi la scenariu",
+            "back_home": "Înapoi la experiment",
         },
         "quiz": {
             "chapter_label": "Capitolul {current} din {total}",
@@ -70,31 +70,31 @@ UI_TEXT = {
             "chapter_missing_error": "Sunt întrebări fără răspuns.",
             "continue_button": "Continuă →",
             "skip_all_button": "Skip all chapters",
-            "pre_title": "Chestionar – înainte de scenariu",
+            "pre_title": "Chestionar – înainte de experiment",
             "post_title": "Chestionar post-experiment",
             "post_optional_feedback_title": "### Feedback opțional",
-            "post_optional_feedback_prompt": "Ce parte a scenariului ți s-a părut cea mai provocatoare sau realistă?",
+            "post_optional_feedback_prompt": "Ce parte a experimentului ți s-a părut cea mai provocatoare sau realistă?",
             "post_strategy_prompt": "Ce strategie ați folosit în timpul experimentului?",
             "post_finish_button": "Finalizează →",
             "dev_randomize": "⚡ DEV: Randomizează acest capitol și continuă",
         },
         "already_completed": {
             "title": "Participare deja finalizată",
-            "body": "Acest cont a finalizat deja scenariul. Nu poate fi trimis un al doilea răspuns.",
-            "button": "Începe un scenariu nou (test)",
+            "body": "Acest cont a finalizat deja experimentul. Nu poate fi trimis un al doilea răspuns.",
+            "button": "Începe un experiment nou (test)",
         },
         "home": {
             "title": "Percepția riscului și decizia financiară în condiții de incertitudine",
             "body": """Acest studiu își propune să investigheze modul în care indivizii percep și evaluează riscul
 atunci când iau decizii financiare în contexte incerte sau instabile. Vei fi invitat(ă) să
-parcurgi o serie de scenarii realiste de creditare, în care va trebui să formulezi estimări
+parcurgi o serie de experimente realiste de creditare, în care va trebui să formulezi estimări
 și să iei decizii care implică bani, timp și responsabilitate.
 
 Scopul este de a înțelege cum interacționează stările afective și profilul psihologic cu
 procesul decizional în situații economice riscante.""",
             "info": "Chestionarele sunt validate științific și nu conțin răspunsuri «corecte» sau «greșite». Răspunde cât mai sincer, alegând opțiunea care reflectă cel mai bine cum ești tu în general.",
             "note": "Răspunsurile tale vor fi analizate **în mod anonim** și vor ajuta la înțelegerea legăturii dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții incerte sau stresante.",
-            "button": "Începe scenariul →",
+            "button": "Începe experimentul →",
         },
         "consent": {
             "markdown": """## Acord de participare ?i consim??m?nt informat
@@ -161,10 +161,6 @@ Recompensa experimental? are rol exclusiv de stimulent ?n cadrul studiului ?i nu
 Datele colectate pot fi utilizate pentru: analize statistice; lucr?ri ?tiin?ifice; prezent?ri academice; rapoarte de cercetare; dezvoltarea unor modele experimentale privind decizia financiar?.
 
 Nicio publica?ie sau prezentare nu va include informa?ii care s? permit? identificarea direct? a participan?ilor.
-
-Pentru ?ntreb?ri despre studiu sau despre utilizarea datelor, po?i contacta echipa de cercetare la:
-
-coita.iflorina@gmail.com
 
 Te rug?m s? confirmi urm?toarele afirma?ii ?nainte de a continua:""",
             "items": [
@@ -421,7 +417,7 @@ Dacă suma introdusă depășește resursele disponibile și limita de overdraft
         },
         "profile": {
             "title": "Profilul participantului",
-            "intro": "Înainte de a începe scenariul, citește cu atenție profilul personajului pe care îl vei reprezenta.",
+            "intro": "Înainte de a începe experimentul, citește cu atenție profilul personajului pe care îl vei reprezenta.",
             "sections": [
                 {
                     "title": "Profil general – Andrei",
@@ -485,7 +481,7 @@ Are următoarele obiceiuri:
                 },
                 {
                     "title": "Economii",
-                    "body": """La începutul scenariului:
+                    "body": """La începutul experimentului:
 - are aproximativ **150 euro** economii
 - ținute în cont curent, nu separat
 - nu are un „fond de urgență" clar definit
@@ -542,7 +538,7 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
 """,
                 },
             ],
-            "button": "Începe scenariul →",
+            "button": "Începe experimentul →",
         },
         "simulation": {
             "month_title": "Luna {month}",
@@ -593,7 +589,7 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
         },
         "final_score": {
             "title": "Scor final",
-            "intro": "Ai finalizat cele 24 de luni ale scenariului.",
+            "intro": "Ai finalizat cele 24 de luni ale experimentului.",
             "heading": "### Scor comportamental final",
             "card_label": "Scor comportamental final",
             "bonus_label": "Bonus final obținut",
@@ -603,7 +599,7 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "remaining_overdraft": "Overdraft utilizat la final",
             "interest_total": "Dobânzi totale acumulate",
             "info": "Scorul comportamental final a fost calculat automat pe baza deciziilor lunare privind rambursarea creditului, lichiditatea rămasă după plată și utilizarea overdraftului.",
-            "caption": "Datele generate în scenariu vor fi folosite doar în scopul cercetării, conform acordului de participare.",
+            "caption": "Datele generate în experiment vor fi folosite doar în scopul cercetării, conform acordului de participare.",
             "button": "Continuă →",
         },
         "done": {
@@ -615,8 +611,8 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "remaining_overdraft": "Overdraft utilizat",
             "registered_text": "Răspunsurile tale au fost înregistrate. Rezultatele studiului vor fi disponibile după finalizarea colectării datelor.",
             "contact": "Contact",
-            "dev_caption": "Mod de testare activ: poți parcurge din nou scenariul cu același cont.",
-            "dev_button": "Începe un scenariu nou (test)",
+            "dev_caption": "Mod de testare activ: poți parcurge din nou experimentul cu același cont.",
+            "dev_button": "Începe un experiment nou (test)",
         },
         "table": {
             "category": "Categoria",
@@ -629,9 +625,9 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "en": "EN",
         },
         "auth": {
-            "brand": "ScenariuCredit",
+            "brand": "ExperimentCredit",
             "title": "Financial decisions under pressure",
-            "copy": "Sign in to start or resume the scenario exactly where you left off.",
+            "copy": "Sign in to start or resume the experiment exactly where you left off.",
             "chips": [
                 "Saved progress",
                 "Resume after interruption",
@@ -669,7 +665,7 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "code_label": "Code",
             "created_at": "Created at",
             "status": "Status",
-            "back_home": "Back to scenario",
+            "back_home": "Back to experiment",
         },
         "quiz": {
             "chapter_label": "Chapter {current} of {total}",
@@ -679,31 +675,31 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "chapter_missing_error": "Some questions are still unanswered.",
             "continue_button": "Continue →",
             "skip_all_button": "Skip all chapters",
-            "pre_title": "Questionnaire - before the scenario",
+            "pre_title": "Questionnaire - before the experiment",
             "post_title": "Post-experiment questionnaire",
             "post_optional_feedback_title": "### Optional feedback",
-            "post_optional_feedback_prompt": "Which part of the scenario felt the most challenging or realistic to you?",
+            "post_optional_feedback_prompt": "Which part of the experiment felt the most challenging or realistic to you?",
             "post_strategy_prompt": "What strategy did you use during the experiment?",
             "post_finish_button": "Finish →",
             "dev_randomize": "⚡ DEV: Randomize this chapter and continue",
         },
         "already_completed": {
             "title": "Participation already completed",
-            "body": "This account has already completed the scenario. A second response cannot be submitted.",
-            "button": "Start a new scenario (test)",
+            "body": "This account has already completed the experiment. A second response cannot be submitted.",
+            "button": "Start a new experiment (test)",
         },
         "home": {
             "title": "Risk perception and financial decision-making under uncertainty",
             "body": """This study aims to investigate how individuals perceive and evaluate risk
 when making financial decisions in uncertain or unstable contexts. You will be invited to
-go through a series of realistic credit scenarios in which you will need to make estimates
+go through a series of realistic credit experiments in which you will need to make estimates
 and take decisions involving money, time, and responsibility.
 
 The goal is to understand how affective states and psychological profile interact with
 decision-making in risky economic situations.""",
             "info": "The questionnaires are scientifically validated and do not contain “correct” or “incorrect” answers. Answer as honestly as possible, choosing the option that best reflects how you are in general.",
             "note": "Your responses will be analyzed **anonymously** and will help us understand the link between individual traits and how people make financial decisions under uncertain or stressful conditions.",
-            "button": "Start the scenario →",
+            "button": "Start the experiment →",
         },
         "consent": {
             "markdown": """## Participation agreement and informed consent
@@ -770,10 +766,6 @@ The experimental reward serves exclusively as an incentive within the study and 
 The collected data may be used for: statistical analyses; scientific papers; academic presentations; research reports; and the development of experimental models of financial decision-making.
 
 No publication or presentation will include information that could directly identify participants.
-
-For questions about the study or the use of data, you may contact the research team at:
-
-coita.iflorina@gmail.com
 
 Please confirm the following statements before continuing:""",
             "items": [
@@ -1030,7 +1022,7 @@ If the amount entered exceeds the available resources and the overdraft limit, t
         },
         "profile": {
             "title": "Participant profile",
-            "intro": "Before starting the scenario, read carefully the profile of the character you will represent.",
+            "intro": "Before starting the experiment, read carefully the profile of the character you will represent.",
             "sections": [
                 {
                     "title": "General profile - Andrei",
@@ -1094,7 +1086,7 @@ He has the following habits:
                 },
                 {
                     "title": "Savings",
-                    "body": """At the start of the scenario:
+                    "body": """At the start of the experiment:
 - he has approximately **150 euro** in savings
 - kept in the current account, not separately
 - he does not have a clearly defined “emergency fund”
@@ -1149,7 +1141,7 @@ the available liquidity, the difference is covered automatically from the overdr
 Participants do not activate the overdraft manually, but their payment decision can lead to its use.""",
                 },
             ],
-            "button": "Start the scenario →",
+            "button": "Start the experiment →",
         },
         "simulation": {
             "month_title": "Month {month}",
@@ -1200,7 +1192,7 @@ Participants do not activate the overdraft manually, but their payment decision 
         },
         "final_score": {
             "title": "Final score",
-            "intro": "You have completed all 24 months of the scenario.",
+            "intro": "You have completed all 24 months of the experiment.",
             "heading": "### Final behavioral score",
             "card_label": "Final behavioral score",
             "bonus_label": "Final bonus obtained",
@@ -1210,7 +1202,7 @@ Participants do not activate the overdraft manually, but their payment decision 
             "remaining_overdraft": "Overdraft used at the end",
             "interest_total": "Total accumulated interest",
             "info": "The final behavioral score was calculated automatically based on monthly decisions regarding loan repayment, the monthly liquidity balance, and overdraft use.",
-            "caption": "The data generated in the scenario will be used only for research purposes, in accordance with the participation agreement.",
+            "caption": "The data generated in the experiment will be used only for research purposes, in accordance with the participation agreement.",
             "button": "Continue →",
         },
         "done": {
@@ -1222,8 +1214,8 @@ Participants do not activate the overdraft manually, but their payment decision 
             "remaining_overdraft": "Overdraft used",
             "registered_text": "Your responses have been recorded. The study results will be available after data collection is completed.",
             "contact": "Contact",
-            "dev_caption": "Testing mode is active: you can go through the scenario again with the same account.",
-            "dev_button": "Start a new scenario (test)",
+            "dev_caption": "Testing mode is active: you can go through the experiment again with the same account.",
+            "dev_button": "Start a new experiment (test)",
         },
         "table": {
             "category": "Category",
