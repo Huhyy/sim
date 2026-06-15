@@ -2022,11 +2022,5 @@ elif st.session_state.page == "done":
 """
     )
 
-    if REPEAT_SCENARIO_DEV_MODE:
-        st.caption(t("done.dev_caption"))
-        if st.button(t("done.dev_button"), type="primary", key="new_test_scenario"):
-            start_new_scenario()
-            st.rerun()
-
 persist_checkpoint()
 
