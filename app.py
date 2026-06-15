@@ -52,6 +52,7 @@ SESSION_MONTHS = 24
 EURO_PER_MONTHLY_POINT = 0.005
 MAX_MONTHLY_SCORE = 100.0
 DEFAULT_BONUS_MAX_SESSION = SESSION_MONTHS * MAX_MONTHLY_SCORE * EURO_PER_MONTHLY_POINT
+ENABLE_PARENT_DOM_HACKS = False
 
 
 def get_bonus_max_session():
@@ -519,20 +520,19 @@ div[data-testid="stNumberInput"] > div {
 </style>
 """, unsafe_allow_html=True)
 
-st.components.v1.html("""
+if ENABLE_PARENT_DOM_HACKS:
+    st.components.v1.html("""
 <script>
 (function() {
   function hide() {
     try {
       var doc = window.parent.document;
 
-      // hide by known test IDs
       ['stToolbar','stDecoration','stStatusWidget','stAppDeployButton'].forEach(function(id) {
         var el = doc.querySelector('[data-testid="' + id + '"]');
         if (el) el.style.setProperty('display', 'none', 'important');
       });
 
-      // hide any fixed/absolute element sitting in the top-right corner
       doc.querySelectorAll('body > div, body > div > div').forEach(function(el) {
         var s = window.parent.getComputedStyle(el);
         var r = el.getBoundingClientRect();
@@ -542,7 +542,6 @@ st.components.v1.html("""
         }
       });
 
-      // hide links to github / streamlit and their parent containers
       doc.querySelectorAll('a[href*="github.com"], a[href*="streamlit.io"]').forEach(function(a) {
         var el = a;
         for (var i = 0; i < 10; i++) {
@@ -583,6 +582,9 @@ def goto(page):
 def scroll_top_anchor():
     st.markdown('<div id="sim-top"></div>', unsafe_allow_html=True)
     if st.session_state.get("scroll_to_top"):
+        if not ENABLE_PARENT_DOM_HACKS:
+            st.session_state.scroll_to_top = False
+            return
         import time as _t
         nonce = int(_t.time() * 1000)
         st.components.v1.html(f"""
@@ -615,6 +617,8 @@ def scroll_top_anchor():
 
 
 def auto_open_context_narrativ(expander_label):
+    if not ENABLE_PARENT_DOM_HACKS:
+        return
     st.components.v1.html(
         f"""
 <script>
@@ -642,6 +646,8 @@ def auto_open_context_narrativ(expander_label):
 
 
 def attach_payment_keyboard_bridge():
+    if not ENABLE_PARENT_DOM_HACKS:
+        return
     st.components.v1.html(
         """
 <script>
