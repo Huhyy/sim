@@ -1,4 +1,3 @@
-import importlib
 import os
 import uuid
 
@@ -9,8 +8,6 @@ from loan import Loan
 from overdraft import Overdraft
 import db as db_module
 
-
-db_module = importlib.reload(db_module)
 load_session_checkpoint = getattr(db_module, "load_session_checkpoint", lambda *_args, **_kwargs: None)
 save_session_checkpoint = getattr(db_module, "save_session_checkpoint", lambda *_args, **_kwargs: None)
 account_has_completed = getattr(db_module, "account_has_completed", lambda *_args, **_kwargs: False)
