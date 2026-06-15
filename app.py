@@ -2015,5 +2015,3 @@ elif st.session_state.page == "done":
 """
     )
 
-persist_checkpoint()
-
