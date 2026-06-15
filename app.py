@@ -1108,11 +1108,27 @@ def zero_score_data():
     }
 
 
-def compute_monthly_score(accepted_payment, cash_final, overdraft_final, overdraft_limit, loan_obligation):
-    if loan_obligation <= 0:
+def compute_monthly_score(
+    accepted_payment,
+    cash_final,
+    overdraft_final,
+    overdraft_limit,
+    loan_obligation,
+    loan_balance_before_payment=None,
+    loan_closed_by_payment=False,
+):
+    reference_payment = money(loan_obligation)
+    remaining_balance = reference_payment if loan_balance_before_payment is None else money(loan_balance_before_payment)
+    expected_repayment = money(
+        min(reference_payment, remaining_balance)
+        if loan_closed_by_payment
+        else reference_payment
+    )
+
+    if expected_repayment <= 0:
         repayment_score = 40.0
     else:
-        repayment_score = min(accepted_payment / loan_obligation, 1.0) * 40.0
+        repayment_score = min(accepted_payment / expected_repayment, 1.0) * 40.0
 
     liquidity_score = min(cash_final / RECOMMENDED_BUFFER, 1.0) * 30.0
     overdraft_score = 30.0 if overdraft_limit <= 0 else max(0.0, 30.0 * (1.0 - overdraft_final / overdraft_limit))
@@ -1143,6 +1159,8 @@ def normalize_month_result_score(result):
             money(result.get("overdraft_final", 0.0)),
             3000.0,
             money(result.get("loan_obligation", 317.71)),
+            money(result.get("loan_balance_before_payment", result.get("loan_obligation", 317.71))),
+            money(result.get("credit_final", 0.0)) <= 0 and money(result.get("loan_balance_before_payment", 0.0)) > 0,
         )
     )
     return result
@@ -1152,6 +1170,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
     income_total = month_sum(data["income"])
     expenses_total = month_sum(data["expenses"])
     obligations = data.get("obligations", {})
+    loan_balance_before_payment = money(loan.balance)
     loan_obligation = money(loan.get_required_payment())
     credit_interest = money(loan.apply_interest())
     overdraft_interest = money(overdraft.apply_interest())
@@ -1167,13 +1186,19 @@ def compute_month_result(month, data, loan, overdraft, payment):
     max_payment = money(liquidity_after_charges + overdraft_remaining)
 
     pre_credit_impossible = overdraft_after_charges > overdraft.limit
+    no_loan_due = loan_balance_before_payment <= 0 and loan_obligation <= 0
     payment_value = None if payment is None else money(payment)
     capped_payment = None if payment_value is None else money(min(payment_value, loan.balance))
     payment_valid = (
         not pre_credit_impossible
-        and payment_value is not None
-        and payment_value >= 0
-        and capped_payment <= max_payment
+        and (
+            no_loan_due
+            or (
+                payment_value is not None
+                and payment_value >= 0
+                and capped_payment <= max_payment
+            )
+        )
     )
 
     if pre_credit_impossible:
@@ -1186,7 +1211,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
         score_data = zero_score_data()
         invalid_reason = "pre_credit"
     elif payment_valid:
-        accepted_payment = capped_payment
+        accepted_payment = 0.0 if no_loan_due else capped_payment
         overdraft_from_payment = money(max(0.0, accepted_payment - liquidity_after_charges))
         overdraft_final = money(overdraft_after_charges + overdraft_from_payment)
         cash_final = money(max(0.0, liquidity_after_charges - accepted_payment))
@@ -1197,8 +1222,10 @@ def compute_month_result(month, data, loan, overdraft, payment):
             overdraft_final,
             overdraft.limit,
             loan_obligation,
+            loan_balance_before_payment,
+            credit_final <= 0 and loan_balance_before_payment > 0,
         )
-        feedback_message = t("simulation.feedback_success")
+        feedback_message = t("simulation.feedback_no_payment_due") if no_loan_due else t("simulation.feedback_success")
         invalid_reason = None
     else:
         accepted_payment = 0.0
@@ -1226,6 +1253,7 @@ def compute_month_result(month, data, loan, overdraft, payment):
         "opening_balance": opening_balance,
         "income_total": income_total,
         "expenses_total": expenses_total,
+        "loan_balance_before_payment": loan_balance_before_payment,
         "loan_obligation": loan_obligation,
         "credit_interest": credit_interest,
         "overdraft_interest": overdraft_interest,
@@ -1731,6 +1759,7 @@ elif st.session_state.page == "simulation":
     obligations = data.get("obligations", {})
     opening_balance = get_opening_balance(month, data)
     loan_obligation = money(loan.get_required_payment())
+    no_loan_due = loan.balance <= 0 and loan_obligation <= 0
     credit_interest = money(loan.apply_interest())
     overdraft_interest = money(overdraft.apply_interest())
     penalties = money(obligations.get("penalties", 0))
@@ -1792,31 +1821,36 @@ elif st.session_state.page == "simulation":
     if blocked:
         st.error(t("simulation.blocked_error"))
 
-    st.markdown(f'<div class="payment-label">{t("simulation.payment_label")}</div>', unsafe_allow_html=True)
-    payment = st.number_input(
-        t("simulation.payment_label"),
-        min_value=0.0,
-        step=1.0,
-        value=None,
-        format="%g",
-        placeholder=t("simulation.payment_placeholder"),
-        key=f"payment_{month}",
-        label_visibility="collapsed",
-    )
-    attach_payment_keyboard_bridge()
-    st.markdown(
-        f"""
+    payment = None
+    if no_loan_due:
+        st.info(t("simulation.no_payment_due_notice"))
+    else:
+        st.markdown(f'<div class="payment-label">{t("simulation.payment_label")}</div>', unsafe_allow_html=True)
+        payment = st.number_input(
+            t("simulation.payment_label"),
+            min_value=0.0,
+            step=1.0,
+            value=None,
+            format="%g",
+            placeholder=t("simulation.payment_placeholder"),
+            key=f"payment_{month}",
+            label_visibility="collapsed",
+        )
+        attach_payment_keyboard_bridge()
+        st.markdown(
+            f"""
 <div class="auth-info payment-note">
   <span class="auth-info-icon">i</span>
   <span>{t("simulation.payment_note")}</span>
 </div>
 """,
-        unsafe_allow_html=True,
-    )
+            unsafe_allow_html=True,
+        )
     st.markdown('<div class="payment-button-gap"></div>', unsafe_allow_html=True)
 
-    if st.button(t("simulation.confirm_button"), type="primary"):
-        if payment is None:
+    button_label = t("simulation.continue_month_button") if no_loan_due else t("simulation.confirm_button")
+    if st.button(button_label, type="primary"):
+        if not no_loan_due and payment is None:
             st.warning(t("simulation.payment_validation_warning"))
             st.stop()
 
