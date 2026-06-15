@@ -29,10 +29,21 @@ from state_manager import (
     load_admin_study_session_by_code,
     persist_checkpoint,
     persist_month_result_snapshot,
-    persist_psychometric_answers_snapshot,
-    persist_session_summary_snapshot,
     start_new_scenario,
 )
+
+try:
+    from state_manager import (
+        persist_psychometric_answers_snapshot,
+        persist_session_summary_snapshot,
+    )
+except ImportError:
+    # Keep deploys resilient if app.py is loaded before the matching state_manager.py update.
+    def persist_psychometric_answers_snapshot(*_args, **_kwargs):
+        return True
+
+    def persist_session_summary_snapshot(*_args, **_kwargs):
+        return True
 
 DEV = os.getenv("SCENARIO_DEV", "").lower() == "true"
 RECOMMENDED_BUFFER = 5.0
