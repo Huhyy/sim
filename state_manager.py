@@ -191,17 +191,28 @@ def finalize_participant(
     if not account_key:
         raise ValueError("Missing authenticated account")
 
-    response = db_finalize_participation(
-        account_key,
-        resolved_session_id,
-        answers,
-        final_score,
-        allow_repeat=REPEAT_SCENARIO_DEV_MODE,
-        monthly_results=monthly_results,
-        summary=summary,
-        pre_sections=pre_sections,
-        post_sections=post_sections,
-    )
+    try:
+        response = db_finalize_participation(
+            account_key,
+            resolved_session_id,
+            answers,
+            final_score,
+            allow_repeat=REPEAT_SCENARIO_DEV_MODE,
+            monthly_results=monthly_results,
+            summary=summary,
+            pre_sections=pre_sections,
+            post_sections=post_sections,
+        )
+    except TypeError as e:
+        if "unexpected keyword argument" not in str(e):
+            raise
+        response = db_finalize_participation(
+            account_key,
+            resolved_session_id,
+            answers,
+            final_score,
+            allow_repeat=REPEAT_SCENARIO_DEV_MODE,
+        )
     st.session_state.submission_finalized = True
     clear_query_param("sid")
     return response
@@ -393,6 +404,7 @@ def bootstrap_authenticated_session():
     url_session_id = get_query_param("sid")
     unsafe_url_session_id = bool(url_session_id and not linked_session_id)
     is_new_session = not linked_session_id
+    resume_link_saved = False
 
     if linked_session_id:
         session_id = linked_session_id
@@ -404,6 +416,10 @@ def bootstrap_authenticated_session():
 
     st.session_state.session_id = session_id
     st.session_state.checkpoint_last_load = {"ok": False, "source": "supabase", "session_id": session_id}
+
+    if is_new_session:
+        save_resume_link(account_key, session_id)
+        resume_link_saved = True
 
     try:
         checkpoint = load_session_checkpoint(session_id)
@@ -417,7 +433,7 @@ def bootstrap_authenticated_session():
         checkpoint = None
 
     checkpoint_reset = False
-    if checkpoint and checkpoint.get("scenario_version") != SCENARIO_VERSION:
+    if checkpoint and checkpoint.get("scenario_version") and checkpoint.get("scenario_version") != SCENARIO_VERSION:
         checkpoint = None
         checkpoint_reset = True
 
@@ -451,7 +467,8 @@ def bootstrap_authenticated_session():
             }
 
     if is_new_session:
-        save_resume_link(account_key, session_id)
+        if not resume_link_saved:
+            save_resume_link(account_key, session_id)
         if unsafe_url_session_id:
             st.session_state.checkpoint_last_load = {
                 "ok": False,

@@ -1,0 +1,79 @@
+"""Result and answer persistence."""
+
+from sim_app.infra.supabase import _require_client
+from sim_app.infra.time import _utcnow
+from sim_app.persistence.mappers import _float_or_none, _month_result_row, _psychometric_rows
+
+
+def save_psychometric_answers(session_id: str, answers: dict, pre_sections=None, post_sections=None):
+    client = _require_client()
+    pre_rows = _psychometric_rows(session_id, answers, pre_sections)
+    post_rows = _psychometric_rows(session_id, answers, post_sections)
+
+    if pre_rows:
+        client.table("psychometric_pre_answers").upsert(
+            pre_rows,
+            on_conflict="session_id,question_key",
+        ).execute()
+
+    if post_rows:
+        client.table("psychometric_post_answers").upsert(
+            post_rows,
+            on_conflict="session_id,question_key",
+        ).execute()
+
+
+def save_month_result(session_id: str, result: dict, bonus_max_session: float = 12.0):
+    client = _require_client()
+    row = _month_result_row(session_id, result, bonus_max_session=bonus_max_session)
+    client.table("month_results").upsert(
+        row,
+        on_conflict="session_id,month_number",
+    ).execute()
+
+
+def save_month_results(session_id: str, monthly_results, bonus_max_session: float = 12.0):
+    client = _require_client()
+    rows = [
+        _month_result_row(session_id, result, bonus_max_session=bonus_max_session)
+        for result in (monthly_results or [])
+        if result.get("month")
+    ]
+    if rows:
+        client.table("month_results").upsert(
+            rows,
+            on_conflict="session_id,month_number",
+        ).execute()
+
+
+def save_session_summary(session_id: str, summary: dict, feedback=None):
+    client = _require_client()
+    row = {
+        "session_id": session_id,
+        "months_completed": int(summary.get("months_completed", 0)),
+        "monthly_score_sum": _float_or_none(summary.get("monthly_score_sum")),
+        "final_score": _float_or_none(summary.get("final_score")),
+        "bonus_max_session": _float_or_none(summary.get("bonus_max_session")),
+        "bonus_final": _float_or_none(summary.get("bonus_final")),
+        "total_repaid": _float_or_none(summary.get("total_repaid")),
+        "remaining_credit": _float_or_none(summary.get("remaining_credit")),
+        "remaining_overdraft": _float_or_none(summary.get("remaining_overdraft")),
+        "credit_interest_total": _float_or_none(summary.get("credit_interest_total")),
+        "overdraft_interest_total": _float_or_none(summary.get("overdraft_interest_total")),
+        "interest_total": _float_or_none(summary.get("interest_total")),
+        "feedback": feedback,
+        "updated_at": _utcnow(),
+    }
+    if summary.get("study_session_id"):
+        row["study_session_id"] = summary.get("study_session_id")
+    if summary.get("study_session_code"):
+        row["study_session_code"] = summary.get("study_session_code")
+    return client.table("session_summaries").upsert(row, on_conflict="session_id").execute()
+
+
+__all__ = [
+    "save_month_result",
+    "save_month_results",
+    "save_psychometric_answers",
+    "save_session_summary",
+]
