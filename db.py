@@ -241,6 +241,27 @@ def list_admin_study_sessions(created_by_email: str, only_active: bool = True, l
     return getattr(response, "data", None) or []
 
 
+def cancel_admin_study_session(session_id: str, created_by_email: str):
+    client = _require_client()
+    email = str(created_by_email).strip().lower()
+    response = (
+        client
+        .table("admin_study_sessions")
+        .update(
+            {
+                "status": "cancelled",
+                "updated_at": _utcnow(),
+            }
+        )
+        .eq("id", str(session_id))
+        .eq("created_by_email", email)
+        .eq("status", "active")
+        .execute()
+    )
+    data = getattr(response, "data", None) or []
+    return data[0] if data else None
+
+
 def _active_resume_link_exists(client, account_key: str, session_id: str):
     response = (
         client

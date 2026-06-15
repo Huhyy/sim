@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import pandas as pd
 
-from auth_manager import configured_admin_emails_text, current_user_email, is_admin_user, is_logged_in
+from auth_manager import current_user_email, is_admin_user, is_logged_in
 from tables import get_month
 from questions import PRE_SECTIONS as PRE_SECTIONS_RO
 from questions import POST_SECTIONS as POST_SECTIONS_RO
@@ -22,6 +22,7 @@ from state_manager import (
     REPEAT_SCENARIO_DEV_MODE,
     SCENARIO_VERSION,
     bootstrap_authenticated_session,
+    cancel_admin_study_session,
     create_admin_study_session,
     ensure_current_scenario_version,
     finalize_participant,
@@ -942,16 +943,10 @@ else:
 
 def render_account_menu():
     email = st.user.get("email") or st.user.get("name") or t("auth.account_fallback")
-    detected_email = current_user_email() or "none"
-    configured_admins = configured_admin_emails_text()
-    admin_status = t("auth.admin_yes") if is_admin_user() else t("auth.admin_no")
     with st.container(key="account_menu"):
         with st.expander(email):
             st.markdown(f'<div class="account-language-label">{t("auth.language_label")}</div>', unsafe_allow_html=True)
             render_language_buttons("account_lang")
-            st.caption(
-                f"{t('auth.admin_debug')}: {t('auth.admin_email')} = {detected_email} | {t('auth.admin_configured')} = {configured_admins} | {t('auth.admin_status')} = {admin_status}"
-            )
             if is_admin_user():
                 if st.button(t("auth.admin_page"), key="account_admin", use_container_width=True):
                     st.session_state.admin_return_page = st.session_state.get("page", "home")
@@ -1340,15 +1335,29 @@ elif st.session_state.page == "admin":
     active_sessions = list_admin_study_sessions(current_user_email())
     if active_sessions:
         st.markdown(f"### {t('admin.active_sessions')}")
-        admin_rows = [
-            {
-                t("admin.code_label"): row.get("session_code"),
-                t("admin.status"): row.get("status"),
-                t("admin.created_at"): row.get("created_at"),
-            }
-            for row in active_sessions
-        ]
-        st.dataframe(pd.DataFrame(admin_rows), use_container_width=True, hide_index=True)
+        st.caption(t("admin.sessions_note"))
+        header_cols = st.columns([2, 2, 3, 1])
+        header_cols[0].markdown(f"**{t('admin.code_label')}**")
+        header_cols[1].markdown(f"**{t('admin.status')}**")
+        header_cols[2].markdown(f"**{t('admin.created_at')}**")
+        for row in active_sessions:
+            code = row.get("session_code")
+            status = row.get("status")
+            created_at = row.get("created_at")
+            cols = st.columns([2, 2, 3, 1])
+            cols[0].markdown(f"**{code}**")
+            cols[1].write(status)
+            cols[2].write(created_at)
+            if cols[3].button(" ", icon=":material/delete:", help=t("admin.cancel_session"), key=f"cancel_session_{row.get('id')}"):
+                cancelled = cancel_admin_study_session(row.get("id"), current_user_email())
+                if cancelled:
+                    if st.session_state.get("study_session_id") == row.get("id"):
+                        st.session_state.study_session_id = None
+                        st.session_state.study_session_code = None
+                    st.success(t("admin.cancelled_success", code=code))
+                    st.rerun()
+                else:
+                    st.error(t("admin.cancelled_error"))
     if st.button(t("admin.back_home")):
         goto(admin_return_page)
 

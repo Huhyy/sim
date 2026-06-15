@@ -23,6 +23,7 @@ db_finalize_participation = getattr(db_module, "finalize_participation")
 load_admin_study_session_by_code = getattr(db_module, "load_admin_study_session_by_code", lambda *_args, **_kwargs: None)
 create_admin_study_session = getattr(db_module, "create_admin_study_session", lambda *_args, **_kwargs: None)
 list_admin_study_sessions = getattr(db_module, "list_admin_study_sessions", lambda *_args, **_kwargs: [])
+cancel_admin_study_session = getattr(db_module, "cancel_admin_study_session", lambda *_args, **_kwargs: None)
 
 
 def _feature_flag(name, default):
