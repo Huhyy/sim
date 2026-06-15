@@ -17,6 +17,8 @@ account_has_completed = getattr(db_module, "account_has_completed", lambda *_arg
 load_linked_session_id = getattr(db_module, "load_linked_session_id", lambda *_args, **_kwargs: None)
 save_resume_link = getattr(db_module, "save_resume_link", lambda *_args, **_kwargs: None)
 db_save_month_result = getattr(db_module, "save_month_result", lambda *_args, **_kwargs: None)
+db_save_psychometric_answers = getattr(db_module, "save_psychometric_answers", lambda *_args, **_kwargs: None)
+db_save_session_summary = getattr(db_module, "save_session_summary", lambda *_args, **_kwargs: None)
 db_finalize_participation = getattr(db_module, "finalize_participation")
 load_admin_study_session_by_code = getattr(db_module, "load_admin_study_session_by_code", lambda *_args, **_kwargs: None)
 create_admin_study_session = getattr(db_module, "create_admin_study_session", lambda *_args, **_kwargs: None)
@@ -122,6 +124,53 @@ def persist_month_result_snapshot(result, bonus_max_session=12.0):
             "ok": False,
             "session_id": session_id,
             "month": result.get("month"),
+            "error": str(e),
+        }
+        return False
+
+
+def persist_psychometric_answers_snapshot(answers, pre_sections=None, post_sections=None):
+    session_id = resolve_session_id()
+    if not session_id:
+        return False
+
+    try:
+        db_save_psychometric_answers(
+            session_id,
+            answers,
+            pre_sections=pre_sections,
+            post_sections=post_sections,
+        )
+        st.session_state.psychometric_snapshot_last_save = {
+            "ok": True,
+            "session_id": session_id,
+        }
+        return True
+    except Exception as e:
+        st.session_state.psychometric_snapshot_last_save = {
+            "ok": False,
+            "session_id": session_id,
+            "error": str(e),
+        }
+        return False
+
+
+def persist_session_summary_snapshot(summary, feedback=None):
+    session_id = resolve_session_id()
+    if not session_id:
+        return False
+
+    try:
+        db_save_session_summary(session_id, summary, feedback=feedback)
+        st.session_state.summary_snapshot_last_save = {
+            "ok": True,
+            "session_id": session_id,
+        }
+        return True
+    except Exception as e:
+        st.session_state.summary_snapshot_last_save = {
+            "ok": False,
+            "session_id": session_id,
             "error": str(e),
         }
         return False

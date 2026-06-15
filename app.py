@@ -29,6 +29,8 @@ from state_manager import (
     load_admin_study_session_by_code,
     persist_checkpoint,
     persist_month_result_snapshot,
+    persist_psychometric_answers_snapshot,
+    persist_session_summary_snapshot,
     start_new_scenario,
 )
 
@@ -1010,6 +1012,8 @@ def render_quiz_chapter(
     dev_label,
     title,
     question_offset=0,
+    on_continue=None,
+    save_error_message="Error while saving progress. Please reload the page and try again.",
 ):
     st.title(title)
     st.caption(t("quiz.chapter_label", current=chapter_index + 1, total=total_chapters))
@@ -1028,6 +1032,9 @@ def render_quiz_chapter(
 
     if st.button(t("quiz.continue_button"), type="primary", key=f"continue_{section['key_prefix']}_{chapter_index}"):
         if all_answered([section]):
+            if on_continue is not None and not on_continue():
+                st.error(save_error_message)
+                st.stop()
             st.session_state.scroll_to_top = True
             goto(next_page)
         else:
@@ -1047,6 +1054,20 @@ def display_number(value):
 
 def display_euro(value):
     return f"{display_number(value)} €"
+
+
+def persist_pre_psychometrics():
+    return persist_psychometric_answers_snapshot(
+        st.session_state.answers,
+        pre_sections=get_display_pre_sections(),
+    )
+
+
+def persist_post_psychometrics():
+    return persist_psychometric_answers_snapshot(
+        st.session_state.answers,
+        post_sections=get_display_post_sections(),
+    )
 
 
 def display_value_table(values):
@@ -1588,6 +1609,8 @@ elif st.session_state.page.startswith("pre_question_"):
         t("quiz.dev_randomize"),
         t("quiz.pre_title"),
         question_offset=sum(len(section["questions"]) for section in pre_sections[:pre_index]),
+        on_continue=persist_pre_psychometrics,
+        save_error_message="Error while saving questionnaire answers. Please reload the page and try again.",
     )
 
 
@@ -1824,7 +1847,12 @@ elif st.session_state.page == "month_feedback":
         st.session_state.monthly_points += result["monthly_score"]
         st.session_state.accumulated_costs += result["costs_this_month"]
         st.session_state.monthly_results.append(result)
-        persist_month_result_snapshot(result, bonus_max_session=get_bonus_max_session())
+        if not persist_month_result_snapshot(result, bonus_max_session=get_bonus_max_session()):
+            st.error(t("simulation.save_error"))
+            st.stop()
+        if not persist_session_summary_snapshot(get_final_score_breakdown(), feedback=st.session_state.answers.get("feedback")):
+            st.error("Error while saving session summary. Please reload the page and try again.")
+            st.stop()
         st.session_state.pending_month_result = None
         st.session_state.month += 1
         goto("simulation")
@@ -1874,6 +1902,9 @@ elif st.session_state.page.startswith("post_question_"):
     button_label = t("quiz.post_finish_button") if post_index + 1 >= len(post_sections) else t("quiz.continue_button")
     if st.button(button_label, type="primary", key=f"continue_post_question_{post_index}"):
         if all_answered([section]):
+            if not persist_post_psychometrics():
+                st.error("Error while saving questionnaire answers. Please reload the page and try again.")
+                st.stop()
             st.session_state.scroll_to_top = True
             goto(next_page)
         else:
