@@ -31,6 +31,7 @@ def test_extracted_hydrate_preserves_existing_session_id(monkeypatch):
             "month": 3,
             "loan_balance": 6350.0,
             "overdraft_balance": 0.0,
+            "participant_code": "P001",
             "answers": {},
         }
     )
@@ -38,6 +39,7 @@ def test_extracted_hydrate_preserves_existing_session_id(monkeypatch):
     assert dummy_state.session_id == "session-123"
     assert dummy_state.page == "simulation"
     assert dummy_state.month == 3
+    assert dummy_state.participant_code == "P001"
 
 
 def test_extracted_persist_recovers_session_id_from_url(monkeypatch):
@@ -48,6 +50,7 @@ def test_extracted_persist_recovers_session_id_from_url(monkeypatch):
         session_id=None,
         page="simulation",
         month=2,
+        participant_code="P002",
         loan=Loan(balance=6500.0, annual_interest=0.0835, months=24),
         overdraft=Overdraft(limit=3000.0, annual_interest=0.24),
     )
@@ -69,6 +72,7 @@ def test_extracted_persist_recovers_session_id_from_url(monkeypatch):
     assert dummy_state.session_id == "session-456"
     assert dummy_state.checkpoint_last_save["ok"] is True
     assert saved["session_id"] == "session-456"
+    assert saved["checkpoint"]["participant_code"] == "P002"
 
 
 def test_extracted_finalize_recovers_session_id_before_final_save(monkeypatch):

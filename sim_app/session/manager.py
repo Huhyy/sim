@@ -142,12 +142,14 @@ def start_new_scenario():
 
     current_study_session_id = st.session_state.get("study_session_id")
     current_study_session_code = st.session_state.get("study_session_code")
+    current_participant_code = st.session_state.get("participant_code")
     defaults = runtime_defaults()
     clear_payment_values()
     for key, value in defaults.items():
         st.session_state[key] = value
     st.session_state.study_session_id = current_study_session_id
     st.session_state.study_session_code = current_study_session_code
+    st.session_state.participant_code = current_participant_code
 
     session_id = new_session_id()
     st.session_state.session_id = session_id

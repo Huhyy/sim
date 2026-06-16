@@ -73,9 +73,14 @@ def finalize_participation(
     summary = summary or {}
     bonus_max_session = _float_or_none(summary.get("bonus_max_session")) or 12.0
     feedback = answers.get("feedback") or None
+    metadata = {
+        "study_session_id": summary.get("study_session_id"),
+        "study_session_code": summary.get("study_session_code"),
+        "participant_code": summary.get("participant_code"),
+    }
 
-    save_psychometric_answers(session_id, answers, pre_sections=pre_sections, post_sections=post_sections)
-    save_month_results(session_id, monthly_results or [], bonus_max_session=bonus_max_session)
+    save_psychometric_answers(session_id, answers, pre_sections=pre_sections, post_sections=post_sections, metadata=metadata)
+    save_month_results(session_id, monthly_results or [], bonus_max_session=bonus_max_session, metadata=metadata)
     response = save_session_summary(session_id, summary, feedback=feedback)
 
     client.table("participant_sessions").update(
@@ -91,6 +96,7 @@ def finalize_participation(
                 "final_score": summary.get("final_score"),
             },
             "demographics": _demographic_answers(answers),
+            "participant_code": summary.get("participant_code"),
         }
     ).eq("id", session_id).execute()
 

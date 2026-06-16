@@ -48,6 +48,32 @@ def render_month_feedback_page(ctx):
         st.session_state.monthly_points += result["monthly_score"]
         st.session_state.accumulated_costs += result["costs_this_month"]
         st.session_state.monthly_results.append(result)
+        if int(result.get("month", 0)) >= 24:
+            try:
+                ctx.save_month_results(
+                    st.session_state.session_id,
+                    [
+                        ctx.normalize_month_result_score(month_result)
+                        for month_result in st.session_state.get("monthly_results", [])
+                    ],
+                    bonus_max_session=ctx.get_bonus_max_session(),
+                    metadata={
+                        "study_session_id": st.session_state.get("study_session_id"),
+                        "study_session_code": st.session_state.get("study_session_code"),
+                        "participant_code": st.session_state.get("participant_code"),
+                    },
+                )
+                st.session_state.month_results_last_save = {
+                    "ok": True,
+                    "session_id": st.session_state.session_id,
+                    "months": len(st.session_state.get("monthly_results", [])),
+                }
+            except Exception as e:
+                st.session_state.month_results_last_save = {
+                    "ok": False,
+                    "session_id": st.session_state.session_id,
+                    "error": str(e),
+                }
         st.session_state.pending_month_result = None
         st.session_state.month += 1
         ctx.goto("simulation")
@@ -56,4 +82,3 @@ def render_month_feedback_page(ctx):
 __all__ = [
     "render_month_feedback_page",
 ]
-

@@ -35,10 +35,24 @@ def _demographic_answers(answers: dict):
     }
 
 
-def _psychometric_rows(session_id: str, answers: dict, sections):
+def _clean_metadata(metadata=None):
+    metadata = metadata or {}
+    return {
+        key: value
+        for key, value in {
+            "study_session_id": metadata.get("study_session_id"),
+            "study_session_code": metadata.get("study_session_code"),
+            "participant_code": metadata.get("participant_code"),
+        }.items()
+        if value
+    }
+
+
+def _psychometric_rows(session_id: str, answers: dict, sections, metadata=None):
     rows = []
     question_number = 1
     now = _utcnow()
+    metadata_columns = _clean_metadata(metadata)
 
     for section_number, section in enumerate(sections or [], start=1):
         prefix = section.get("key_prefix")
@@ -52,6 +66,7 @@ def _psychometric_rows(session_id: str, answers: dict, sections):
             rows.append(
                 {
                     "session_id": session_id,
+                    **metadata_columns,
                     "section_number": section_number,
                     "question_number": question_number,
                     "question_key": key,
@@ -65,12 +80,13 @@ def _psychometric_rows(session_id: str, answers: dict, sections):
     return rows
 
 
-def _month_result_row(session_id: str, result: dict, bonus_max_session: float = 12.0):
+def _month_result_row(session_id: str, result: dict, bonus_max_session: float = 12.0, metadata=None):
     monthly_score = _float_or_none(result.get("monthly_score")) or 0.0
     bonus_lunar = monthly_score / 100.0 * (float(bonus_max_session) / 24.0)
 
     return {
         "session_id": session_id,
+        **_clean_metadata(metadata),
         "month_number": int(result.get("month", 0)),
         "opening_balance": _float_or_none(result.get("opening_balance")),
         "income_total": _float_or_none(result.get("income_total")),
@@ -111,6 +127,7 @@ __all__ = [
     "_bool_or_none",
     "_demographic_answers",
     "_float_or_none",
+    "_clean_metadata",
     "_month_result_row",
     "_parse",
     "_psychometric_rows",

@@ -7,6 +7,19 @@ def normalize_study_session_code(value):
     return re.sub(r"\D", "", str(value or ""))[:6]
 
 
+def normalize_participant_code(value):
+    raw = str(value or "").strip().upper()
+    digits = re.sub(r"\D", "", raw)
+    if digits:
+        return f"P{digits[:3].zfill(3)}"
+    cleaned = re.sub(r"[^A-Z0-9]", "", raw)
+    return cleaned[:4]
+
+
+def is_valid_participant_code(value):
+    return bool(re.fullmatch(r"P[0-9]{3}", str(value or "").strip().upper()))
+
+
 def render_enter_session_code_page(ctx):
     st = ctx.st
     t = ctx.t
@@ -19,10 +32,20 @@ def render_enter_session_code_page(ctx):
         max_chars=6,
         help=t("study_session.input_help"),
     )
+    participant_value = st.text_input(
+        t("study_session.participant_label"),
+        value=st.session_state.get("participant_code", ""),
+        max_chars=4,
+        help=t("study_session.participant_help"),
+    )
     if st.button(t("study_session.button"), type="primary"):
         session_code = normalize_study_session_code(code_value)
+        participant_code = normalize_participant_code(participant_value)
         if len(session_code) != 6:
             st.warning(t("study_session.missing"))
+            st.stop()
+        if not is_valid_participant_code(participant_code):
+            st.warning(t("study_session.participant_missing"))
             st.stop()
         record = ctx.load_admin_study_session_by_code(session_code)
         if not record:
@@ -30,17 +53,20 @@ def render_enter_session_code_page(ctx):
             st.stop()
         st.session_state.study_session_id = record["id"]
         st.session_state.study_session_code = record["session_code"]
+        st.session_state.participant_code = participant_code
         st.session_state.scroll_to_top = True
         ctx.goto("home")
     if st.button(t("study_session.skip_button"), type="secondary"):
         st.session_state.study_session_id = None
         st.session_state.study_session_code = None
+        st.session_state.participant_code = None
         st.session_state.scroll_to_top = True
         ctx.goto("home")
 
 
 __all__ = [
     "normalize_study_session_code",
+    "normalize_participant_code",
+    "is_valid_participant_code",
     "render_enter_session_code_page",
 ]
-

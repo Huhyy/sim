@@ -5,10 +5,10 @@ from sim_app.infra.time import _utcnow
 from sim_app.persistence.mappers import _float_or_none, _month_result_row, _psychometric_rows
 
 
-def save_psychometric_answers(session_id: str, answers: dict, pre_sections=None, post_sections=None):
+def save_psychometric_answers(session_id: str, answers: dict, pre_sections=None, post_sections=None, metadata=None):
     client = _require_client()
-    pre_rows = _psychometric_rows(session_id, answers, pre_sections)
-    post_rows = _psychometric_rows(session_id, answers, post_sections)
+    pre_rows = _psychometric_rows(session_id, answers, pre_sections, metadata=metadata)
+    post_rows = _psychometric_rows(session_id, answers, post_sections, metadata=metadata)
 
     if pre_rows:
         client.table("psychometric_pre_answers").upsert(
@@ -23,19 +23,19 @@ def save_psychometric_answers(session_id: str, answers: dict, pre_sections=None,
         ).execute()
 
 
-def save_month_result(session_id: str, result: dict, bonus_max_session: float = 12.0):
+def save_month_result(session_id: str, result: dict, bonus_max_session: float = 12.0, metadata=None):
     client = _require_client()
-    row = _month_result_row(session_id, result, bonus_max_session=bonus_max_session)
+    row = _month_result_row(session_id, result, bonus_max_session=bonus_max_session, metadata=metadata)
     client.table("month_results").upsert(
         row,
         on_conflict="session_id,month_number",
     ).execute()
 
 
-def save_month_results(session_id: str, monthly_results, bonus_max_session: float = 12.0):
+def save_month_results(session_id: str, monthly_results, bonus_max_session: float = 12.0, metadata=None):
     client = _require_client()
     rows = [
-        _month_result_row(session_id, result, bonus_max_session=bonus_max_session)
+        _month_result_row(session_id, result, bonus_max_session=bonus_max_session, metadata=metadata)
         for result in (monthly_results or [])
         if result.get("month")
     ]
@@ -68,6 +68,8 @@ def save_session_summary(session_id: str, summary: dict, feedback=None):
         row["study_session_id"] = summary.get("study_session_id")
     if summary.get("study_session_code"):
         row["study_session_code"] = summary.get("study_session_code")
+    if summary.get("participant_code"):
+        row["participant_code"] = summary.get("participant_code")
     return client.table("session_summaries").upsert(row, on_conflict="session_id").execute()
 
 

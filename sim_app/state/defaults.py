@@ -13,6 +13,7 @@ def runtime_defaults():
         "month": 1,
         "study_session_id": None,
         "study_session_code": None,
+        "participant_code": None,
         "loan": Loan(balance=7000.0, annual_interest=0.0835, months=24),
         "overdraft": Overdraft(limit=3000.0, annual_interest=0.18),
         "savings": None,

@@ -23,6 +23,11 @@ ALTER TABLE participant_sessions
   ADD COLUMN IF NOT EXISTS study_session_id UUID;
 ALTER TABLE participant_sessions
   ADD COLUMN IF NOT EXISTS study_session_code TEXT;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$');
+CREATE UNIQUE INDEX IF NOT EXISTS participant_sessions_study_participant_code_idx
+  ON participant_sessions (study_session_id, participant_code)
+  WHERE study_session_id IS NOT NULL AND participant_code IS NOT NULL;
 
 ALTER TABLE participant_sessions ENABLE ROW LEVEL SECURITY;
 
@@ -39,6 +44,9 @@ ALTER TABLE admin_study_sessions ENABLE ROW LEVEL SECURITY;
 
 CREATE TABLE IF NOT EXISTS psychometric_pre_answers (
   session_id UUID NOT NULL REFERENCES participant_sessions(id) ON DELETE CASCADE,
+  study_session_id UUID,
+  study_session_code TEXT,
+  participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$'),
   section_number INTEGER NOT NULL,
   question_number INTEGER NOT NULL,
   question_key TEXT NOT NULL,
@@ -49,9 +57,14 @@ CREATE TABLE IF NOT EXISTS psychometric_pre_answers (
   PRIMARY KEY (session_id, question_key),
   UNIQUE (session_id, question_number)
 );
+CREATE INDEX IF NOT EXISTS psychometric_pre_answers_study_participant_idx
+  ON psychometric_pre_answers (study_session_id, participant_code);
 
 CREATE TABLE IF NOT EXISTS psychometric_post_answers (
   session_id UUID NOT NULL REFERENCES participant_sessions(id) ON DELETE CASCADE,
+  study_session_id UUID,
+  study_session_code TEXT,
+  participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$'),
   section_number INTEGER NOT NULL,
   question_number INTEGER NOT NULL,
   question_key TEXT NOT NULL,
@@ -62,9 +75,14 @@ CREATE TABLE IF NOT EXISTS psychometric_post_answers (
   PRIMARY KEY (session_id, question_key),
   UNIQUE (session_id, question_number)
 );
+CREATE INDEX IF NOT EXISTS psychometric_post_answers_study_participant_idx
+  ON psychometric_post_answers (study_session_id, participant_code);
 
 CREATE TABLE IF NOT EXISTS month_results (
   session_id UUID NOT NULL REFERENCES participant_sessions(id) ON DELETE CASCADE,
+  study_session_id UUID,
+  study_session_code TEXT,
+  participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$'),
   month_number SMALLINT NOT NULL CHECK (month_number BETWEEN 1 AND 24),
   opening_balance NUMERIC(12,2),
   income_total NUMERIC(12,2),
@@ -101,6 +119,8 @@ CREATE TABLE IF NOT EXISTS month_results (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (session_id, month_number)
 );
+CREATE INDEX IF NOT EXISTS month_results_study_participant_idx
+  ON month_results (study_session_id, participant_code);
 
 CREATE TABLE IF NOT EXISTS session_summaries (
   session_id UUID PRIMARY KEY REFERENCES participant_sessions(id) ON DELETE CASCADE,
@@ -117,10 +137,13 @@ CREATE TABLE IF NOT EXISTS session_summaries (
   interest_total NUMERIC(12,2),
   study_session_id UUID,
   study_session_code TEXT,
+  participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$'),
   feedback TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE INDEX IF NOT EXISTS session_summaries_study_participant_idx
+  ON session_summaries (study_session_id, participant_code);
 
 CREATE TABLE IF NOT EXISTS resume_links (
   account_key TEXT PRIMARY KEY CHECK (char_length(account_key) = 64),
@@ -140,3 +163,36 @@ ALTER TABLE month_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE session_summaries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resume_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE completed_accounts ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE psychometric_pre_answers
+  ADD COLUMN IF NOT EXISTS study_session_id UUID;
+ALTER TABLE psychometric_pre_answers
+  ADD COLUMN IF NOT EXISTS study_session_code TEXT;
+ALTER TABLE psychometric_pre_answers
+  ADD COLUMN IF NOT EXISTS participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$');
+
+ALTER TABLE psychometric_post_answers
+  ADD COLUMN IF NOT EXISTS study_session_id UUID;
+ALTER TABLE psychometric_post_answers
+  ADD COLUMN IF NOT EXISTS study_session_code TEXT;
+ALTER TABLE psychometric_post_answers
+  ADD COLUMN IF NOT EXISTS participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$');
+
+ALTER TABLE month_results
+  ADD COLUMN IF NOT EXISTS study_session_id UUID;
+ALTER TABLE month_results
+  ADD COLUMN IF NOT EXISTS study_session_code TEXT;
+ALTER TABLE month_results
+  ADD COLUMN IF NOT EXISTS participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$');
+
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$');
+
+CREATE INDEX IF NOT EXISTS psychometric_pre_answers_study_participant_idx
+  ON psychometric_pre_answers (study_session_id, participant_code);
+CREATE INDEX IF NOT EXISTS psychometric_post_answers_study_participant_idx
+  ON psychometric_post_answers (study_session_id, participant_code);
+CREATE INDEX IF NOT EXISTS month_results_study_participant_idx
+  ON month_results (study_session_id, participant_code);
+CREATE INDEX IF NOT EXISTS session_summaries_study_participant_idx
+  ON session_summaries (study_session_id, participant_code);

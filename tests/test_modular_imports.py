@@ -98,6 +98,21 @@ def test_persistence_mappers_shape_rows(monkeypatch):
     assert month_row["bonus_lunar"] == 0.4
     assert month_row["liquidity_before_payment"] == 120.5
 
+    metadata = {
+        "study_session_id": "study-session-1",
+        "study_session_code": "123456",
+        "participant_code": "P001",
+    }
+    psychometric_rows = mappers._psychometric_rows("session-1", answers, sections, metadata=metadata)
+    assert psychometric_rows[0]["study_session_id"] == "study-session-1"
+    assert psychometric_rows[0]["study_session_code"] == "123456"
+    assert psychometric_rows[0]["participant_code"] == "P001"
+
+    month_row_with_metadata = mappers._month_result_row("session-1", result, metadata=metadata)
+    assert month_row_with_metadata["study_session_id"] == "study-session-1"
+    assert month_row_with_metadata["study_session_code"] == "123456"
+    assert month_row_with_metadata["participant_code"] == "P001"
+
 
 def test_auth_admin_parser():
     import sim_app.auth.admin as admin

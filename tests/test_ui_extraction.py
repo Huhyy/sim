@@ -46,6 +46,15 @@ def test_normalize_study_session_code():
     assert normalize_study_session_code("ab12 34-567") == "123456"
 
 
+def test_participant_code_helpers():
+    from sim_app.ui.pages.enter_session_code import is_valid_participant_code, normalize_participant_code
+
+    assert normalize_participant_code("1") == "P001"
+    assert normalize_participant_code("p024") == "P024"
+    assert is_valid_participant_code("P001")
+    assert not is_valid_participant_code("P01")
+
+
 def test_quiz_helpers_with_plain_answers():
     from sim_app.ui.components.quiz import all_answered, demographics_complete
 
