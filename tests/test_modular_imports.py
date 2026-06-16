@@ -3,6 +3,7 @@ def test_persistence_modules_expose_database_functions():
         account_has_completed,
         finalize_participation,
         load_linked_session_id,
+        list_participant_sessions_for_study_session,
         load_session_checkpoint,
         save_month_result,
         save_resume_link,
@@ -12,6 +13,7 @@ def test_persistence_modules_expose_database_functions():
     assert callable(account_has_completed)
     assert callable(finalize_participation)
     assert callable(load_linked_session_id)
+    assert callable(list_participant_sessions_for_study_session)
     assert callable(load_session_checkpoint)
     assert callable(save_month_result)
     assert callable(save_resume_link)
@@ -137,6 +139,18 @@ def test_auth_admin_parser():
     assert admin._parse_admin_emails("a@example.com; b@example.com") == {"a@example.com", "b@example.com"}
     assert admin._parse_admin_emails("['a@example.com', 'b@example.com']") == {"a@example.com", "b@example.com"}
     assert admin._parse_admin_emails(["a@example.com", " b@example.com "]) == {"a@example.com", "b@example.com"}
+
+
+def test_study_session_participant_filter():
+    import sim_app.persistence.study_sessions as study_sessions
+
+    assert study_sessions._with_participant_codes(
+        [
+            {"participant_code": "P001"},
+            {"participant_code": None},
+            {"participant_code": ""},
+        ]
+    ) == [{"participant_code": "P001"}]
 
 
 def test_content_modules_load_packaged_content():

@@ -24,6 +24,7 @@ from sim_app.persistence.study_sessions import (
     cancel_admin_study_session,
     create_admin_study_session,
     list_admin_study_sessions,
+    list_participant_sessions_for_study_session,
     load_admin_study_session_by_code,
 )
 from sim_app.persistence.results import save_month_results
@@ -1338,6 +1339,7 @@ ui_ctx = make_ui_context(
     load_admin_study_session_by_code=load_admin_study_session_by_code,
     create_admin_study_session=create_admin_study_session,
     list_admin_study_sessions=list_admin_study_sessions,
+    list_participant_sessions_for_study_session=list_participant_sessions_for_study_session,
     cancel_admin_study_session=cancel_admin_study_session,
     save_month_results=save_month_results,
     condition_options=condition_options,

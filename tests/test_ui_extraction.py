@@ -106,6 +106,22 @@ def test_admin_page_navigator_flow_and_adjacency():
     assert page_display_name("post_question_0", ctx) == "Post questionnaire 1/1"
 
 
+def test_admin_participant_progress_helpers():
+    from sim_app.ui.components.admin_participants import exact_page_label, participant_progress_percent, participant_stage
+
+    pre_row = {"checkpoint": {"page": "pre_question_1", "month": 1}, "status": "in_progress"}
+    month_row = {"checkpoint": {"page": "month_feedback", "month": 12}, "status": "in_progress"}
+    post_row = {"checkpoint": {"page": "post_question_0", "month": 25}, "status": "in_progress"}
+    done_row = {"checkpoint": {"page": "simulation", "month": 24}, "status": "completed"}
+
+    assert participant_stage(pre_row) == "pre"
+    assert participant_stage(month_row) == "months"
+    assert participant_stage(post_row) == "post"
+    assert participant_progress_percent(month_row, pre_count=2, post_count=2) == 55
+    assert exact_page_label(month_row) == "month_feedback - month 12"
+    assert participant_progress_percent(done_row, pre_count=2, post_count=2) == 100
+
+
 def test_render_current_page_uses_registered_renderer(monkeypatch):
     import sim_app.ui.pages.router as router
 

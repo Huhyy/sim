@@ -66,6 +66,41 @@ def list_admin_study_sessions(created_by_email: str, only_active: bool = True, l
     return getattr(response, "data", None) or []
 
 
+def list_participant_sessions_for_study_session(study_session_id: str = None, study_session_code: str = None):
+    client = _require_client()
+    select_columns = "id,participant_code,current_page,status,checkpoint,updated_at,completed_at"
+
+    if study_session_id:
+        response = (
+            client
+            .table("participant_sessions")
+            .select(select_columns)
+            .eq("study_session_id", str(study_session_id))
+            .order("participant_code")
+            .execute()
+        )
+        data = _with_participant_codes(getattr(response, "data", None) or [])
+        if data:
+            return data
+
+    if not study_session_code:
+        return []
+
+    response = (
+        client
+        .table("participant_sessions")
+        .select(select_columns)
+        .eq("study_session_code", str(study_session_code).strip())
+        .order("participant_code")
+        .execute()
+    )
+    return _with_participant_codes(getattr(response, "data", None) or [])
+
+
+def _with_participant_codes(rows):
+    return [row for row in rows if row.get("participant_code")]
+
+
 def cancel_admin_study_session(session_id: str, created_by_email: str):
     client = _require_client()
     email = str(created_by_email).strip().lower()
@@ -91,5 +126,6 @@ __all__ = [
     "cancel_admin_study_session",
     "create_admin_study_session",
     "list_admin_study_sessions",
+    "list_participant_sessions_for_study_session",
     "load_admin_study_session_by_code",
 ]

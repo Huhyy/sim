@@ -1,5 +1,7 @@
 """Admin page."""
 
+from sim_app.ui.components.admin_participants import render_admin_participants
+
 
 def render_admin_page(ctx):
     st = ctx.st
@@ -65,6 +67,8 @@ def render_admin_page(ctx):
                     st.rerun()
                 else:
                     st.error(t("admin.cancelled_error"))
+            participants = ctx.list_participant_sessions_for_study_session(row.get("id"), code)
+            render_admin_participants(ctx, participants)
     if st.button(t("admin.back_home")):
         ctx.goto(admin_return_page)
 

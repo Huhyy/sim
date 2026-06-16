@@ -86,6 +86,11 @@ UI_TEXT = {
             },
             "created_at": "Creată la",
             "status": "Status",
+            "participants_title": "Participanți",
+            "no_participants": "Nu există încă participanți cu cod P### în această sesiune.",
+            "participant_stage_pre": "Pre-psihometric",
+            "participant_stage_months": "Luni",
+            "participant_stage_post": "Post-psihometric",
             "back_home": "Înapoi la experiment",
         },
         "quiz": {
@@ -726,6 +731,11 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             },
             "created_at": "Created at",
             "status": "Status",
+            "participants_title": "Participants",
+            "no_participants": "No P### participants have joined this session yet.",
+            "participant_stage_pre": "Pre-psychometric",
+            "participant_stage_months": "Months",
+            "participant_stage_post": "Post-psychometric",
             "back_home": "Back to experiment",
         },
         "quiz": {

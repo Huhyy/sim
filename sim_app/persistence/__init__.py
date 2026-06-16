@@ -9,6 +9,7 @@ from .study_sessions import (
     cancel_admin_study_session,
     create_admin_study_session,
     list_admin_study_sessions,
+    list_participant_sessions_for_study_session,
     load_admin_study_session_by_code,
 )
 
@@ -19,6 +20,7 @@ __all__ = [
     "create_admin_study_session",
     "finalize_participation",
     "list_admin_study_sessions",
+    "list_participant_sessions_for_study_session",
     "load_admin_study_session_by_code",
     "load_linked_session_id",
     "load_session_checkpoint",
