@@ -137,3 +137,29 @@ def test_extracted_repeat_mode_does_not_block_previously_completed_account(monke
     assert checked_completion == []
     assert dummy_state.page == "home"
     assert dummy_state.already_completed is False
+
+
+def test_new_authenticated_session_persists_checkpoint_before_resume_link(monkeypatch):
+    import sim_app.session.manager as manager
+
+    dummy_state = DummySessionState()
+    calls = []
+    monkeypatch.setattr(manager.st, "session_state", dummy_state)
+    monkeypatch.setattr(manager, "REPEAT_SCENARIO_DEV_MODE", True)
+    monkeypatch.setattr(manager, "current_account_key", lambda: "a" * 64)
+    monkeypatch.setattr(manager, "account_has_completed", lambda _account_key: False)
+    monkeypatch.setattr(manager, "load_linked_session_id", lambda _account_key: None)
+    monkeypatch.setattr(manager, "get_query_param", lambda _name: None)
+    monkeypatch.setattr(manager, "set_query_param", lambda _name, _value: None)
+    monkeypatch.setattr(manager, "load_session_checkpoint", lambda _session_id: None)
+    monkeypatch.setattr(manager, "new_session_id", lambda: "session-new")
+    monkeypatch.setattr(manager, "persist_checkpoint", lambda: calls.append("persist_checkpoint") or True)
+    monkeypatch.setattr(
+        manager,
+        "save_resume_link",
+        lambda _account_key, _session_id: calls.append("save_resume_link"),
+    )
+
+    manager.bootstrap_authenticated_session()
+
+    assert calls == ["persist_checkpoint", "save_resume_link"]

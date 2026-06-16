@@ -57,7 +57,6 @@ def bootstrap_authenticated_session():
     url_session_id = get_query_param("sid")
     unsafe_url_session_id = bool(url_session_id and not linked_session_id)
     is_new_session = not linked_session_id
-    resume_link_saved = False
 
     if linked_session_id:
         session_id = linked_session_id
@@ -69,10 +68,6 @@ def bootstrap_authenticated_session():
 
     st.session_state.session_id = session_id
     st.session_state.checkpoint_last_load = {"ok": False, "source": "supabase", "session_id": session_id}
-
-    if is_new_session:
-        save_resume_link(account_key, session_id)
-        resume_link_saved = True
 
     try:
         checkpoint = load_session_checkpoint(session_id)
@@ -120,8 +115,7 @@ def bootstrap_authenticated_session():
             }
 
     if is_new_session:
-        if not resume_link_saved:
-            save_resume_link(account_key, session_id)
+        save_resume_link(account_key, session_id)
         if unsafe_url_session_id:
             st.session_state.checkpoint_last_load = {
                 "ok": False,
