@@ -79,6 +79,33 @@ def test_quiz_helpers_with_plain_answers():
     assert not demographics_complete({**complete_answers, "demo_country": ""})
 
 
+def test_admin_page_navigator_flow_and_adjacency():
+    from types import SimpleNamespace
+
+    from sim_app.ui.components.admin_navigation import adjacent_admin_pages, build_admin_page_flow, page_display_name
+
+    ctx = SimpleNamespace(pre_sections_ro=[{}, {}], post_sections_ro=[{}])
+    flow = build_admin_page_flow(ctx)
+
+    assert flow == [
+        "enter_session_code",
+        "home",
+        "consent",
+        "demographics",
+        "pre_question_0",
+        "pre_question_1",
+        "instructions",
+        "profile",
+        "simulation",
+        "post_question_0",
+        "final_score",
+        "done",
+    ]
+    assert adjacent_admin_pages("pre_question_1", flow) == ("pre_question_0", "instructions")
+    assert adjacent_admin_pages("admin", flow) == (None, None)
+    assert page_display_name("post_question_0", ctx) == "Post questionnaire 1/1"
+
+
 def test_render_current_page_uses_registered_renderer(monkeypatch):
     import sim_app.ui.pages.router as router
 

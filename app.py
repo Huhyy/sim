@@ -960,6 +960,8 @@ render_account_menu_component(
         set_language=set_language,
         is_admin_user=is_admin_user,
         goto=goto,
+        pre_sections_ro=PRE_SECTIONS_RO,
+        post_sections_ro=POST_SECTIONS_RO,
     )
 )
 

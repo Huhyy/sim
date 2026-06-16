@@ -1,5 +1,6 @@
 """Authenticated account menu component."""
 
+from sim_app.ui.components.admin_navigation import render_admin_page_navigator
 from sim_app.ui.components.language import render_language_buttons
 
 
@@ -15,6 +16,7 @@ def render_account_menu(ctx):
                 if st.button(t("auth.admin_page"), key="account_admin", use_container_width=True):
                     st.session_state.admin_return_page = st.session_state.get("page", "home")
                     ctx.goto("admin")
+                render_admin_page_navigator(ctx)
             if st.button(t("auth.logout"), icon=":material/logout:", key="account_logout", use_container_width=True):
                 st.logout()
 
