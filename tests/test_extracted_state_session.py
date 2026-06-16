@@ -86,6 +86,44 @@ def test_extracted_persist_recovers_session_id_from_url(monkeypatch):
     assert saved["checkpoint"]["monthly_score_feedback"] == "hidden"
 
 
+def test_save_session_checkpoint_writes_condition_columns(monkeypatch):
+    import sim_app.persistence.participant_sessions as participant_sessions
+
+    saved = {}
+
+    class FakeTable:
+        def upsert(self, row):
+            saved.update(row)
+            return self
+
+        def execute(self):
+            return None
+
+    class FakeClient:
+        def table(self, name):
+            assert name == "participant_sessions"
+            return FakeTable()
+
+    monkeypatch.setattr(participant_sessions, "_require_client", lambda: FakeClient())
+    monkeypatch.setattr(participant_sessions, "_utcnow", lambda: "2026-06-16T00:00:00+00:00")
+
+    participant_sessions.save_session_checkpoint(
+        "session-1",
+        {
+            "page": "simulation",
+            "study_session_code": "022809",
+            "participant_code": "P031",
+            "experimental_condition": "C4",
+            "score_frame": "loss_frame",
+            "monthly_score_feedback": "hidden",
+        },
+    )
+
+    assert saved["experimental_condition"] == "C4"
+    assert saved["score_frame"] == "loss_frame"
+    assert saved["monthly_score_feedback"] == "hidden"
+
+
 def test_extracted_finalize_recovers_session_id_before_final_save(monkeypatch):
     import sim_app.session.finalization as finalization
     import sim_app.state.navigation as navigation

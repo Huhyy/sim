@@ -60,6 +60,12 @@ def save_session_checkpoint(session_id: str, checkpoint: dict, status: str = "in
         row["study_session_code"] = checkpoint.get("study_session_code")
     if checkpoint.get("participant_code"):
         row["participant_code"] = checkpoint.get("participant_code")
+    if checkpoint.get("experimental_condition"):
+        row["experimental_condition"] = checkpoint.get("experimental_condition")
+    if checkpoint.get("score_frame"):
+        row["score_frame"] = checkpoint.get("score_frame")
+    if checkpoint.get("monthly_score_feedback"):
+        row["monthly_score_feedback"] = checkpoint.get("monthly_score_feedback")
     if status == "completed":
         row["completed_at"] = _utcnow()
 

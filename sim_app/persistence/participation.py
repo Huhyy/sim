@@ -97,6 +97,9 @@ def finalize_participation(
             },
             "demographics": _demographic_answers(answers),
             "participant_code": summary.get("participant_code"),
+            "experimental_condition": summary.get("experimental_condition"),
+            "score_frame": summary.get("score_frame"),
+            "monthly_score_feedback": summary.get("monthly_score_feedback"),
         }
     ).eq("id", session_id).execute()
 
