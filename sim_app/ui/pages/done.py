@@ -35,6 +35,17 @@ def render_done_page(ctx):
 
     st.title(t("done.title"))
     st.metric(t("done.score_metric"), f"{display_number(st.session_state.final_score)} / 100")
+    participant_code = breakdown.get("participant_code") or st.session_state.get("participant_code")
+    if participant_code:
+        st.markdown(
+            f"""
+<div style="margin: 0.6rem 0 1rem; padding: 0.85rem 1rem; border: 1px solid #e1dac8; border-radius: 0.75rem; background: #fffaf0;">
+  <div style="color: #586564; font-size: 0.78rem; font-weight: 700;">{t("done.participant_code_label")}</div>
+  <div style="color: #172b29; font-size: 1.55rem; font-weight: 800; letter-spacing: 0.02em;">{participant_code}</div>
+</div>
+""",
+            unsafe_allow_html=True,
+        )
     render_performance_bonus_summary(st, t, breakdown)
     st.markdown(
         f"""
