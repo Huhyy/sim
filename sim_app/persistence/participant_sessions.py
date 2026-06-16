@@ -33,6 +33,12 @@ def load_session_checkpoint(session_id: str):
         checkpoint["study_session_code"] = row["study_session_code"]
     if row.get("participant_code") and "participant_code" not in checkpoint:
         checkpoint["participant_code"] = row["participant_code"]
+    if row.get("experimental_condition") and "experimental_condition" not in checkpoint:
+        checkpoint["experimental_condition"] = row["experimental_condition"]
+    if row.get("score_frame") and "score_frame" not in checkpoint:
+        checkpoint["score_frame"] = row["score_frame"]
+    if row.get("monthly_score_feedback") and "monthly_score_feedback" not in checkpoint:
+        checkpoint["monthly_score_feedback"] = row["monthly_score_feedback"]
 
     return checkpoint
 
@@ -54,7 +60,6 @@ def save_session_checkpoint(session_id: str, checkpoint: dict, status: str = "in
         row["study_session_code"] = checkpoint.get("study_session_code")
     if checkpoint.get("participant_code"):
         row["participant_code"] = checkpoint.get("participant_code")
-
     if status == "completed":
         row["completed_at"] = _utcnow()
 

@@ -27,12 +27,14 @@ def render_month_feedback_page(ctx):
     st.write(t("simulation.overdraft_interest_month", value=display_euro(result["overdraft_interest"])))
     if result["penalties"] > 0:
         st.write(t("simulation.penalties_month", value=display_euro(result["penalties"])))
-    st.markdown(t("simulation.monthly_score_heading"))
-    st.write(t("simulation.score_repayment", value=display_number(result["score_repayment"])))
-    st.write(t("simulation.score_liquidity", value=display_number(result["score_liquidity"])))
-    st.write(t("simulation.score_overdraft", value=display_number(result["score_overdraft"])))
-    st.metric(t("simulation.monthly_score_metric"), f"{display_number(result['monthly_score'])} / 100")
-    st.metric(t("simulation.score_accumulated"), display_number(st.session_state.total_score + result["monthly_score"]))
+
+    if st.session_state.get("monthly_score_feedback", "displayed") == "displayed":
+        st.markdown(t("simulation.monthly_score_heading"))
+        if st.session_state.get("score_frame") == "loss_frame":
+            monthly_loss = max(0.0, 100.0 - float(result["monthly_score"]))
+            st.metric(t("simulation.monthly_score_lost_metric"), f"{display_number(monthly_loss)} / 100")
+        else:
+            st.metric(t("simulation.monthly_score_metric"), f"{display_number(result['monthly_score'])} / 100")
 
     if result["pre_credit_impossible"]:
         st.error(result["feedback_message"])

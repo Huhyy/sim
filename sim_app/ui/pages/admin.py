@@ -12,8 +12,16 @@ def render_admin_page(ctx):
         admin_return_page = "home"
     st.title(t("admin.title"))
     st.markdown(t("admin.body"))
+    condition_options = ctx.condition_options()
+    selected_condition = st.selectbox(
+        t("admin.condition_label"),
+        options=condition_options,
+        format_func=lambda value: t(f"admin.conditions.{value}"),
+        key="admin_experimental_condition",
+    )
+    st.caption(t(f"admin.condition_descriptions.{selected_condition}"))
     if st.button(t("admin.start_session"), type="primary"):
-        created = ctx.create_admin_study_session(ctx.current_user_email())
+        created = ctx.create_admin_study_session(ctx.current_user_email(), selected_condition)
         st.session_state.admin_last_created_session = created
         st.success(t("admin.created_success"))
     active_sessions = ctx.list_admin_study_sessions(ctx.current_user_email())
@@ -26,19 +34,23 @@ def render_admin_page(ctx):
     if active_sessions:
         st.markdown(f"### {t('admin.active_sessions')}")
         st.caption(t("admin.sessions_note"))
-        header_cols = st.columns([2, 2, 3, 1])
+        header_cols = st.columns([2, 2, 2, 3, 1])
         header_cols[0].markdown(f"**{t('admin.code_label')}**")
-        header_cols[1].markdown(f"**{t('admin.status')}**")
-        header_cols[2].markdown(f"**{t('admin.created_at')}**")
+        header_cols[1].markdown(f"**{t('admin.condition_label')}**")
+        header_cols[2].markdown(f"**{t('admin.status')}**")
+        header_cols[3].markdown(f"**{t('admin.created_at')}**")
         for row in active_sessions:
             code = row.get("session_code")
             status = row.get("status")
             created_at = row.get("created_at")
-            cols = st.columns([2, 2, 3, 1])
+            condition = row.get("experimental_condition", "C1")
+            condition_label = t(f"admin.conditions.{condition}") if condition in condition_options else condition
+            cols = st.columns([2, 2, 2, 3, 1])
             cols[0].markdown(f"**{code}**")
-            cols[1].write(status)
-            cols[2].write(created_at)
-            if cols[3].button(" ", icon=":material/delete:", help=t("admin.cancel_session"), key=f"cancel_session_{row.get('id')}"):
+            cols[1].write(condition_label)
+            cols[2].write(status)
+            cols[3].write(created_at)
+            if cols[4].button(" ", icon=":material/delete:", help=t("admin.cancel_session"), key=f"cancel_session_{row.get('id')}"):
                 cancelled = ctx.cancel_admin_study_session(row.get("id"), ctx.current_user_email())
                 if cancelled:
                     if (st.session_state.get("admin_last_created_session") or {}).get("id") == row.get("id"):
@@ -46,6 +58,9 @@ def render_admin_page(ctx):
                     if st.session_state.get("study_session_id") == row.get("id"):
                         st.session_state.study_session_id = None
                         st.session_state.study_session_code = None
+                        st.session_state.experimental_condition = "C1"
+                        st.session_state.score_frame = "gain_frame"
+                        st.session_state.monthly_score_feedback = "displayed"
                     st.success(t("admin.cancelled_success", code=code))
                     st.rerun()
                 else:

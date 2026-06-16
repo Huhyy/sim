@@ -1,6 +1,7 @@
 """Completion page."""
 
 from sim_app.ui.formatting import display_euro, display_number
+from sim_app.ui.pages.final_score import render_performance_bonus_summary
 
 
 def render_done_page(ctx):
@@ -34,7 +35,7 @@ def render_done_page(ctx):
 
     st.title(t("done.title"))
     st.metric(t("done.score_metric"), f"{display_number(st.session_state.final_score)} / 100")
-    st.markdown(f"**{t('done.bonus_label')}:** {display_euro(breakdown['bonus_final'])}")
+    render_performance_bonus_summary(st, t, breakdown)
     st.markdown(
         f"""
 {t("done.remaining_credit")}: **{display_euro(st.session_state.loan.balance)}**

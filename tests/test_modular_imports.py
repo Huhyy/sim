@@ -42,6 +42,7 @@ def test_auth_modules_expose_auth_functions():
 def test_domain_modules_expose_models():
     from sim_app.domain import Loan as PackageLoan
     from sim_app.domain import Overdraft as PackageOverdraft
+    from sim_app.domain import condition_config, performance_bonus
 
     package_loan = PackageLoan(balance=7000.0, annual_interest=0.0835, months=24)
     assert package_loan.get_state() == {"balance": 7000.0, "required_payment": 317.71}
@@ -54,6 +55,20 @@ def test_domain_modules_expose_models():
     assert package_overdraft.cover_deficit(-120.0) == 0.0
     assert package_overdraft.apply_interest() == 1.8
     assert package_overdraft.get_state() == {"balance": 120.0, "limit": 3000.0}
+
+    assert condition_config("C1") == {
+        "experimental_condition": "C1",
+        "score_frame": "gain_frame",
+        "monthly_score_feedback": "displayed",
+    }
+    assert condition_config("C4") == {
+        "experimental_condition": "C4",
+        "score_frame": "loss_frame",
+        "monthly_score_feedback": "hidden",
+    }
+    assert performance_bonus(80) == {"performance_bonus_czk": 200, "loss_amount_czk": 100}
+    assert performance_bonus(94.99) == {"performance_bonus_czk": 250, "loss_amount_czk": 50}
+    assert performance_bonus(95) == {"performance_bonus_czk": 300, "loss_amount_czk": 0}
 
 
 def test_persistence_mappers_shape_rows(monkeypatch):

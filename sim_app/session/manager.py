@@ -137,6 +137,9 @@ def start_new_scenario():
     current_study_session_id = st.session_state.get("study_session_id")
     current_study_session_code = st.session_state.get("study_session_code")
     current_participant_code = st.session_state.get("participant_code")
+    current_experimental_condition = st.session_state.get("experimental_condition")
+    current_score_frame = st.session_state.get("score_frame")
+    current_monthly_score_feedback = st.session_state.get("monthly_score_feedback")
     defaults = runtime_defaults()
     clear_payment_values()
     for key, value in defaults.items():
@@ -144,6 +147,9 @@ def start_new_scenario():
     st.session_state.study_session_id = current_study_session_id
     st.session_state.study_session_code = current_study_session_code
     st.session_state.participant_code = current_participant_code
+    st.session_state.experimental_condition = current_experimental_condition
+    st.session_state.score_frame = current_score_frame
+    st.session_state.monthly_score_feedback = current_monthly_score_feedback
 
     session_id = new_session_id()
     st.session_state.session_id = session_id

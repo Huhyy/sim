@@ -19,6 +19,9 @@ CREATE TABLE IF NOT EXISTS participant_sessions (
   study_session_id UUID,
   study_session_code TEXT,
   participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$'),
+  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4')),
+  score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame')),
+  monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden')),
   UNIQUE (study_session_id, participant_code)
 );
 
@@ -27,6 +30,9 @@ CREATE TABLE IF NOT EXISTS admin_study_sessions (
   session_code TEXT NOT NULL UNIQUE CHECK (session_code ~ '^[0-9]{6}$'),
   created_by_email TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'active',
+  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4')),
+  score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame')),
+  monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -118,6 +124,13 @@ CREATE TABLE IF NOT EXISTS session_summaries (
   final_score NUMERIC(6,2),
   bonus_max_session NUMERIC(12,2),
   bonus_final NUMERIC(12,2),
+  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4')),
+  score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame')),
+  monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden')),
+  performance_bonus_czk INTEGER NOT NULL DEFAULT 0,
+  loss_amount_czk INTEGER NOT NULL DEFAULT 0,
+  completion_timestamp TIMESTAMPTZ,
+  payment_status TEXT NOT NULL DEFAULT 'unpaid',
   total_repaid NUMERIC(12,2),
   remaining_credit NUMERIC(12,2),
   remaining_overdraft NUMERIC(12,2),

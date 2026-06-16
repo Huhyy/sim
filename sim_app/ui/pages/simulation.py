@@ -37,11 +37,7 @@ def render_simulation_page(ctx):
     max_payment = money(liquidity_after_charges + overdraft_remaining)
     blocked = overdraft_after_charges > overdraft.limit
 
-    col_title, col_score = st.columns([5, 1])
-    with col_title:
-        st.title(t("simulation.month_title", month=month))
-    with col_score:
-        st.metric(t("simulation.score_accumulated"), display_number(st.session_state.total_score))
+    st.title(t("simulation.month_title", month=month))
 
     with st.expander(t("simulation.narrative_expander"), expanded=True):
         narrative = re.sub(r'^(\S+)', r'<strong>\1</strong>', ctx.get_localized_narrative(month))

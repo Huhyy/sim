@@ -32,6 +32,9 @@ def test_extracted_hydrate_preserves_existing_session_id(monkeypatch):
             "loan_balance": 6350.0,
             "overdraft_balance": 0.0,
             "participant_code": "P001",
+            "experimental_condition": "C3",
+            "score_frame": "loss_frame",
+            "monthly_score_feedback": "hidden",
             "answers": {},
         }
     )
@@ -40,6 +43,9 @@ def test_extracted_hydrate_preserves_existing_session_id(monkeypatch):
     assert dummy_state.page == "simulation"
     assert dummy_state.month == 3
     assert dummy_state.participant_code == "P001"
+    assert dummy_state.experimental_condition == "C3"
+    assert dummy_state.score_frame == "loss_frame"
+    assert dummy_state.monthly_score_feedback == "hidden"
 
 
 def test_extracted_persist_recovers_session_id_from_url(monkeypatch):
@@ -51,6 +57,9 @@ def test_extracted_persist_recovers_session_id_from_url(monkeypatch):
         page="simulation",
         month=2,
         participant_code="P002",
+        experimental_condition="C2",
+        score_frame="gain_frame",
+        monthly_score_feedback="hidden",
         loan=Loan(balance=6500.0, annual_interest=0.0835, months=24),
         overdraft=Overdraft(limit=3000.0, annual_interest=0.24),
     )
@@ -73,6 +82,8 @@ def test_extracted_persist_recovers_session_id_from_url(monkeypatch):
     assert dummy_state.checkpoint_last_save["ok"] is True
     assert saved["session_id"] == "session-456"
     assert saved["checkpoint"]["participant_code"] == "P002"
+    assert saved["checkpoint"]["experimental_condition"] == "C2"
+    assert saved["checkpoint"]["monthly_score_feedback"] == "hidden"
 
 
 def test_extracted_finalize_recovers_session_id_before_final_save(monkeypatch):

@@ -1,6 +1,7 @@
 """Runtime default state values."""
 
 from sim_app.config import SCENARIO_VERSION
+from sim_app.domain.experimental_conditions import DEFAULT_EXPERIMENTAL_CONDITION
 from sim_app.domain.loan import Loan
 from sim_app.domain.overdraft import Overdraft
 
@@ -14,6 +15,9 @@ def runtime_defaults():
         "study_session_id": None,
         "study_session_code": None,
         "participant_code": None,
+        "experimental_condition": DEFAULT_EXPERIMENTAL_CONDITION,
+        "score_frame": "gain_frame",
+        "monthly_score_feedback": "displayed",
         "loan": Loan(balance=7000.0, annual_interest=0.0835, months=24),
         "overdraft": Overdraft(limit=3000.0, annual_interest=0.18),
         "savings": None,

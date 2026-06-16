@@ -26,6 +26,9 @@ def collect_checkpoint():
         "study_session_id": st.session_state.get("study_session_id"),
         "study_session_code": st.session_state.get("study_session_code"),
         "participant_code": st.session_state.get("participant_code"),
+        "experimental_condition": st.session_state.get("experimental_condition"),
+        "score_frame": st.session_state.get("score_frame"),
+        "monthly_score_feedback": st.session_state.get("monthly_score_feedback"),
         "loan_balance": st.session_state.loan.balance,
         "overdraft_balance": st.session_state.overdraft.balance,
         "savings": st.session_state.get("savings"),
@@ -101,6 +104,9 @@ def hydrate_from_checkpoint(checkpoint):
     st.session_state.study_session_id = checkpoint.get("study_session_id")
     st.session_state.study_session_code = checkpoint.get("study_session_code")
     st.session_state.participant_code = checkpoint.get("participant_code")
+    st.session_state.experimental_condition = checkpoint.get("experimental_condition", defaults["experimental_condition"])
+    st.session_state.score_frame = checkpoint.get("score_frame", defaults["score_frame"])
+    st.session_state.monthly_score_feedback = checkpoint.get("monthly_score_feedback", defaults["monthly_score_feedback"])
     st.session_state.loan = Loan(
         balance=float(checkpoint.get("loan_balance", 7000.0)),
         annual_interest=0.0835,

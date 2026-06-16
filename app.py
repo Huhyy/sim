@@ -19,6 +19,7 @@ from sim_app.content.translations import (
     t,
 )
 from sim_app.config import REPEAT_SCENARIO_DEV_MODE, SCENARIO_VERSION
+from sim_app.domain.experimental_conditions import DEFAULT_PAYMENT_STATUS, condition_options, performance_bonus
 from sim_app.persistence.study_sessions import (
     cancel_admin_study_session,
     create_admin_study_session,
@@ -1281,6 +1282,7 @@ def get_final_score_breakdown():
     final_score = money(min(MAX_MONTHLY_SCORE, max(0.0, monthly_score_sum / SESSION_MONTHS)))
     bonus_max_session = get_bonus_max_session()
     bonus_final = money(monthly_score_sum * EURO_PER_MONTHLY_POINT)
+    bonus = performance_bonus(final_score)
     total_repaid = money(sum(float(result.get("accepted_payment", 0.0)) for result in monthly_results))
     credit_interest_total = money(sum(float(result.get("credit_interest", 0.0)) for result in monthly_results))
     overdraft_interest_total = money(sum(float(result.get("overdraft_interest", 0.0)) for result in monthly_results))
@@ -1290,6 +1292,12 @@ def get_final_score_breakdown():
         "final_score": final_score,
         "bonus_max_session": bonus_max_session,
         "bonus_final": bonus_final,
+        "performance_bonus_czk": bonus["performance_bonus_czk"],
+        "loss_amount_czk": bonus["loss_amount_czk"],
+        "experimental_condition": st.session_state.get("experimental_condition"),
+        "score_frame": st.session_state.get("score_frame"),
+        "monthly_score_feedback": st.session_state.get("monthly_score_feedback"),
+        "payment_status": st.session_state.get("payment_status", DEFAULT_PAYMENT_STATUS),
         "study_session_id": st.session_state.get("study_session_id"),
         "study_session_code": st.session_state.get("study_session_code"),
         "participant_code": st.session_state.get("participant_code"),
@@ -1332,6 +1340,7 @@ ui_ctx = make_ui_context(
     list_admin_study_sessions=list_admin_study_sessions,
     cancel_admin_study_session=cancel_admin_study_session,
     save_month_results=save_month_results,
+    condition_options=condition_options,
     current_user_email=current_user_email,
     is_admin_user=is_admin_user,
     start_new_scenario=start_new_scenario,

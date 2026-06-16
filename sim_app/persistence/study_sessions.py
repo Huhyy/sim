@@ -3,13 +3,15 @@
 import secrets
 import uuid
 
+from sim_app.domain.experimental_conditions import condition_config, normalize_experimental_condition
 from sim_app.infra.supabase import _require_client
 from sim_app.infra.time import _utcnow
 
 
-def create_admin_study_session(created_by_email: str):
+def create_admin_study_session(created_by_email: str, experimental_condition: str = None):
     client = _require_client()
     email = str(created_by_email).strip().lower()
+    condition = condition_config(normalize_experimental_condition(experimental_condition))
 
     for _ in range(25):
         session_code = f"{secrets.randbelow(1_000_000):06d}"
@@ -22,6 +24,7 @@ def create_admin_study_session(created_by_email: str):
             "session_code": session_code,
             "created_by_email": email,
             "status": "active",
+            **condition,
             "created_at": _utcnow(),
             "updated_at": _utcnow(),
         }

@@ -25,6 +25,12 @@ ALTER TABLE participant_sessions
   ADD COLUMN IF NOT EXISTS study_session_code TEXT;
 ALTER TABLE participant_sessions
   ADD COLUMN IF NOT EXISTS participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$');
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4'));
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame'));
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden'));
 CREATE UNIQUE INDEX IF NOT EXISTS participant_sessions_study_participant_code_idx
   ON participant_sessions (study_session_id, participant_code)
   WHERE study_session_id IS NOT NULL AND participant_code IS NOT NULL;
@@ -41,6 +47,13 @@ CREATE TABLE IF NOT EXISTS admin_study_sessions (
 );
 
 ALTER TABLE admin_study_sessions ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE admin_study_sessions
+  ADD COLUMN IF NOT EXISTS experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4'));
+ALTER TABLE admin_study_sessions
+  ADD COLUMN IF NOT EXISTS score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame'));
+ALTER TABLE admin_study_sessions
+  ADD COLUMN IF NOT EXISTS monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden'));
 
 CREATE TABLE IF NOT EXISTS psychometric_pre_answers (
   session_id UUID NOT NULL REFERENCES participant_sessions(id) ON DELETE CASCADE,
@@ -129,6 +142,13 @@ CREATE TABLE IF NOT EXISTS session_summaries (
   final_score NUMERIC(6,2),
   bonus_max_session NUMERIC(12,2),
   bonus_final NUMERIC(12,2),
+  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4')),
+  score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame')),
+  monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden')),
+  performance_bonus_czk INTEGER NOT NULL DEFAULT 0,
+  loss_amount_czk INTEGER NOT NULL DEFAULT 0,
+  completion_timestamp TIMESTAMPTZ,
+  payment_status TEXT NOT NULL DEFAULT 'unpaid',
   total_repaid NUMERIC(12,2),
   remaining_credit NUMERIC(12,2),
   remaining_overdraft NUMERIC(12,2),
@@ -187,6 +207,20 @@ ALTER TABLE month_results
 
 ALTER TABLE session_summaries
   ADD COLUMN IF NOT EXISTS participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$');
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4'));
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame'));
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden'));
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS performance_bonus_czk INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS loss_amount_czk INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS completion_timestamp TIMESTAMPTZ;
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid';
 
 CREATE INDEX IF NOT EXISTS psychometric_pre_answers_study_participant_idx
   ON psychometric_pre_answers (study_session_id, participant_code);

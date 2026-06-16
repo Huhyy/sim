@@ -12,6 +12,10 @@ def render_home_page(ctx):
     st.markdown('<div class="home-body">', unsafe_allow_html=True)
     st.markdown(t("home.body"))
     st.info(t("home.info"))
+    if st.session_state.get("score_frame") == "loss_frame":
+        st.info(t("home.loss_frame_notice"))
+    else:
+        st.info(t("home.gain_frame_notice"))
     st.markdown(t("home.note"))
     st.markdown('</div>', unsafe_allow_html=True)
 

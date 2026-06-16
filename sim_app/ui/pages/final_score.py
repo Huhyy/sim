@@ -3,6 +3,21 @@
 from sim_app.ui.formatting import display_euro, display_number
 
 
+def render_performance_bonus_summary(st, t, breakdown):
+    if breakdown.get("score_frame") == "loss_frame":
+        st.markdown(
+            f"""
+**{t("final_score.initial_bonus_label")}:** 300 CZK
+
+**{t("final_score.bonus_lost_label")}:** {int(breakdown["loss_amount_czk"])} CZK
+
+**{t("final_score.final_bonus_label")}:** {int(breakdown["performance_bonus_czk"])} CZK
+"""
+        )
+    else:
+        st.markdown(f'**{t("final_score.performance_bonus_label")}:** {int(breakdown["performance_bonus_czk"])} CZK')
+
+
 def render_final_score_page(ctx):
     st = ctx.st
     t = ctx.t
@@ -24,10 +39,9 @@ def render_final_score_page(ctx):
 """,
         unsafe_allow_html=True,
     )
+    render_performance_bonus_summary(st, t, breakdown)
     st.markdown(
         f"""
-**{t("final_score.bonus_label")}:** {display_euro(breakdown["bonus_final"])}
-
 {t("final_score.summary_heading")}
 
 **{t("final_score.total_repaid")}:** {display_euro(breakdown["total_repaid"])}
@@ -48,6 +62,7 @@ def render_final_score_page(ctx):
 
 
 __all__ = [
+    "render_performance_bonus_summary",
     "render_final_score_page",
 ]
 
