@@ -26,6 +26,24 @@ def render_admin_page(ctx):
         created = ctx.create_admin_study_session(ctx.current_user_email(), selected_condition)
         st.session_state.admin_last_created_session = created
         st.success(t("admin.created_success"))
+
+    st.caption(t("admin.participants_refresh_note"))
+    if hasattr(st, "fragment"):
+        @st.fragment(run_every="10s")
+        def render_auto_refreshed_sessions():
+            render_session_list(ctx, condition_options, admin_return_page)
+
+        render_auto_refreshed_sessions()
+    else:
+        render_session_list(ctx, condition_options, admin_return_page)
+
+    if st.button(t("admin.back_home")):
+        ctx.goto(admin_return_page)
+
+
+def render_session_list(ctx, condition_options, admin_return_page):
+    st = ctx.st
+    t = ctx.t
     active_sessions = ctx.list_admin_study_sessions(ctx.current_user_email())
     latest_created = st.session_state.get("admin_last_created_session")
     active_session_ids = {row.get("id") for row in active_sessions}
@@ -69,11 +87,10 @@ def render_admin_page(ctx):
                     st.error(t("admin.cancelled_error"))
             participants = ctx.list_participant_sessions_for_study_session(row.get("id"), code)
             render_admin_participants(ctx, participants)
-    if st.button(t("admin.back_home")):
-        ctx.goto(admin_return_page)
 
 
 __all__ = [
     "render_admin_page",
+    "render_session_list",
 ]
 
