@@ -1,0 +1,59 @@
+"""Monthly feedback page."""
+
+from sim_app.ui.formatting import display_euro, display_number
+
+
+def render_month_feedback_page(ctx):
+    st = ctx.st
+    t = ctx.t
+    ctx.scroll_top_anchor()
+
+    result = st.session_state.get("pending_month_result")
+    if not result:
+        ctx.goto("simulation")
+    result = ctx.normalize_month_result_score(result)
+    st.session_state.pending_month_result = result
+
+    month = result["month"]
+    st.title(t("simulation.feedback_title", month=month))
+
+    st.markdown(t("simulation.decision_result_heading"))
+    st.write(t("simulation.payment_entered", value=display_euro(result["payment_input"])))
+    st.write(t("simulation.payment_accepted", value=display_euro(result["accepted_payment"])))
+    st.write(t("simulation.cash_after_payment", value=display_euro(result["cash_final"])))
+    st.write(t("simulation.credit_remaining", value=display_euro(result["credit_final"])))
+    st.write(t("simulation.overdraft_final", value=display_euro(result["overdraft_final"])))
+    st.write(t("simulation.credit_interest_month", value=display_euro(result["credit_interest"])))
+    st.write(t("simulation.overdraft_interest_month", value=display_euro(result["overdraft_interest"])))
+    if result["penalties"] > 0:
+        st.write(t("simulation.penalties_month", value=display_euro(result["penalties"])))
+    st.markdown(t("simulation.monthly_score_heading"))
+    st.write(t("simulation.score_repayment", value=display_number(result["score_repayment"])))
+    st.write(t("simulation.score_liquidity", value=display_number(result["score_liquidity"])))
+    st.write(t("simulation.score_overdraft", value=display_number(result["score_overdraft"])))
+    st.metric(t("simulation.monthly_score_metric"), f"{display_number(result['monthly_score'])} / 100")
+    st.metric(t("simulation.score_accumulated"), display_number(st.session_state.total_score + result["monthly_score"]))
+
+    if result["pre_credit_impossible"]:
+        st.error(result["feedback_message"])
+    elif result["payment_valid"]:
+        st.success(result["feedback_message"])
+    else:
+        st.warning(result["feedback_message"])
+
+    if st.button(t("simulation.continue_month_button"), type="primary"):
+        st.session_state.loan.balance = result["credit_final"]
+        st.session_state.overdraft.balance = result["overdraft_final"]
+        st.session_state.total_score += result["monthly_score"]
+        st.session_state.monthly_points += result["monthly_score"]
+        st.session_state.accumulated_costs += result["costs_this_month"]
+        st.session_state.monthly_results.append(result)
+        st.session_state.pending_month_result = None
+        st.session_state.month += 1
+        ctx.goto("simulation")
+
+
+__all__ = [
+    "render_month_feedback_page",
+]
+
