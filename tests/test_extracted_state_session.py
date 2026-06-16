@@ -1,5 +1,5 @@
-from loan import Loan
-from overdraft import Overdraft
+from sim_app.domain.loan import Loan
+from sim_app.domain.overdraft import Overdraft
 
 
 class DummySessionState(dict):

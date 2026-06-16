@@ -4,11 +4,11 @@ import os
 import streamlit as st
 import pandas as pd
 
-from auth_manager import current_user_email, is_admin_user, is_logged_in
-from tables import get_month
-from questions import PRE_SECTIONS as PRE_SECTIONS_RO
-from questions import POST_SECTIONS as POST_SECTIONS_RO
-from i18n import (
+from sim_app.auth import current_user_email, is_admin_user, is_logged_in
+from sim_app.content.tables import get_month
+from sim_app.content.questions import PRE_SECTIONS as PRE_SECTIONS_RO
+from sim_app.content.questions import POST_SECTIONS as POST_SECTIONS_RO
+from sim_app.content.translations import (
     ensure_language,
     get_category_label,
     get_display_post_sections,
@@ -18,19 +18,16 @@ from i18n import (
     set_language,
     t,
 )
-from state_manager import (
-    REPEAT_SCENARIO_DEV_MODE,
-    SCENARIO_VERSION,
-    bootstrap_authenticated_session,
+from sim_app.config import REPEAT_SCENARIO_DEV_MODE, SCENARIO_VERSION
+from sim_app.persistence.study_sessions import (
     cancel_admin_study_session,
     create_admin_study_session,
-    ensure_current_scenario_version,
-    finalize_participant,
     list_admin_study_sessions,
     load_admin_study_session_by_code,
-    persist_checkpoint,
-    start_new_scenario,
 )
+from sim_app.session.finalization import finalize_participant
+from sim_app.session.manager import bootstrap_authenticated_session, ensure_current_scenario_version, start_new_scenario
+from sim_app.state.checkpoint import persist_checkpoint
 from sim_app.ui.components.account import render_account_menu as render_account_menu_component
 from sim_app.ui.components.language import render_language_selector as render_language_selector_component
 from sim_app.ui.context import make_ui_context

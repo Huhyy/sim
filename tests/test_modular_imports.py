@@ -1,10 +1,3 @@
-import auth_manager
-import db
-import state_manager
-from loan import Loan
-from overdraft import Overdraft
-
-
 def test_persistence_modules_expose_database_functions():
     from sim_app.persistence import (
         account_has_completed,
@@ -46,30 +39,27 @@ def test_auth_modules_expose_auth_functions():
     assert callable(is_logged_in)
 
 
-def test_domain_modules_expose_existing_models():
+def test_domain_modules_expose_models():
     from sim_app.domain import Loan as PackageLoan
     from sim_app.domain import Overdraft as PackageOverdraft
 
     package_loan = PackageLoan(balance=7000.0, annual_interest=0.0835, months=24)
-    legacy_loan = Loan(balance=7000.0, annual_interest=0.0835, months=24)
-    assert package_loan.get_state() == legacy_loan.get_state()
-    assert package_loan.apply_interest() == legacy_loan.apply_interest()
-    assert package_loan.apply_payment(250.0) == legacy_loan.apply_payment(250.0)
-    assert package_loan.get_state() == legacy_loan.get_state()
+    assert package_loan.get_state() == {"balance": 7000.0, "required_payment": 317.71}
+    assert package_loan.apply_interest() == 48.71
+    assert package_loan.apply_payment(250.0) == {"interest": 0.0, "principal": 250.0}
+    assert package_loan.get_state() == {"balance": 6750.0, "required_payment": 317.71}
 
     package_overdraft = PackageOverdraft(limit=3000.0, annual_interest=0.18)
-    legacy_overdraft = Overdraft(limit=3000.0, annual_interest=0.18)
-    assert package_overdraft.get_state() == legacy_overdraft.get_state()
-    assert package_overdraft.cover_deficit(-120.0) == legacy_overdraft.cover_deficit(-120.0)
-    assert package_overdraft.apply_interest() == legacy_overdraft.apply_interest()
-    assert package_overdraft.get_state() == legacy_overdraft.get_state()
+    assert package_overdraft.get_state() == {"balance": 0.0, "limit": 3000.0}
+    assert package_overdraft.cover_deficit(-120.0) == 0.0
+    assert package_overdraft.apply_interest() == 1.8
+    assert package_overdraft.get_state() == {"balance": 120.0, "limit": 3000.0}
 
 
-def test_persistence_mappers_match_legacy_db_behavior(monkeypatch):
+def test_persistence_mappers_shape_rows(monkeypatch):
     import sim_app.persistence.mappers as mappers
 
     now = "2026-06-15T00:00:00+00:00"
-    monkeypatch.setattr(db, "_utcnow", lambda: now)
     monkeypatch.setattr(mappers, "_utcnow", lambda: now)
 
     answers = {
@@ -86,31 +76,42 @@ def test_persistence_mappers_match_legacy_db_behavior(monkeypatch):
         "liquidity_after_charges": "120.5",
     }
 
-    assert mappers._demographic_answers(answers) == db._demographic_answers(answers)
-    assert mappers._psychometric_rows("session-1", answers, sections) == db._psychometric_rows("session-1", answers, sections)
-    assert mappers._month_result_row("session-1", result) == db._month_result_row("session-1", result)
+    assert mappers._demographic_answers(answers) == {
+        "consent_agreed": "1 - Da",
+        "demo_age": 34,
+    }
+    assert mappers._psychometric_rows("session-1", answers, sections) == [
+        {
+            "session_id": "session-1",
+            "section_number": 1,
+            "question_number": 1,
+            "question_key": "pre_0",
+            "question_text": "Question one",
+            "answer_value": 5,
+            "updated_at": now,
+        }
+    ]
+    month_row = mappers._month_result_row("session-1", result)
+    assert month_row["session_id"] == "session-1"
+    assert month_row["month_number"] == 1
+    assert month_row["monthly_score"] == 80.0
+    assert month_row["bonus_lunar"] == 0.4
+    assert month_row["liquidity_before_payment"] == 120.5
 
 
-def test_auth_admin_parser_matches_legacy_behavior():
+def test_auth_admin_parser():
     import sim_app.auth.admin as admin
 
-    values = [
-        None,
-        "a@example.com,b@example.com",
-        "a@example.com; b@example.com",
-        "['a@example.com', 'b@example.com']",
-        ["a@example.com", " b@example.com "],
-    ]
-
-    for value in values:
-        assert admin._parse_admin_emails(value) == auth_manager._parse_admin_emails(value)
+    assert admin._parse_admin_emails(None) == set()
+    assert admin._parse_admin_emails("a@example.com,b@example.com") == {"a@example.com", "b@example.com"}
+    assert admin._parse_admin_emails("a@example.com; b@example.com") == {"a@example.com", "b@example.com"}
+    assert admin._parse_admin_emails("['a@example.com', 'b@example.com']") == {"a@example.com", "b@example.com"}
+    assert admin._parse_admin_emails(["a@example.com", " b@example.com "]) == {"a@example.com", "b@example.com"}
 
 
-def test_content_modules_match_legacy_content():
-    import narratives
-    import tables
+def test_content_modules_load_packaged_content():
     import sim_app.content.narratives as package_narratives
     import sim_app.content.tables as package_tables
 
-    assert package_tables.get_month(1) == tables.get_month(1)
-    assert package_narratives.get_narrative(1) == narratives.get_narrative(1)
+    assert package_tables.get_month(1)["position"]["initial"] == 150
+    assert "Ianuarie" in package_narratives.get_narrative(1)

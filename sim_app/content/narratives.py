@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-NARRATIVES_PATH = Path(__file__).resolve().parents[2] / "narratives.txt"
+NARRATIVES_PATH = Path(__file__).resolve().parent / "data" / "narratives.txt"
 
 
 def load_narratives(path=NARRATIVES_PATH):
