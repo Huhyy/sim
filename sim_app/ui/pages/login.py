@@ -12,7 +12,7 @@ def render_login_page(ctx):
         st.markdown(
             f"""
 <div class="auth-brand">
-  <span class="auth-brand-mark">S</span>
+  <span class="auth-brand-mark">E</span>
   <span>{t("auth.brand")}</span>
 </div>
 <div class="auth-rule"></div>

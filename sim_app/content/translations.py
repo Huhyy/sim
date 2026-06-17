@@ -20,7 +20,7 @@ UI_TEXT = {
             "en": "EN",
         },
         "auth": {
-            "brand": "ExperimentCredit",
+            "brand": "XperimentCredit",
             "title": "Decizii financiare sub presiune",
             "copy": "Autentifică-te pentru a începe sau relua experimentul exact din punctul în care ai rămas.",
             "chips": [
@@ -676,7 +676,7 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "en": "EN",
         },
         "auth": {
-            "brand": "ExperimentCredit",
+            "brand": "XperimentCredit",
             "title": "Financial decisions under pressure",
             "copy": "Sign in to start or resume the experiment exactly where you left off.",
             "chips": [
