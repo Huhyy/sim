@@ -6,6 +6,7 @@ def test_page_router_resolves_static_and_dynamic_pages():
     from sim_app.ui.pages.questions import render_post_question_page, render_pre_question_page
 
     assert get_page_renderer("home").__name__ == "render_home_page"
+    assert get_page_renderer("admin_sessions").__name__ == "render_admin_sessions_page"
     assert get_page_renderer("simulation").__name__ == "render_simulation_page"
     assert get_page_renderer("done").__name__ == "render_done_page"
     assert get_page_renderer("pre_question_0") is render_pre_question_page
@@ -15,6 +16,7 @@ def test_page_router_resolves_static_and_dynamic_pages():
 
 def test_all_page_modules_import():
     import sim_app.ui.pages.admin
+    import sim_app.ui.pages.admin_sessions
     import sim_app.ui.pages.already_completed
     import sim_app.ui.pages.consent
     import sim_app.ui.pages.demographics

@@ -1,6 +1,7 @@
 """Page routing helpers for the Streamlit UI."""
 
 from sim_app.ui.pages.admin import render_admin_page
+from sim_app.ui.pages.admin_sessions import render_admin_sessions_page
 from sim_app.ui.pages.already_completed import render_already_completed_page
 from sim_app.ui.pages.consent import render_consent_declined_page, render_consent_page
 from sim_app.ui.pages.demographics import render_demographics_page
@@ -18,6 +19,7 @@ from sim_app.ui.pages.simulation import render_simulation_page
 STATIC_PAGE_RENDERERS = {
     "enter_session_code": render_enter_session_code_page,
     "admin": render_admin_page,
+    "admin_sessions": render_admin_sessions_page,
     "already_completed": render_already_completed_page,
     "home": render_home_page,
     "consent": render_consent_page,
