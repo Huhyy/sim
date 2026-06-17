@@ -218,7 +218,7 @@
       "food": 300,
       "transport": 120,
       "car": 80,
-      "repair": 450,
+      "repair": 590,
       "phone": 45,
       "social": 60,
       "other": 70
@@ -247,7 +247,7 @@
       "phone": 45,
       "social": 60,
       "other": 70,
-      "home": 300
+      "home": 520.74
     },
     "obligations": {
       "loan": 317.71,
@@ -272,7 +272,7 @@
       "car": 80,
       "phone": 45,
       "social": 50,
-      "other": 70
+      "other": 170
     },
     "obligations": {
       "loan": 317.71,
@@ -301,7 +301,8 @@
       "social": 120,
       "other": 90,
       "holiday": 300,
-      "vacation": 300
+      "vacation": 300,
+      "event": 489.25
     },
     "obligations": {
       "loan": 317.71,
@@ -320,7 +321,7 @@
     },
     "expenses": {
       "rent": 330,
-      "utilities": 200,
+      "utilities": 764.32,
       "food": 320,
       "transport": 115,
       "car": 80,
@@ -352,7 +353,7 @@
       "phone": 45,
       "social": 30,
       "other": 70,
-      "medical": 180
+      "medical": 581.6
     },
     "obligations": {
       "loan": 317.71,
@@ -378,7 +379,7 @@
       "phone": 45,
       "social": 20,
       "other": 60,
-      "medical": 160
+      "medical": 591.09
     },
     "obligations": {
       "loan": 317.71,
@@ -405,7 +406,8 @@
       "social": 20,
       "other": 60,
       "medical": 150,
-      "home": 180
+      "home": 180,
+      "baby": 200
     },
     "obligations": {
       "loan": 317.71,
