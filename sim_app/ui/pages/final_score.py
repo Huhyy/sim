@@ -26,6 +26,9 @@ def render_final_score_page(ctx):
     st.session_state.final_score = ctx.compute_final_score()
 
     breakdown = ctx.get_final_score_breakdown()
+    st.session_state.final_score_breakdown = breakdown
+    if hasattr(ctx, "persist_checkpoint"):
+        ctx.persist_checkpoint()
 
     st.title(t("final_score.title"))
     st.markdown(t("final_score.intro"))

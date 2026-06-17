@@ -1335,6 +1335,7 @@ ui_ctx = make_ui_context(
     compute_final_score=compute_final_score,
     get_final_score_breakdown=get_final_score_breakdown,
     get_bonus_max_session=get_bonus_max_session,
+    persist_checkpoint=persist_checkpoint,
     finalize_participant=finalize_participant,
     load_admin_study_session_by_code=load_admin_study_session_by_code,
     create_admin_study_session=create_admin_study_session,

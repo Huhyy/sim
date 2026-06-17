@@ -38,6 +38,7 @@ def collect_checkpoint():
         "monthly_results": st.session_state.get("monthly_results", []),
         "pending_month_result": st.session_state.get("pending_month_result"),
         "final_score": st.session_state.get("final_score"),
+        "final_score_breakdown": st.session_state.get("final_score_breakdown"),
         "answers": st.session_state.get("answers", {}),
         "payment_values": payment_values,
     }
@@ -124,6 +125,7 @@ def hydrate_from_checkpoint(checkpoint):
     st.session_state.monthly_results = checkpoint.get("monthly_results", [])
     st.session_state.pending_month_result = checkpoint.get("pending_month_result")
     st.session_state.final_score = checkpoint.get("final_score")
+    st.session_state.final_score_breakdown = checkpoint.get("final_score_breakdown")
     st.session_state.answers = checkpoint.get("answers", {})
 
     for key, value in (checkpoint.get("payment_values") or {}).items():

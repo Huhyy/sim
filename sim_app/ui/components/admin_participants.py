@@ -35,7 +35,7 @@ ADMIN_PARTICIPANTS_CSS = """
 }
 .admin-participant-row {
     display: grid;
-    grid-template-columns: minmax(4.5rem, 0.7fr) minmax(7rem, 1fr) minmax(12rem, 3fr);
+    grid-template-columns: minmax(4.5rem, 0.7fr) minmax(7rem, 1fr) minmax(12rem, 3fr) minmax(8.5rem, 1.2fr);
     align-items: center;
     gap: 0.75rem;
     margin: 0.4rem 0;
@@ -67,6 +67,18 @@ ADMIN_PARTICIPANTS_CSS = """
 }
 .admin-participant-progress-fill.post {
     background: #d94841;
+}
+.admin-participant-payout {
+    min-height: 1.8rem;
+    color: #172b29;
+    font: 700 0.74rem/1.35 'Manrope', sans-serif;
+}
+.admin-participant-payout span {
+    display: block;
+}
+.admin-participant-payment-status {
+    color: #6f7774;
+    font-weight: 600;
 }
 @media (max-width: 640px) {
     .admin-participant-row {
@@ -143,6 +155,19 @@ def exact_page_label(row):
     return page
 
 
+def participant_payout_summary(row):
+    summary = _participant_summary_source(row)
+    final_score = summary.get("final_score")
+    performance_bonus_czk = summary.get("performance_bonus_czk")
+    if final_score is None or performance_bonus_czk is None:
+        return None
+    return {
+        "final_score": _display_number(final_score),
+        "performance_bonus_czk": int(float(performance_bonus_czk)),
+        "payment_status": summary.get("payment_status") or "unpaid",
+    }
+
+
 def render_admin_participants(ctx, participants):
     st = ctx.st
     t = ctx.t
@@ -163,6 +188,15 @@ def render_admin_participants(ctx, participants):
         stage_label = escape(t(stage_config["label_key"]))
         percent = participant_progress_percent(participant, pre_count=pre_count, post_count=post_count)
         title = escape(exact_page_label(participant), quote=True)
+        payout = participant_payout_summary(participant)
+        payout_html = ""
+        if payout:
+            payout_html = (
+                f'<span>{escape(t("admin.final_score_label"))}: {escape(payout["final_score"])} / 100</span>'
+                f'<span>{escape(t("admin.payout_label"))}: {payout["performance_bonus_czk"]} CZK</span>'
+                f'<span class="admin-participant-payment-status">{escape(t("admin.payment_status_label"))}: '
+                f'{escape(str(payout["payment_status"]))}</span>'
+            )
         rows.append(
             f"""
 <div class="admin-participant-row">
@@ -171,6 +205,7 @@ def render_admin_participants(ctx, participants):
   <div class="admin-participant-progress" title="{title}">
     <div class="{stage_config["class_name"]}" style="width: {percent}%"></div>
   </div>
+  <div class="admin-participant-payout">{payout_html}</div>
 </div>
 """
         )
@@ -185,8 +220,24 @@ def _page_index(page):
         return 0
 
 
+def _display_number(value):
+    number = round(float(value), 2)
+    if number == int(number):
+        return str(int(number))
+    return f"{number:.2f}"
+
+
+def _participant_summary_source(row):
+    summary = row.get("summary") or {}
+    if summary.get("final_score") is not None and summary.get("performance_bonus_czk") is not None:
+        return summary
+    checkpoint = row.get("checkpoint") or {}
+    return checkpoint.get("final_score_breakdown") or {}
+
+
 __all__ = [
     "exact_page_label",
+    "participant_payout_summary",
     "participant_progress_percent",
     "participant_stage",
     "render_admin_participants",

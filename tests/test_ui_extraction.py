@@ -109,7 +109,12 @@ def test_admin_page_navigator_flow_and_adjacency():
 
 
 def test_admin_participant_progress_helpers():
-    from sim_app.ui.components.admin_participants import exact_page_label, participant_progress_percent, participant_stage
+    from sim_app.ui.components.admin_participants import (
+        exact_page_label,
+        participant_payout_summary,
+        participant_progress_percent,
+        participant_stage,
+    )
 
     pre_row = {"checkpoint": {"page": "pre_question_1", "month": 1}, "status": "in_progress"}
     month_row = {"checkpoint": {"page": "month_feedback", "month": 12}, "status": "in_progress"}
@@ -122,6 +127,34 @@ def test_admin_participant_progress_helpers():
     assert participant_progress_percent(month_row, pre_count=2, post_count=2) == 55
     assert exact_page_label(month_row) == "month_feedback - month 12"
     assert participant_progress_percent(done_row, pre_count=2, post_count=2) == 100
+    assert participant_payout_summary(
+        {
+            "summary": {
+                "final_score": 95.0,
+                "performance_bonus_czk": 300,
+                "payment_status": "unpaid",
+            }
+        }
+    ) == {
+        "final_score": "95",
+        "performance_bonus_czk": 300,
+        "payment_status": "unpaid",
+    }
+    assert participant_payout_summary(
+        {
+            "checkpoint": {
+                "final_score_breakdown": {
+                    "final_score": 82.5,
+                    "performance_bonus_czk": 250,
+                    "payment_status": "unpaid",
+                }
+            }
+        }
+    ) == {
+        "final_score": "82.50",
+        "performance_bonus_czk": 250,
+        "payment_status": "unpaid",
+    }
 
 
 def test_render_current_page_uses_registered_renderer(monkeypatch):

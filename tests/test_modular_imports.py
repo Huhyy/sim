@@ -153,6 +153,59 @@ def test_study_session_participant_filter():
     ) == [{"participant_code": "P001"}]
 
 
+def test_study_session_participants_merge_session_summaries():
+    import sim_app.persistence.study_sessions as study_sessions
+
+    class FakeQuery:
+        def __init__(self, data):
+            self.data = data
+            self.session_ids = None
+
+        def select(self, _columns):
+            return self
+
+        def in_(self, _column, values):
+            self.session_ids = values
+            return self
+
+        def execute(self):
+            return type("Response", (), {"data": self.data})()
+
+    class FakeClient:
+        def __init__(self, data):
+            self.query = FakeQuery(data)
+
+        def table(self, name):
+            assert name == "session_summaries"
+            return self.query
+
+    rows = [{"id": "session-1", "participant_code": "P001"}]
+    client = FakeClient(
+        [
+            {
+                "session_id": "session-1",
+                "final_score": 95,
+                "performance_bonus_czk": 300,
+                "payment_status": "unpaid",
+            }
+        ]
+    )
+
+    assert study_sessions._with_session_summaries(client, rows) == [
+        {
+            "id": "session-1",
+            "participant_code": "P001",
+            "summary": {
+                "session_id": "session-1",
+                "final_score": 95,
+                "performance_bonus_czk": 300,
+                "payment_status": "unpaid",
+            },
+        }
+    ]
+    assert client.query.session_ids == ["session-1"]
+
+
 def test_content_modules_load_packaged_content():
     import sim_app.content.narratives as package_narratives
     import sim_app.content.tables as package_tables

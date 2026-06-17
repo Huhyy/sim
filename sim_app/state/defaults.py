@@ -27,6 +27,7 @@ def runtime_defaults():
         "monthly_results": [],
         "pending_month_result": None,
         "final_score": None,
+        "final_score_breakdown": None,
         "answers": {},
         "scroll_to_top": False,
         "submission_finalized": False,
