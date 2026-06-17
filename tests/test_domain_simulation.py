@@ -60,14 +60,3 @@ def test_compute_month_result_returns_expected_shape():
     assert result["payment_input"] == 100.0
     assert result["score_model"] == "behavioral_v1"
     assert "feedback_message" in result
-
-
-def test_maria_expense_adjustments_are_loaded():
-    assert get_month(9)["expenses"]["repair"] == 590
-    assert get_month(10)["expenses"]["home"] == 520.74
-    assert get_month(11)["expenses"]["other"] == 170
-    assert get_month(12)["expenses"]["event"] == 489.25
-    assert get_month(13)["expenses"]["utilities"] == 764.32
-    assert get_month(14)["expenses"]["medical"] == 581.6
-    assert get_month(15)["expenses"]["medical"] == 591.09
-    assert get_month(16)["expenses"]["baby"] == 200
