@@ -30,6 +30,9 @@ def render_month_feedback_page(ctx):
 
     if st.session_state.get("monthly_score_feedback", "displayed") == "displayed":
         st.markdown(t("simulation.monthly_score_heading"))
+        st.markdown(t("simulation.score_repayment", value=display_number(result["score_repayment"])))
+        st.markdown(t("simulation.score_liquidity", value=display_number(result["score_liquidity"])))
+        st.markdown(t("simulation.score_overdraft", value=display_number(result["score_overdraft"])))
         if st.session_state.get("score_frame") == "loss_frame":
             monthly_loss = max(0.0, 100.0 - float(result["monthly_score"]))
             st.metric(t("simulation.monthly_score_lost_metric"), f"{display_number(monthly_loss)} / 100")
