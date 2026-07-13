@@ -64,13 +64,15 @@ def finalize_participation(
     if allow_repeat:
         client.table("completed_accounts").delete().eq("account_key", account_key).execute()
 
-    if not allow_repeat and account_has_completed(account_key):
+    summary = summary or {}
+    prolific_mode = bool(summary.get("prolific_pid"))
+
+    if not allow_repeat and not prolific_mode and account_has_completed(account_key):
         raise RuntimeError("This participant has already completed the study.")
 
     if not _active_resume_link_exists(client, account_key, session_id) and not _repair_missing_resume_link(client, account_key, session_id):
         raise RuntimeError("No active session is associated with this participant.")
 
-    summary = summary or {}
     bonus_max_session = _float_or_none(summary.get("bonus_max_session")) or 12.0
     feedback = answers.get("feedback") or None
     metadata = {
@@ -97,6 +99,12 @@ def finalize_participation(
             },
             "demographics": _demographic_answers(answers),
             "participant_code": summary.get("participant_code"),
+            "prolific_pid": summary.get("prolific_pid"),
+            "prolific_study_id": summary.get("prolific_study_id"),
+            "prolific_session_id": summary.get("prolific_session_id"),
+            "prolific_finished_at": _utcnow() if summary.get("prolific_pid") else None,
+            "prolific_completion_redirected_at": _utcnow() if summary.get("prolific_pid") else None,
+            "completion_code": summary.get("completion_code"),
             "experimental_condition": summary.get("experimental_condition"),
             "score_frame": summary.get("score_frame"),
             "monthly_score_feedback": summary.get("monthly_score_feedback"),

@@ -73,6 +73,57 @@ def test_domain_modules_expose_models():
     assert performance_bonus(95) == {"performance_bonus_czk": 300, "loss_amount_czk": 0}
 
 
+def test_prolific_helpers_are_deterministic(monkeypatch):
+    from sim_app.prolific.identity import assign_prolific_condition, completion_redirect_url
+
+    first = assign_prolific_condition("pid-1", "study-1")
+    second = assign_prolific_condition("pid-1", "study-1")
+    assert first == second
+    assert first["experimental_condition"] in {"C1", "C2", "C3", "C4"}
+
+    monkeypatch.setattr(
+        "sim_app.prolific.identity._get_secret",
+        lambda name: "https://app.prolific.com/submissions/complete?cc={completion_code}" if name == "PROLIFIC_COMPLETION_URL" else None,
+    )
+    assert completion_redirect_url("FIN-123") == "https://app.prolific.com/submissions/complete?cc=FIN-123"
+
+
+def test_prolific_flow_guard_requires_prior_steps():
+    from sim_app.prolific.flow import prolific_required_page_before
+
+    pre_sections = [{"key_prefix": "dopa", "questions": ["a", "b"]}]
+    post_sections = [{"key_prefix": "post", "questions": ["a"]}]
+    state = {
+        "prolific_mode": True,
+        "answers": {"consent_agreed": "1 - Da", "anti_ai_declaration": True},
+    }
+
+    assert prolific_required_page_before("profile", state, pre_sections=pre_sections, post_sections=post_sections) == "demographics"
+
+    state["answers"].update(
+        {
+            "demo_age": 30,
+            "demo_gender": "x",
+            "demo_education": "x",
+            "demo_field": "x",
+            "demo_occupation": "x",
+            "demo_financial_decisions": "x",
+            "demo_credit_experience": "x",
+            "demo_financial_familiarity": "x",
+            "demo_living_situation": "x",
+            "demo_recurring_responsibilities": "x",
+            "demo_country": "x",
+        }
+    )
+    assert prolific_required_page_before("profile", state, pre_sections=pre_sections, post_sections=post_sections) == "pre_question_0"
+
+    state["answers"].update({"dopa_0": "x", "dopa_1": "x"})
+    assert prolific_required_page_before("profile", state, pre_sections=pre_sections, post_sections=post_sections) == "instructions"
+
+    state["comprehension_passed"] = True
+    assert prolific_required_page_before("final_score", state, pre_sections=pre_sections, post_sections=post_sections) == "simulation"
+
+
 def test_persistence_mappers_shape_rows(monkeypatch):
     import sim_app.persistence.mappers as mappers
 

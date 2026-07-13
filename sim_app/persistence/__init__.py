@@ -1,6 +1,7 @@
 """Database persistence boundary."""
 
 from .participant_sessions import load_session_checkpoint, load_session_row, save_session_checkpoint
+from .quality import save_quality_check
 from .participation import finalize_participation
 from .resume_links import load_linked_session_id, save_resume_link
 from .completed_accounts import account_has_completed
@@ -28,6 +29,7 @@ __all__ = [
     "save_month_result",
     "save_month_results",
     "save_psychometric_answers",
+    "save_quality_check",
     "save_resume_link",
     "save_session_checkpoint",
     "save_session_summary",

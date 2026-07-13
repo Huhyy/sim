@@ -18,7 +18,7 @@ def render_instructions_page(ctx):
 
     if st.button(t("instructions.button"), type="primary"):
         st.session_state.scroll_to_top = True
-        ctx.goto("profile")
+        ctx.goto("comprehension" if st.session_state.get("prolific_mode") else "profile")
 
 
 __all__ = [

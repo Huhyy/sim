@@ -57,7 +57,19 @@ def demographics_complete(answers):
     return all(answers.get(key) not in (None, "") for key in DEMOGRAPHIC_KEYS)
 
 
-def render_quiz_chapter(ctx, section, chapter_index, total_chapters, next_page, dev_label, title, question_offset=0):
+def render_quiz_chapter(
+    ctx,
+    section,
+    chapter_index,
+    total_chapters,
+    next_page,
+    dev_label,
+    title,
+    question_offset=0,
+    before_continue=None,
+    validate_extra=None,
+    on_valid_continue=None,
+):
     st = ctx.st
     t = ctx.t
     st.title(title)
@@ -75,8 +87,15 @@ def render_quiz_chapter(ctx, section, chapter_index, total_chapters, next_page, 
     if not all_answered([section], st.session_state.answers):
         st.warning(t("quiz.chapter_required_warning"))
 
+    extra_value = before_continue() if before_continue else None
+
     if st.button(t("quiz.continue_button"), type="primary", key=f"continue_{section['key_prefix']}_{chapter_index}"):
+        if validate_extra and not validate_extra(extra_value):
+            st.error(t("prolific.attention_missing"))
+            st.stop()
         if all_answered([section], st.session_state.answers):
+            if on_valid_continue:
+                on_valid_continue(extra_value)
             st.session_state.scroll_to_top = True
             ctx.goto(next_page)
         else:

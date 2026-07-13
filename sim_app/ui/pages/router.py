@@ -1,5 +1,6 @@
 """Page routing helpers for the Streamlit UI."""
 
+from sim_app.prolific.flow import prolific_required_page_before
 from sim_app.ui.pages.admin import render_admin_page
 from sim_app.ui.pages.admin_sessions import render_admin_sessions_page
 from sim_app.ui.pages.already_completed import render_already_completed_page
@@ -12,6 +13,7 @@ from sim_app.ui.pages.home import render_home_page
 from sim_app.ui.pages.instructions import render_instructions_page
 from sim_app.ui.pages.month_feedback import render_month_feedback_page
 from sim_app.ui.pages.profile import render_profile_page
+from sim_app.ui.pages.prolific import render_comprehension_page, render_prolific_error_page, render_prolific_return_page
 from sim_app.ui.pages.questions import render_post_question_page, render_pre_question_page, render_pre_questions_redirect_page
 from sim_app.ui.pages.simulation import render_simulation_page
 
@@ -21,12 +23,15 @@ STATIC_PAGE_RENDERERS = {
     "admin": render_admin_page,
     "admin_sessions": render_admin_sessions_page,
     "already_completed": render_already_completed_page,
+    "prolific_error": render_prolific_error_page,
+    "prolific_return": render_prolific_return_page,
     "home": render_home_page,
     "consent": render_consent_page,
     "consent_declined": render_consent_declined_page,
     "demographics": render_demographics_page,
     "pre_questions": render_pre_questions_redirect_page,
     "instructions": render_instructions_page,
+    "comprehension": render_comprehension_page,
     "profile": render_profile_page,
     "simulation": render_simulation_page,
     "month_feedback": render_month_feedback_page,
@@ -45,6 +50,16 @@ def get_page_renderer(page):
 
 def render_current_page(ctx):
     page = ctx.st.session_state.page
+    pre_sections = ctx.get_display_pre_sections() if hasattr(ctx, "get_display_pre_sections") else []
+    post_sections = ctx.get_display_post_sections() if hasattr(ctx, "get_display_post_sections") else []
+    required_page = prolific_required_page_before(
+        page,
+        ctx.st.session_state,
+        pre_sections=pre_sections,
+        post_sections=post_sections,
+    )
+    if required_page:
+        ctx.goto(required_page)
     renderer = get_page_renderer(page)
     if renderer is None:
         raise ValueError(f"Unknown page: {page}")

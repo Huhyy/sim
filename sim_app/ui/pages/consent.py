@@ -18,6 +18,13 @@ def render_consent_page(ctx):
         st.checkbox(item, key=f"consent_item_{index}")
         for index, item in enumerate(consent_items)
     ]
+    anti_ai_value = True
+    if st.session_state.get("prolific_mode"):
+        anti_ai_value = st.checkbox(
+            t("prolific.anti_ai_declaration"),
+            key="anti_ai_declaration_input",
+            value=st.session_state.answers.get("anti_ai_declaration", False),
+        )
     consent_complete = all(consent_values)
 
     col_accept, col_decline = st.columns([2, 1])
@@ -37,10 +44,12 @@ def render_consent_page(ctx):
         )
 
     if accept_clicked:
-        if not consent_complete:
+        if not consent_complete or not anti_ai_value:
             st.warning(t("consent.warning"))
             st.stop()
         st.session_state.answers["consent_agreed"] = "1 - Da"
+        if st.session_state.get("prolific_mode"):
+            st.session_state.answers["anti_ai_declaration"] = True
         st.session_state.scroll_to_top = True
         ctx.goto("demographics")
 

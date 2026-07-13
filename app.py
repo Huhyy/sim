@@ -19,7 +19,10 @@ from sim_app.content.translations import (
     t,
 )
 from sim_app.config import REPEAT_SCENARIO_DEV_MODE, SCENARIO_VERSION
+from sim_app.config import PROLIFIC_MODE_ENABLED
 from sim_app.domain.experimental_conditions import DEFAULT_PAYMENT_STATUS, condition_options, performance_bonus
+from sim_app.prolific import has_any_prolific_param, load_prolific_params, prolific_params_complete
+from sim_app.prolific.identity import prolific_study_allowed
 from sim_app.persistence.study_sessions import (
     cancel_admin_study_session,
     create_admin_study_session,
@@ -27,6 +30,7 @@ from sim_app.persistence.study_sessions import (
     list_participant_sessions_for_study_session,
     load_admin_study_session_by_code,
 )
+from sim_app.persistence.quality import save_quality_check
 from sim_app.persistence.results import save_month_results
 from sim_app.session.finalization import finalize_participant
 from sim_app.session.manager import bootstrap_authenticated_session, ensure_current_scenario_version, start_new_scenario
@@ -926,6 +930,22 @@ def render_login_page():
 # AUTHENTICATION AND INIT STATE
 
 # -------------------------
+prolific_params_before_login = load_prolific_params()
+if (
+    PROLIFIC_MODE_ENABLED
+    and has_any_prolific_param(prolific_params_before_login)
+    and not prolific_params_complete(prolific_params_before_login)
+):
+    st.error(t("prolific.error_missing_params"))
+    st.stop()
+if (
+    PROLIFIC_MODE_ENABLED
+    and prolific_params_complete(prolific_params_before_login)
+    and not prolific_study_allowed(prolific_params_before_login.get("STUDY_ID"))
+):
+    st.error(t("prolific.error_invalid_study"))
+    st.stop()
+
 if not is_logged_in():
     login_ctx = make_ui_context(st=st, t=t)
     render_language_selector_component(st, t, ensure_language, get_language, set_language)
@@ -1302,6 +1322,10 @@ def get_final_score_breakdown():
         "study_session_id": st.session_state.get("study_session_id"),
         "study_session_code": st.session_state.get("study_session_code"),
         "participant_code": st.session_state.get("participant_code"),
+        "prolific_pid": st.session_state.get("prolific_pid"),
+        "prolific_study_id": st.session_state.get("prolific_study_id"),
+        "prolific_session_id": st.session_state.get("prolific_session_id"),
+        "completion_code": st.session_state.get("prolific_completion_code"),
         "total_repaid": total_repaid,
         "remaining_credit": money(st.session_state.loan.balance),
         "remaining_overdraft": money(st.session_state.overdraft.balance),
@@ -1336,6 +1360,7 @@ ui_ctx = make_ui_context(
     get_final_score_breakdown=get_final_score_breakdown,
     get_bonus_max_session=get_bonus_max_session,
     persist_checkpoint=persist_checkpoint,
+    save_quality_check=save_quality_check,
     finalize_participant=finalize_participant,
     load_admin_study_session_by_code=load_admin_study_session_by_code,
     create_admin_study_session=create_admin_study_session,

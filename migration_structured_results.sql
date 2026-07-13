@@ -31,9 +31,42 @@ ALTER TABLE participant_sessions
   ADD COLUMN IF NOT EXISTS score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame'));
 ALTER TABLE participant_sessions
   ADD COLUMN IF NOT EXISTS monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden'));
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS prolific_pid TEXT;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS prolific_study_id TEXT;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS prolific_session_id TEXT;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS prolific_account_key TEXT;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS prolific_started_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS prolific_finished_at TIMESTAMPTZ;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS prolific_completion_redirected_at TIMESTAMPTZ;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS completion_code TEXT UNIQUE;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS duplicate_entry BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS missing_prolific_params BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS anti_ai_declaration BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS anti_ai_declared_at TIMESTAMPTZ;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS comprehension_attempts INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS comprehension_passed BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE participant_sessions
+  ADD COLUMN IF NOT EXISTS attention_failed_count INTEGER NOT NULL DEFAULT 0;
 CREATE UNIQUE INDEX IF NOT EXISTS participant_sessions_study_participant_code_idx
   ON participant_sessions (study_session_id, participant_code)
   WHERE study_session_id IS NOT NULL AND participant_code IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS participant_sessions_prolific_unique_idx
+  ON participant_sessions (prolific_pid, prolific_study_id)
+  WHERE prolific_pid IS NOT NULL AND prolific_study_id IS NOT NULL;
 
 ALTER TABLE participant_sessions ENABLE ROW LEVEL SECURITY;
 
@@ -158,6 +191,10 @@ CREATE TABLE IF NOT EXISTS session_summaries (
   study_session_id UUID,
   study_session_code TEXT,
   participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$'),
+  prolific_pid TEXT,
+  prolific_study_id TEXT,
+  prolific_session_id TEXT,
+  completion_code TEXT,
   feedback TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -221,6 +258,52 @@ ALTER TABLE session_summaries
   ADD COLUMN IF NOT EXISTS completion_timestamp TIMESTAMPTZ;
 ALTER TABLE session_summaries
   ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid';
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS prolific_pid TEXT;
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS prolific_study_id TEXT;
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS prolific_session_id TEXT;
+ALTER TABLE session_summaries
+  ADD COLUMN IF NOT EXISTS completion_code TEXT;
+
+CREATE TABLE IF NOT EXISTS quality_checks (
+  id BIGSERIAL PRIMARY KEY,
+  app_session_id UUID REFERENCES participant_sessions(id) ON DELETE CASCADE,
+  prolific_pid TEXT,
+  study_id TEXT,
+  session_id TEXT,
+  page_id TEXT,
+  check_type TEXT NOT NULL,
+  check_id TEXT NOT NULL,
+  attempt_number INTEGER NOT NULL DEFAULT 1,
+  passed BOOLEAN NOT NULL,
+  response_value TEXT,
+  response_time_ms INTEGER,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS quality_checks_app_session_idx
+  ON quality_checks (app_session_id);
+CREATE INDEX IF NOT EXISTS quality_checks_prolific_idx
+  ON quality_checks (prolific_pid, study_id, session_id);
+
+CREATE TABLE IF NOT EXISTS page_progress (
+  id BIGSERIAL PRIMARY KEY,
+  app_session_id UUID REFERENCES participant_sessions(id) ON DELETE CASCADE,
+  prolific_pid TEXT,
+  study_id TEXT,
+  session_id TEXT,
+  page_order INTEGER NOT NULL,
+  page_id TEXT NOT NULL,
+  entered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  completed_at TIMESTAMPTZ,
+  completed BOOLEAN NOT NULL DEFAULT FALSE
+);
+CREATE INDEX IF NOT EXISTS page_progress_app_session_idx
+  ON page_progress (app_session_id, page_order);
+
+ALTER TABLE quality_checks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE page_progress ENABLE ROW LEVEL SECURITY;
 
 CREATE INDEX IF NOT EXISTS psychometric_pre_answers_study_participant_idx
   ON psychometric_pre_answers (study_session_id, participant_code);

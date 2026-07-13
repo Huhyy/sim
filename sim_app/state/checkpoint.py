@@ -26,6 +26,13 @@ def collect_checkpoint():
         "study_session_id": st.session_state.get("study_session_id"),
         "study_session_code": st.session_state.get("study_session_code"),
         "participant_code": st.session_state.get("participant_code"),
+        "prolific_pid": st.session_state.get("prolific_pid"),
+        "prolific_study_id": st.session_state.get("prolific_study_id"),
+        "prolific_session_id": st.session_state.get("prolific_session_id"),
+        "prolific_mode": st.session_state.get("prolific_mode", False),
+        "prolific_completion_url": st.session_state.get("prolific_completion_url"),
+        "prolific_completion_code": st.session_state.get("prolific_completion_code"),
+        "prolific_redirected": st.session_state.get("prolific_redirected", False),
         "experimental_condition": st.session_state.get("experimental_condition"),
         "score_frame": st.session_state.get("score_frame"),
         "monthly_score_feedback": st.session_state.get("monthly_score_feedback"),
@@ -40,6 +47,9 @@ def collect_checkpoint():
         "final_score": st.session_state.get("final_score"),
         "final_score_breakdown": st.session_state.get("final_score_breakdown"),
         "answers": st.session_state.get("answers", {}),
+        "comprehension_attempts": st.session_state.get("comprehension_attempts", 0),
+        "comprehension_passed": st.session_state.get("comprehension_passed", False),
+        "attention_failed_count": st.session_state.get("attention_failed_count", 0),
         "payment_values": payment_values,
     }
 
@@ -105,6 +115,13 @@ def hydrate_from_checkpoint(checkpoint):
     st.session_state.study_session_id = checkpoint.get("study_session_id")
     st.session_state.study_session_code = checkpoint.get("study_session_code")
     st.session_state.participant_code = checkpoint.get("participant_code")
+    st.session_state.prolific_pid = checkpoint.get("prolific_pid")
+    st.session_state.prolific_study_id = checkpoint.get("prolific_study_id")
+    st.session_state.prolific_session_id = checkpoint.get("prolific_session_id")
+    st.session_state.prolific_mode = checkpoint.get("prolific_mode", False)
+    st.session_state.prolific_completion_url = checkpoint.get("prolific_completion_url")
+    st.session_state.prolific_completion_code = checkpoint.get("prolific_completion_code")
+    st.session_state.prolific_redirected = checkpoint.get("prolific_redirected", False)
     st.session_state.experimental_condition = checkpoint.get("experimental_condition", defaults["experimental_condition"])
     st.session_state.score_frame = checkpoint.get("score_frame", defaults["score_frame"])
     st.session_state.monthly_score_feedback = checkpoint.get("monthly_score_feedback", defaults["monthly_score_feedback"])
@@ -127,6 +144,9 @@ def hydrate_from_checkpoint(checkpoint):
     st.session_state.final_score = checkpoint.get("final_score")
     st.session_state.final_score_breakdown = checkpoint.get("final_score_breakdown")
     st.session_state.answers = checkpoint.get("answers", {})
+    st.session_state.comprehension_attempts = checkpoint.get("comprehension_attempts", 0)
+    st.session_state.comprehension_passed = checkpoint.get("comprehension_passed", False)
+    st.session_state.attention_failed_count = checkpoint.get("attention_failed_count", 0)
 
     for key, value in (checkpoint.get("payment_values") or {}).items():
         st.session_state[key] = value

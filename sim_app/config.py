@@ -14,11 +14,13 @@ def _feature_flag(name, default):
 
 
 REPEAT_SCENARIO_DEV_MODE = _feature_flag("ALLOW_REPEAT_PARTICIPATION", "true")
+PROLIFIC_MODE_ENABLED = _feature_flag("PROLIFIC_MODE_ENABLED", "true")
 SCENARIO_VERSION = "income-baseline-1000-720-initial-150"
 
 
 __all__ = [
     "_feature_flag",
+    "PROLIFIC_MODE_ENABLED",
     "REPEAT_SCENARIO_DEV_MODE",
     "SCENARIO_VERSION",
 ]

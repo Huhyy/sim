@@ -3,6 +3,38 @@
 from sim_app.ui.components.quiz import all_answered, demographics_complete, randomize_section, render_question_section, render_quiz_chapter
 
 
+def _render_attention_check(st, t, key, prompt_key):
+    if not st.session_state.get("prolific_mode"):
+        return None
+    return st.radio(
+        t(prompt_key),
+        options=t("prolific.attention_number_options"),
+        index=None,
+        horizontal=True,
+        key=key,
+    )
+
+
+def _attention_passed(value):
+    return str(value or "").startswith("3")
+
+
+def _record_attention_check(ctx, check_id, response_value, page_id):
+    st = ctx.st
+    passed = _attention_passed(response_value)
+    if not passed:
+        st.session_state.attention_failed_count = int(st.session_state.get("attention_failed_count") or 0) + 1
+    if hasattr(ctx, "save_quality_check"):
+        ctx.save_quality_check(
+            check_type="attention",
+            check_id=check_id,
+            attempt_number=1,
+            passed=passed,
+            response_value=response_value,
+            page_id=page_id,
+        )
+
+
 def render_pre_questions_redirect_page(ctx):
     st = ctx.st
     if st.session_state.answers.get("consent_agreed") != "1 - Da":
@@ -33,6 +65,7 @@ def render_pre_question_page(ctx):
         ctx.goto("instructions")
 
     next_page = "instructions" if pre_index + 1 >= len(pre_sections) else f"pre_question_{pre_index + 1}"
+    attention_value = None
     render_quiz_chapter(
         ctx,
         pre_sections[pre_index],
@@ -42,6 +75,21 @@ def render_pre_question_page(ctx):
         t("quiz.dev_randomize"),
         t("quiz.pre_title"),
         question_offset=sum(len(section["questions"]) for section in pre_sections[:pre_index]),
+        before_continue=(
+            lambda: _render_attention_check(st, t, "attention_pre_1", "prolific.attention_1")
+            if st.session_state.get("prolific_mode") and pre_index == 0
+            else None
+        ),
+        validate_extra=(
+            lambda value: value is not None
+            if st.session_state.get("prolific_mode") and pre_index == 0
+            else None
+        ),
+        on_valid_continue=(
+            lambda value: _record_attention_check(ctx, "attention_pre_1", value, "pre_question_0")
+            if st.session_state.get("prolific_mode") and pre_index == 0
+            else None
+        ),
     )
 
 
@@ -66,6 +114,9 @@ def render_post_question_page(ctx):
     st.caption(t("quiz.chapter_label", current=post_index + 1, total=len(post_sections)))
     st.progress((post_index + 1) / len(post_sections))
     render_question_section(st, t, section, post_index + 1, question_offset)
+    attention_value = None
+    if st.session_state.get("prolific_mode") and post_index + 1 >= len(post_sections):
+        attention_value = _render_attention_check(st, t, "attention_post_1", "prolific.attention_2")
 
     if not all_answered([section], st.session_state.answers):
         st.warning(t("quiz.chapter_required_warning"))
@@ -89,7 +140,12 @@ def render_post_question_page(ctx):
 
     button_label = t("quiz.post_finish_button") if post_index + 1 >= len(post_sections) else t("quiz.continue_button")
     if st.button(button_label, type="primary", key=f"continue_post_question_{post_index}"):
+        if st.session_state.get("prolific_mode") and post_index + 1 >= len(post_sections) and attention_value is None:
+            st.error(t("prolific.attention_missing"))
+            st.stop()
         if all_answered([section], st.session_state.answers):
+            if st.session_state.get("prolific_mode") and post_index + 1 >= len(post_sections):
+                _record_attention_check(ctx, "attention_post_1", attention_value, st.session_state.page)
             st.session_state.scroll_to_top = True
             ctx.goto(next_page)
         else:

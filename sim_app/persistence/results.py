@@ -77,6 +77,14 @@ def save_session_summary(session_id: str, summary: dict, feedback=None):
         row["study_session_code"] = summary.get("study_session_code")
     if summary.get("participant_code"):
         row["participant_code"] = summary.get("participant_code")
+    if summary.get("prolific_pid"):
+        row["prolific_pid"] = summary.get("prolific_pid")
+    if summary.get("prolific_study_id"):
+        row["prolific_study_id"] = summary.get("prolific_study_id")
+    if summary.get("prolific_session_id"):
+        row["prolific_session_id"] = summary.get("prolific_session_id")
+    if summary.get("completion_code"):
+        row["completion_code"] = summary.get("completion_code")
     return client.table("session_summaries").upsert(row, on_conflict="session_id").execute()
 
 

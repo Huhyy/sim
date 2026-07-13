@@ -113,6 +113,14 @@ def test_save_session_checkpoint_writes_condition_columns(monkeypatch):
             "page": "simulation",
             "study_session_code": "022809",
             "participant_code": "P031",
+            "prolific_pid": "prolific-1",
+            "prolific_study_id": "study-1",
+            "prolific_session_id": "submission-1",
+            "prolific_mode": True,
+            "answers": {"anti_ai_declaration": True},
+            "comprehension_attempts": 1,
+            "comprehension_passed": True,
+            "attention_failed_count": 0,
             "experimental_condition": "C4",
             "score_frame": "loss_frame",
             "monthly_score_feedback": "hidden",
@@ -122,6 +130,11 @@ def test_save_session_checkpoint_writes_condition_columns(monkeypatch):
     assert saved["experimental_condition"] == "C4"
     assert saved["score_frame"] == "loss_frame"
     assert saved["monthly_score_feedback"] == "hidden"
+    assert saved["prolific_pid"] == "prolific-1"
+    assert saved["prolific_study_id"] == "study-1"
+    assert saved["prolific_session_id"] == "submission-1"
+    assert saved["anti_ai_declaration"] is True
+    assert saved["comprehension_passed"] is True
 
 
 def test_extracted_finalize_recovers_session_id_before_final_save(monkeypatch):
