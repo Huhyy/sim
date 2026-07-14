@@ -109,7 +109,7 @@ def _with_session_summaries(client, rows):
     response = (
         client
         .table("session_summaries")
-        .select("session_id,final_score,performance_bonus_czk,loss_amount_czk,payment_status,completion_timestamp")
+        .select("session_id,final_score,performance_bonus_eur,loss_amount_eur,payment_status,completion_timestamp")
         .in_("session_id", session_ids)
         .execute()
     )

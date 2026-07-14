@@ -2,7 +2,7 @@
 
 DEFAULT_EXPERIMENTAL_CONDITION = "C1"
 DEFAULT_PAYMENT_STATUS = "unpaid"
-MAX_PERFORMANCE_BONUS_CZK = 300
+MAX_PERFORMANCE_BONUS_EUR = 12
 
 CONDITIONS = {
     "C1": {
@@ -59,17 +59,17 @@ def performance_bonus(final_score):
     score = float(final_score or 0.0)
     if score <= 80:
         return {
-            "performance_bonus_czk": 200,
-            "loss_amount_czk": 100,
+            "performance_bonus_eur": 8,
+            "loss_amount_eur": 4,
         }
     if score < 95:
         return {
-            "performance_bonus_czk": 250,
-            "loss_amount_czk": 50,
+            "performance_bonus_eur": 10,
+            "loss_amount_eur": 2,
         }
     return {
-        "performance_bonus_czk": 300,
-        "loss_amount_czk": 0,
+        "performance_bonus_eur": 12,
+        "loss_amount_eur": 0,
     }
 
 
@@ -81,7 +81,7 @@ __all__ = [
     "CONDITIONS",
     "DEFAULT_EXPERIMENTAL_CONDITION",
     "DEFAULT_PAYMENT_STATUS",
-    "MAX_PERFORMANCE_BONUS_CZK",
+    "MAX_PERFORMANCE_BONUS_EUR",
     "condition_config",
     "condition_from_record",
     "condition_options",

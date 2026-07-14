@@ -117,10 +117,10 @@ UI_TEXT = {
                 "C4": "C4 - Loss frame + scor lunar neafișat",
             },
             "condition_descriptions": {
-                "C1": "Participantul pornește de la 0 CZK și vede scorul lunar pe pagina de feedback.",
-                "C2": "Participantul pornește de la 0 CZK și nu vede scorul lunar.",
-                "C3": "Participantul pornește de la un bonus maxim provizoriu de 300 CZK și vede scorul lunar ca pierdere.",
-                "C4": "Participantul pornește de la un bonus maxim provizoriu de 300 CZK și nu vede scorul lunar.",
+                "C1": "Participantul pornește de la 0 EUR și vede scorul lunar pe pagina de feedback.",
+                "C2": "Participantul pornește de la 0 EUR și nu vede scorul lunar.",
+                "C3": "Participantul pornește de la un bonus maxim provizoriu de 300 EUR și vede scorul lunar ca pierdere.",
+                "C4": "Participantul pornește de la un bonus maxim provizoriu de 300 EUR și nu vede scorul lunar.",
             },
             "created_at": "Creată la",
             "status": "Status",
@@ -166,8 +166,8 @@ parcurgi o serie de experimente realiste de creditare, în care va trebui să fo
 Scopul este de a înțelege cum interacționează stările afective și profilul psihologic cu
 procesul decizional în situații economice riscante.""",
             "info": "Chestionarele sunt validate științific și nu conțin răspunsuri «corecte» sau «greșite». Răspunde cât mai sincer, alegând opțiunea care reflectă cel mai bine cum ești tu în general.",
-            "gain_frame_notice": "La începutul experimentului, bonusul tău de performanță pornește de la 0 CZK. În funcție de deciziile tale și de scorul comportamental final, poți câștiga până la 300 CZK.",
-            "loss_frame_notice": "La începutul experimentului, ți se alocă provizoriu un bonus maxim de performanță de 300 CZK. În funcție de deciziile tale și de scorul comportamental final, o parte din acest bonus poate fi pierdută.",
+            "gain_frame_notice": "La începutul experimentului, bonusul tău de performanță pornește de la 0 EUR. În funcție de deciziile tale și de scorul comportamental final, poți câștiga până la 300 EUR.",
+            "loss_frame_notice": "La începutul experimentului, ți se alocă provizoriu un bonus maxim de performanță de 300 EUR. În funcție de deciziile tale și de scorul comportamental final, o parte din acest bonus poate fi pierdută.",
             "note": "Răspunsurile tale vor fi analizate **în mod anonim** și vor ajuta la înțelegerea legăturii dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții incerte sau stresante.",
             "button": "Începe experimentul →",
         },
@@ -808,10 +808,10 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
                 "C4": "C4 - Loss frame + monthly score hidden",
             },
             "condition_descriptions": {
-                "C1": "The participant starts from 0 CZK and sees the monthly score on the feedback page.",
-                "C2": "The participant starts from 0 CZK and does not see the monthly score.",
-                "C3": "The participant starts from a provisional maximum bonus of 300 CZK and sees the monthly score as lost points.",
-                "C4": "The participant starts from a provisional maximum bonus of 300 CZK and does not see the monthly score.",
+                "C1": "The participant starts from 0 EUR and sees the monthly score on the feedback page.",
+                "C2": "The participant starts from 0 EUR and does not see the monthly score.",
+                "C3": "The participant starts from a provisional maximum bonus of 300 EUR and sees the monthly score as lost points.",
+                "C4": "The participant starts from a provisional maximum bonus of 300 EUR and does not see the monthly score.",
             },
             "created_at": "Created at",
             "status": "Status",
@@ -857,8 +857,8 @@ and take decisions involving money, time, and responsibility.
 The goal is to understand how affective states and psychological profile interact with
 decision-making in risky economic situations.""",
             "info": "The questionnaires are scientifically validated and do not contain “correct” or “incorrect” answers. Answer as honestly as possible, choosing the option that best reflects how you are in general.",
-            "gain_frame_notice": "At the beginning of the experiment, your performance bonus starts from 0 CZK. Depending on your decisions and final behavioral score, you may earn up to 300 CZK.",
-            "loss_frame_notice": "At the beginning of the experiment, you are provisionally allocated a maximum performance bonus of 300 CZK. Depending on your decisions and final behavioral score, part of this bonus may be lost.",
+            "gain_frame_notice": "At the beginning of the experiment, your performance bonus starts from 0 EUR. Depending on your decisions and final behavioral score, you may earn up to 300 EUR.",
+            "loss_frame_notice": "At the beginning of the experiment, you are provisionally allocated a maximum performance bonus of 300 EUR. Depending on your decisions and final behavioral score, part of this bonus may be lost.",
             "note": "Your responses will be analyzed **anonymously** and will help us understand the link between individual traits and how people make financial decisions under uncertain or stressful conditions.",
             "button": "Start the experiment →",
         },
@@ -1498,3 +1498,4 @@ def get_localized_narrative(month, language=None):
     if selected_language == "en":
         return NARRATIVES_EN.get(month, "No narrative available.")
     return get_ro_narrative(month)
+

@@ -178,8 +178,8 @@ CREATE TABLE IF NOT EXISTS session_summaries (
   experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4')),
   score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame')),
   monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden')),
-  performance_bonus_czk INTEGER NOT NULL DEFAULT 0,
-  loss_amount_czk INTEGER NOT NULL DEFAULT 0,
+  performance_bonus_eur INTEGER NOT NULL DEFAULT 0,
+  loss_amount_eur INTEGER NOT NULL DEFAULT 0,
   completion_timestamp TIMESTAMPTZ,
   payment_status TEXT NOT NULL DEFAULT 'unpaid',
   total_repaid NUMERIC(12,2),
@@ -251,9 +251,9 @@ ALTER TABLE session_summaries
 ALTER TABLE session_summaries
   ADD COLUMN IF NOT EXISTS monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden'));
 ALTER TABLE session_summaries
-  ADD COLUMN IF NOT EXISTS performance_bonus_czk INTEGER NOT NULL DEFAULT 0;
+  ADD COLUMN IF NOT EXISTS performance_bonus_eur INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE session_summaries
-  ADD COLUMN IF NOT EXISTS loss_amount_czk INTEGER NOT NULL DEFAULT 0;
+  ADD COLUMN IF NOT EXISTS loss_amount_eur INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE session_summaries
   ADD COLUMN IF NOT EXISTS completion_timestamp TIMESTAMPTZ;
 ALTER TABLE session_summaries
@@ -313,3 +313,4 @@ CREATE INDEX IF NOT EXISTS month_results_study_participant_idx
   ON month_results (study_session_id, participant_code);
 CREATE INDEX IF NOT EXISTS session_summaries_study_participant_idx
   ON session_summaries (study_session_id, participant_code);
+
