@@ -15,6 +15,9 @@ def build_admin_page_flow(ctx):
 
 
 def page_display_name(page, ctx):
+    if not page:
+        page = "home"
+
     if page.startswith("pre_question_"):
         count = len(getattr(ctx, "pre_sections_ro", None) or [])
         index = int(page.rsplit("_", 1)[1]) + 1
@@ -55,7 +58,7 @@ def render_admin_page_navigator(ctx):
     st = ctx.st
     t = ctx.t
     flow = build_admin_page_flow(ctx)
-    current_page = st.session_state.get("page", "home")
+    current_page = st.session_state.get("page") or "home"
     previous_page, next_page = adjacent_admin_pages(current_page, flow)
 
     st.markdown(f'<div class="account-language-label">{t("auth.admin_navigator")}</div>', unsafe_allow_html=True)
