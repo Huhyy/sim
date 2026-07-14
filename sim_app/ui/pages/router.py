@@ -41,6 +41,9 @@ STATIC_PAGE_RENDERERS = {
 
 
 def get_page_renderer(page):
+    if not page:
+        page = "home"
+
     if page.startswith("pre_question_"):
         return render_pre_question_page
     if page.startswith("post_question_"):
@@ -49,7 +52,8 @@ def get_page_renderer(page):
 
 
 def render_current_page(ctx):
-    page = ctx.st.session_state.page
+    page = getattr(ctx.st.session_state, "page", None) or "home"
+    ctx.st.session_state.page = page
     pre_sections = ctx.get_display_pre_sections() if hasattr(ctx, "get_display_pre_sections") else []
     post_sections = ctx.get_display_post_sections() if hasattr(ctx, "get_display_post_sections") else []
     required_page = prolific_required_page_before(
