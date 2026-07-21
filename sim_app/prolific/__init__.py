@@ -10,10 +10,12 @@ from .identity import (
     prolific_params_complete,
 )
 from .persistence import bind_prolific_session, find_prolific_session, has_completed_prolific_session
+from .bonuses import autopay_configured, process_prolific_bonus
 
 __all__ = [
     "PROLIFIC_QUERY_PARAMS",
     "assign_prolific_condition",
+    "autopay_configured",
     "configured_completion_code",
     "bind_prolific_session",
     "completion_redirect_url",
@@ -22,4 +24,5 @@ __all__ = [
     "has_completed_prolific_session",
     "load_prolific_params",
     "prolific_params_complete",
+    "process_prolific_bonus",
 ]

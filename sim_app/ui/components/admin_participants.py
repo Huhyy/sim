@@ -158,13 +158,15 @@ def exact_page_label(row):
 def participant_payout_summary(row):
     summary = _participant_summary_source(row)
     final_score = summary.get("final_score")
-    performance_bonus_eur = summary.get("performance_bonus_eur")
-    if final_score is None or performance_bonus_eur is None:
+    performance_bonus_gbp = summary.get("performance_bonus_gbp")
+    if final_score is None or performance_bonus_gbp is None:
         return None
     return {
         "final_score": _display_number(final_score),
-        "performance_bonus_eur": int(float(performance_bonus_eur)),
+        "performance_bonus_gbp": float(performance_bonus_gbp),
+        "total_payout_gbp": float(summary.get("total_payout_gbp") or (5 + float(performance_bonus_gbp))),
         "payment_status": summary.get("payment_status") or "unpaid",
+        "prolific_bonus_status": summary.get("prolific_bonus_status") or "not_applicable",
     }
 
 
@@ -193,9 +195,12 @@ def render_admin_participants(ctx, participants):
         if payout:
             payout_html = (
                 f'<span>{escape(t("admin.final_score_label"))}: {escape(payout["final_score"])} / 100</span>'
-                f'<span>{escape(t("admin.payout_label"))}: {payout["performance_bonus_eur"]} EUR</span>'
+                f'<span>{escape(t("admin.payout_label"))}: {payout["performance_bonus_gbp"]:g} GBP</span>'
+                f'<span>{escape(t("admin.total_payout_label"))}: {payout["total_payout_gbp"]:g} GBP</span>'
                 f'<span class="admin-participant-payment-status">{escape(t("admin.payment_status_label"))}: '
                 f'{escape(str(payout["payment_status"]))}</span>'
+                f'<span class="admin-participant-payment-status">Prolific bonus: '
+                f'{escape(str(payout["prolific_bonus_status"]))}</span>'
             )
         rows.append(
             f"""
@@ -229,7 +234,7 @@ def _display_number(value):
 
 def _participant_summary_source(row):
     summary = row.get("summary") or {}
-    if summary.get("final_score") is not None and summary.get("performance_bonus_eur") is not None:
+    if summary.get("final_score") is not None and summary.get("performance_bonus_gbp") is not None:
         return summary
     checkpoint = row.get("checkpoint") or {}
     return checkpoint.get("final_score_breakdown") or {}

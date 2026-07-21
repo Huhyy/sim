@@ -20,7 +20,7 @@ from sim_app.content.translations import (
 )
 from sim_app.config import REPEAT_SCENARIO_DEV_MODE, SCENARIO_VERSION
 from sim_app.config import PROLIFIC_MODE_ENABLED
-from sim_app.domain.experimental_conditions import DEFAULT_PAYMENT_STATUS, condition_options, performance_bonus
+from sim_app.domain.experimental_conditions import DEFAULT_PAYMENT_STATUS, PROLIFIC_BASE_REWARD_GBP, condition_options, performance_bonus
 from sim_app.prolific import has_any_prolific_param, load_prolific_params, prolific_params_complete
 from sim_app.prolific.identity import prolific_study_allowed
 from sim_app.persistence.study_sessions import (
@@ -1313,8 +1313,10 @@ def get_final_score_breakdown():
         "final_score": final_score,
         "bonus_max_session": bonus_max_session,
         "bonus_final": bonus_final,
-        "performance_bonus_eur": bonus["performance_bonus_eur"],
-        "loss_amount_eur": bonus["loss_amount_eur"],
+        "performance_bonus_gbp": bonus["performance_bonus_gbp"],
+        "loss_amount_gbp": bonus["loss_amount_gbp"],
+        "prolific_base_reward_gbp": PROLIFIC_BASE_REWARD_GBP,
+        "total_payout_gbp": PROLIFIC_BASE_REWARD_GBP + bonus["performance_bonus_gbp"],
         "experimental_condition": st.session_state.get("experimental_condition"),
         "score_frame": st.session_state.get("score_frame"),
         "monthly_score_feedback": st.session_state.get("monthly_score_feedback"),

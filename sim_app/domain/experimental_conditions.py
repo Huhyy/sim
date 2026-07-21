@@ -2,7 +2,8 @@
 
 DEFAULT_EXPERIMENTAL_CONDITION = "C1"
 DEFAULT_PAYMENT_STATUS = "unpaid"
-MAX_PERFORMANCE_BONUS_EUR = 12
+MAX_PERFORMANCE_BONUS_GBP = 3
+PROLIFIC_BASE_REWARD_GBP = 5
 
 CONDITIONS = {
     "C1": {
@@ -59,17 +60,17 @@ def performance_bonus(final_score):
     score = float(final_score or 0.0)
     if score <= 80:
         return {
-            "performance_bonus_eur": 8,
-            "loss_amount_eur": 4,
+            "performance_bonus_gbp": 1,
+            "loss_amount_gbp": 2,
         }
     if score < 95:
         return {
-            "performance_bonus_eur": 10,
-            "loss_amount_eur": 2,
+            "performance_bonus_gbp": 2,
+            "loss_amount_gbp": 1,
         }
     return {
-        "performance_bonus_eur": 12,
-        "loss_amount_eur": 0,
+        "performance_bonus_gbp": 3,
+        "loss_amount_gbp": 0,
     }
 
 
@@ -81,7 +82,8 @@ __all__ = [
     "CONDITIONS",
     "DEFAULT_EXPERIMENTAL_CONDITION",
     "DEFAULT_PAYMENT_STATUS",
-    "MAX_PERFORMANCE_BONUS_EUR",
+    "MAX_PERFORMANCE_BONUS_GBP",
+    "PROLIFIC_BASE_REWARD_GBP",
     "condition_config",
     "condition_from_record",
     "condition_options",

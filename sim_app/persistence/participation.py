@@ -5,6 +5,7 @@ from sim_app.infra.time import _utcnow
 from sim_app.persistence.completed_accounts import account_has_completed
 from sim_app.persistence.mappers import _demographic_answers, _float_or_none
 from sim_app.persistence.results import save_month_results, save_psychometric_answers, save_session_summary
+from sim_app.prolific.bonuses import process_prolific_bonus
 
 
 def _active_resume_link_exists(client, account_key: str, session_id: str):
@@ -119,6 +120,8 @@ def finalize_participation(
     ).execute()
 
     client.table("resume_links").delete().eq("account_key", account_key).eq("session_id", session_id).execute()
+
+    process_prolific_bonus(client, session_id, summary)
 
     return response
 

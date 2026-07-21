@@ -68,9 +68,9 @@ def test_domain_modules_expose_models():
         "score_frame": "loss_frame",
         "monthly_score_feedback": "hidden",
     }
-    assert performance_bonus(80) == {"performance_bonus_eur": 8, "loss_amount_eur": 4}
-    assert performance_bonus(94.99) == {"performance_bonus_eur": 10, "loss_amount_eur": 2}
-    assert performance_bonus(95) == {"performance_bonus_eur": 12, "loss_amount_eur": 0}
+    assert performance_bonus(80) == {"performance_bonus_gbp": 1, "loss_amount_gbp": 2}
+    assert performance_bonus(94.99) == {"performance_bonus_gbp": 2, "loss_amount_gbp": 1}
+    assert performance_bonus(95) == {"performance_bonus_gbp": 3, "loss_amount_gbp": 0}
 
 
 def test_prolific_helpers_are_deterministic(monkeypatch):
@@ -236,7 +236,7 @@ def test_study_session_participants_merge_session_summaries():
             {
                 "session_id": "session-1",
                 "final_score": 95,
-                "performance_bonus_eur": 12,
+                "performance_bonus_gbp": 3,
                 "payment_status": "unpaid",
             }
         ]
@@ -249,7 +249,7 @@ def test_study_session_participants_merge_session_summaries():
             "summary": {
                 "session_id": "session-1",
                 "final_score": 95,
-                "performance_bonus_eur": 12,
+                "performance_bonus_gbp": 3,
                 "payment_status": "unpaid",
             },
         }

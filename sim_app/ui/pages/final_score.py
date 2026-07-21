@@ -7,15 +7,15 @@ def render_performance_bonus_summary(st, t, breakdown):
     if breakdown.get("score_frame") == "loss_frame":
         st.markdown(
             f"""
-**{t("final_score.initial_bonus_label")}:** 12 EUR
+**{t("final_score.initial_bonus_label")}:** 3 GBP
 
-**{t("final_score.bonus_lost_label")}:** {int(breakdown["loss_amount_eur"])} EUR
+**{t("final_score.bonus_lost_label")}:** {int(breakdown["loss_amount_gbp"])} GBP
 
-**{t("final_score.final_bonus_label")}:** {int(breakdown["performance_bonus_eur"])} EUR
+**{t("final_score.final_bonus_label")}:** {int(breakdown["performance_bonus_gbp"])} GBP
 """
         )
     else:
-        st.markdown(f'**{t("final_score.performance_bonus_label")}:** {int(breakdown["performance_bonus_eur"])} EUR')
+        st.markdown(f'**{t("final_score.performance_bonus_label")}:** {int(breakdown["performance_bonus_gbp"])} GBP')
 
 
 def render_final_score_page(ctx):

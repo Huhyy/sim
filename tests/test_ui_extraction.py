@@ -131,13 +131,14 @@ def test_admin_participant_progress_helpers():
         {
             "summary": {
                 "final_score": 95.0,
-                "performance_bonus_eur": 12,
+                "performance_bonus_gbp": 3,
                 "payment_status": "unpaid",
             }
         }
     ) == {
         "final_score": "95",
-        "performance_bonus_eur": 12,
+        "performance_bonus_gbp": 3,
+        "total_payout_gbp": 8,
         "payment_status": "unpaid",
     }
     assert participant_payout_summary(
@@ -145,14 +146,15 @@ def test_admin_participant_progress_helpers():
             "checkpoint": {
                 "final_score_breakdown": {
                     "final_score": 82.5,
-                    "performance_bonus_eur": 10,
+                    "performance_bonus_gbp": 2,
                     "payment_status": "unpaid",
                 }
             }
         }
     ) == {
         "final_score": "82.50",
-        "performance_bonus_eur": 10,
+        "performance_bonus_gbp": 2,
+        "total_payout_gbp": 7,
         "payment_status": "unpaid",
     }
 
