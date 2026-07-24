@@ -47,9 +47,9 @@ def load_session_checkpoint(session_id: str):
         checkpoint["score_frame"] = row["score_frame"]
     if row.get("monthly_score_feedback") and "monthly_score_feedback" not in checkpoint:
         checkpoint["monthly_score_feedback"] = row["monthly_score_feedback"]
-    if row.get("status") == "completed":
+    final_page_saved = row.get("status") == "completed" or row.get("current_page") == "done" or checkpoint.get("page") == "done"
+    if final_page_saved:
         checkpoint["page"] = "done"
-        checkpoint["submission_finalized"] = True
         summary_response = (
             _require_client()
             .table("session_summaries")
@@ -61,6 +61,16 @@ def load_session_checkpoint(session_id: str):
         summaries = getattr(summary_response, "data", None) or []
         if summaries:
             summary = summaries[0]
+            checkpoint["submission_finalized"] = True
+            if row.get("status") != "completed":
+                _require_client().table("participant_sessions").update(
+                    {
+                        "status": "completed",
+                        "current_page": "done",
+                        "completed_at": row.get("completed_at") or _utcnow(),
+                        "updated_at": _utcnow(),
+                    }
+                ).eq("id", session_id).execute()
             checkpoint["final_score"] = summary.get("final_score")
             checkpoint["final_score_breakdown"] = summary
             checkpoint["loan_balance"] = summary.get("remaining_credit", checkpoint.get("loan_balance", 7000.0))
