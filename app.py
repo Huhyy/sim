@@ -970,6 +970,7 @@ def render_account_menu():
                     st.session_state.admin_return_page = st.session_state.get("page", "home")
                     goto("admin")
             if st.button(t("auth.logout"), icon=":material/logout:", key="account_logout", use_container_width=True):
+                st.session_state.pop("_prolific_params", None)
                 st.logout()
 
 

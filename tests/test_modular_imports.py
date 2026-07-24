@@ -79,6 +79,8 @@ def test_prolific_helpers_are_deterministic(monkeypatch):
     first = assign_prolific_condition("pid-1", "study-1")
     second = assign_prolific_condition("pid-1", "study-1")
     assert first == second
+
+
     assert first["experimental_condition"] in {"C1", "C2", "C3", "C4"}
 
     monkeypatch.setattr(
@@ -86,6 +88,25 @@ def test_prolific_helpers_are_deterministic(monkeypatch):
         lambda name: "https://app.prolific.com/submissions/complete?cc={completion_code}" if name == "PROLIFIC_COMPLETION_URL" else None,
     )
     assert completion_redirect_url("FIN-123") == "https://app.prolific.com/submissions/complete?cc=FIN-123"
+
+
+def test_prolific_params_survive_query_string_loss(monkeypatch):
+    import sim_app.prolific.identity as identity
+
+    identity.st.session_state.clear()
+    values = iter(["", "", ""])
+    monkeypatch.setattr(identity, "get_query_param", lambda _name: next(values))
+    identity.st.session_state._prolific_params = {
+        "PROLIFIC_PID": "pid-1",
+        "STUDY_ID": "study-1",
+        "SESSION_ID": "submission-1",
+    }
+
+    assert identity.load_prolific_params() == {
+        "PROLIFIC_PID": "pid-1",
+        "STUDY_ID": "study-1",
+        "SESSION_ID": "submission-1",
+    }
 
 
 def test_prolific_flow_guard_requires_prior_steps():

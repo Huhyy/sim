@@ -3,6 +3,8 @@
 import hashlib
 from urllib.parse import quote_plus
 
+import streamlit as st
+
 from sim_app.domain.experimental_conditions import condition_config, condition_options
 from sim_app.infra.secrets import _get_secret
 from sim_app.session.query_params import get_query_param
@@ -12,10 +14,14 @@ PROLIFIC_QUERY_PARAMS = ("PROLIFIC_PID", "STUDY_ID", "SESSION_ID")
 
 
 def load_prolific_params():
-    return {
-        name: _clean(get_query_param(name))
+    stored = st.session_state.get("_prolific_params") or {}
+    params = {
+        name: _clean(get_query_param(name)) or _clean(stored.get(name))
         for name in PROLIFIC_QUERY_PARAMS
     }
+    if any(params.values()):
+        st.session_state._prolific_params = params
+    return params
 
 
 def has_any_prolific_param(params=None):

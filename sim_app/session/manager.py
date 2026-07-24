@@ -146,6 +146,9 @@ def bootstrap_authenticated_session():
             }
 
     if prolific_mode:
+        for parameter_name, parameter_value in prolific_params.items():
+            if parameter_value and get_query_param(parameter_name) != parameter_value:
+                set_query_param(parameter_name, parameter_value)
         condition = assign_prolific_condition(prolific_params["PROLIFIC_PID"], prolific_params["STUDY_ID"])
         st.session_state.prolific_mode = True
         st.session_state.prolific_pid = prolific_params["PROLIFIC_PID"]
