@@ -1,5 +1,6 @@
 """Login page."""
 
+from sim_app.prolific import load_prolific_params, persist_prolific_params_for_login
 from sim_app.ui.styles import AUTH_CARD_CSS, apply_css
 
 
@@ -27,6 +28,7 @@ def render_login_page(ctx):
             unsafe_allow_html=True,
         )
         if st.button(t("auth.google_button"), key="google_login", use_container_width=True):
+            persist_prolific_params_for_login(load_prolific_params())
             st.login()
         st.markdown(
             f"""

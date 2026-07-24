@@ -8,6 +8,7 @@ from .identity import (
     completion_redirect_url,
     has_any_prolific_param,
     load_prolific_params,
+    persist_prolific_params_for_login,
     prolific_params_complete,
 )
 from .persistence import (
@@ -30,6 +31,7 @@ __all__ = [
     "has_any_prolific_param",
     "has_completed_prolific_session",
     "load_prolific_params",
+    "persist_prolific_params_for_login",
     "prolific_params_complete",
     "process_prolific_bonus",
     "reopen_unconfirmed_prolific_session",

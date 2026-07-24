@@ -49,7 +49,10 @@ def _remember_in_browser(params):
     if not values:
         return
     assignments = "".join(
-        "window.top.document.cookie = %s + encodeURIComponent(%s) + '; Path=/; Max-Age=1800; SameSite=Lax';"
+        "(function(v) {"
+        "try { document.cookie = v; } catch (e) {}"
+        "try { window.top.document.cookie = v; } catch (e) {}"
+        "})(%s + encodeURIComponent(%s) + '; Path=/; Max-Age=1800; SameSite=Lax');"
         % (json.dumps(f"{_PROLIFIC_COOKIE_PREFIX}{name}="), json.dumps(value))
         for name, value in values.items()
     )
@@ -60,6 +63,14 @@ def _remember_in_browser(params):
         )
     except Exception:
         pass
+
+
+def persist_prolific_params_for_login(params=None):
+    """Write the launch parameters immediately before starting OAuth."""
+    params = params or load_prolific_params()
+    if params:
+        st.session_state._prolific_params = params
+        _remember_in_browser(params)
 
 
 def clear_browser_prolific_params():
