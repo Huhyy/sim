@@ -17,6 +17,7 @@ from sim_app.prolific import (
     has_completed_prolific_session,
     load_prolific_params,
     prolific_params_complete,
+    reopen_unconfirmed_prolific_session,
 )
 from sim_app.prolific.identity import prolific_study_allowed
 from sim_app.session.ids import new_session_id
@@ -64,9 +65,21 @@ def bootstrap_authenticated_session():
     if prolific_mode and not prolific_study_allowed(prolific_params["STUDY_ID"]):
         _prolific_access_error("prolific.error_invalid_study")
         return
+    prolific_existing_session = (
+        find_prolific_session(prolific_params["PROLIFIC_PID"], prolific_params["STUDY_ID"])
+        if prolific_mode
+        else None
+    )
     if prolific_mode and has_completed_prolific_session(prolific_params["PROLIFIC_PID"], prolific_params["STUDY_ID"]):
         _prolific_access_error("prolific.error_already_completed")
         return
+    if (
+        prolific_existing_session
+        and prolific_existing_session.get("status") == "completed"
+        and not prolific_existing_session.get("completion_code")
+    ):
+        reopen_unconfirmed_prolific_session(prolific_existing_session["id"])
+        prolific_existing_session["status"] = "in_progress"
 
     if not REPEAT_SCENARIO_DEV_MODE and not prolific_mode and account_has_completed(account_key):
         defaults = runtime_defaults()
@@ -78,11 +91,6 @@ def bootstrap_authenticated_session():
         return
 
     linked_session_id = load_linked_session_id(account_key)
-    prolific_existing_session = (
-        find_prolific_session(prolific_params["PROLIFIC_PID"], prolific_params["STUDY_ID"])
-        if prolific_mode
-        else None
-    )
     url_session_id = get_query_param("sid")
     unsafe_url_session_id = bool(url_session_id and not linked_session_id)
     is_new_session = not linked_session_id and not prolific_existing_session

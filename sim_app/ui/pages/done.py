@@ -53,7 +53,7 @@ def render_done_page(ctx):
 
 {t("done.remaining_overdraft")}: **{display_euro(st.session_state.overdraft.balance)}**
 
-{t("done.registered_text")}
+{t("done.registered_text") if st.session_state.get("saved") else t("done.save_pending")}
 
 {t("done.contact")}: coita.iflorina@gmail.com
 """

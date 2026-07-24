@@ -10,7 +10,12 @@ from .identity import (
     load_prolific_params,
     prolific_params_complete,
 )
-from .persistence import bind_prolific_session, find_prolific_session, has_completed_prolific_session
+from .persistence import (
+    bind_prolific_session,
+    find_prolific_session,
+    has_completed_prolific_session,
+    reopen_unconfirmed_prolific_session,
+)
 from .bonuses import autopay_configured, process_prolific_bonus
 
 __all__ = [
@@ -27,4 +32,5 @@ __all__ = [
     "load_prolific_params",
     "prolific_params_complete",
     "process_prolific_bonus",
+    "reopen_unconfirmed_prolific_session",
 ]

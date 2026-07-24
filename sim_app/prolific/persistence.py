@@ -21,7 +21,21 @@ def find_prolific_session(prolific_pid, study_id):
 
 def has_completed_prolific_session(prolific_pid, study_id):
     row = find_prolific_session(prolific_pid, study_id)
-    return bool(row and row.get("status") == "completed")
+    # A completed status without a completion code is recoverable. This can
+    # happen when the final database write succeeds only partially or the
+    # browser is refreshed before the Prolific completion step finishes.
+    return bool(row and row.get("status") == "completed" and row.get("completion_code"))
+
+
+def reopen_unconfirmed_prolific_session(session_id):
+    client = _require_client()
+    row = {
+        "status": "in_progress",
+        "completed_at": None,
+        "updated_at": _utcnow(),
+    }
+    client.table("participant_sessions").update(row).eq("id", session_id).execute()
+    return row
 
 
 def bind_prolific_session(session_id, params, condition, account_key=None):
@@ -61,4 +75,5 @@ __all__ = [
     "find_prolific_session",
     "has_completed_prolific_session",
     "mark_prolific_completed",
+    "reopen_unconfirmed_prolific_session",
 ]
