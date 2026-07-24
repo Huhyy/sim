@@ -3,6 +3,7 @@
 from .identity import (
     PROLIFIC_QUERY_PARAMS,
     assign_prolific_condition,
+    clear_browser_prolific_params,
     configured_completion_code,
     completion_redirect_url,
     has_any_prolific_param,
@@ -16,6 +17,7 @@ __all__ = [
     "PROLIFIC_QUERY_PARAMS",
     "assign_prolific_condition",
     "autopay_configured",
+    "clear_browser_prolific_params",
     "configured_completion_code",
     "bind_prolific_session",
     "completion_redirect_url",

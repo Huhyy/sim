@@ -1,7 +1,8 @@
 """Prolific URL identity and deterministic condition assignment."""
 
 import hashlib
-from urllib.parse import quote_plus
+import json
+from urllib.parse import quote_plus, unquote
 
 import streamlit as st
 
@@ -11,17 +12,66 @@ from sim_app.session.query_params import get_query_param
 
 
 PROLIFIC_QUERY_PARAMS = ("PROLIFIC_PID", "STUDY_ID", "SESSION_ID")
+_PROLIFIC_COOKIE_PREFIX = "sim_prolific_"
 
 
 def load_prolific_params():
     stored = st.session_state.get("_prolific_params") or {}
+    cookies = _browser_cookie_params()
     params = {
-        name: _clean(get_query_param(name)) or _clean(stored.get(name))
+        name: _clean(get_query_param(name)) or _clean(stored.get(name)) or _clean(cookies.get(name))
         for name in PROLIFIC_QUERY_PARAMS
     }
     if any(params.values()):
         st.session_state._prolific_params = params
+        _remember_in_browser(params)
     return params
+
+
+def _browser_cookie_params():
+    try:
+        cookies = st.context.cookies
+    except Exception:
+        return {}
+    return {
+        name: unquote(cookies.get(f"{_PROLIFIC_COOKIE_PREFIX}{name}"))
+        for name in PROLIFIC_QUERY_PARAMS
+        if cookies.get(f"{_PROLIFIC_COOKIE_PREFIX}{name}")
+    }
+
+
+def _remember_in_browser(params):
+    values = {
+        name: str(params.get(name) or "")
+        for name in PROLIFIC_QUERY_PARAMS
+        if params.get(name)
+    }
+    if not values:
+        return
+    assignments = "".join(
+        "window.top.document.cookie = %s + encodeURIComponent(%s) + '; Path=/; Max-Age=1800; SameSite=Lax';"
+        % (json.dumps(f"{_PROLIFIC_COOKIE_PREFIX}{name}="), json.dumps(value))
+        for name, value in values.items()
+    )
+    try:
+        st.components.v1.html(
+            f"<script>try {{ {assignments} }} catch (e) {{}}</script>",
+            height=0,
+        )
+    except Exception:
+        pass
+
+
+def clear_browser_prolific_params():
+    assignments = "".join(
+        "window.top.document.cookie = %s + '=; Path=/; Max-Age=0; SameSite=Lax';"
+        % json.dumps(f"{_PROLIFIC_COOKIE_PREFIX}{name}")
+        for name in PROLIFIC_QUERY_PARAMS
+    )
+    try:
+        st.components.v1.html(f"<script>try {{ {assignments} }} catch (e) {{}}</script>", height=0)
+    except Exception:
+        pass
 
 
 def has_any_prolific_param(params=None):
