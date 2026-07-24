@@ -92,12 +92,6 @@ def finalize_participation(
             "current_page": "done",
             "completed_at": _utcnow(),
             "updated_at": _utcnow(),
-            "checkpoint": {
-                "page": "done",
-                "scenario_version": summary.get("scenario_version"),
-                "months_completed": summary.get("months_completed"),
-                "final_score": summary.get("final_score"),
-            },
             "demographics": _demographic_answers(answers),
             "participant_code": summary.get("participant_code"),
             "prolific_pid": summary.get("prolific_pid"),

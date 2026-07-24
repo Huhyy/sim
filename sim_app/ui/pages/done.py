@@ -8,8 +8,12 @@ def render_done_page(ctx):
     st = ctx.st
     t = ctx.t
     ctx.scroll_top_anchor()
-    st.session_state.final_score = ctx.compute_final_score()
-    breakdown = ctx.get_final_score_breakdown()
+    if st.session_state.get("submission_finalized") and st.session_state.get("final_score_breakdown"):
+        breakdown = st.session_state.final_score_breakdown
+        st.session_state.final_score = breakdown.get("final_score")
+    else:
+        st.session_state.final_score = ctx.compute_final_score()
+        breakdown = ctx.get_final_score_breakdown()
     st.session_state.answers["financial_summary"] = breakdown
 
     if not st.session_state.get("saved"):

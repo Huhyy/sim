@@ -6,6 +6,8 @@ def prolific_required_page_before(page, state, pre_sections=None, post_sections=
     post_sections = post_sections or []
     if not _state_get(state, "prolific_mode"):
         return None
+    if _state_get(state, "submission_finalized"):
+        return None
     if page in {"prolific_error", "prolific_return", "already_completed"}:
         return None
     answers = _state_get(state, "answers", {})

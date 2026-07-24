@@ -109,6 +109,8 @@ def hydrate_from_checkpoint(checkpoint):
         page = "simulation"
 
     st.session_state.page = page
+    st.session_state.submission_finalized = checkpoint.get("submission_finalized", False)
+    st.session_state.saved = checkpoint.get("submission_finalized", False)
     st.session_state.admin_return_page = checkpoint.get("admin_return_page")
     st.session_state.language = checkpoint.get("language", "en")
     st.session_state.month = int(checkpoint.get("month", 1))

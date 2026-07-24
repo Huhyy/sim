@@ -47,6 +47,24 @@ def load_session_checkpoint(session_id: str):
         checkpoint["score_frame"] = row["score_frame"]
     if row.get("monthly_score_feedback") and "monthly_score_feedback" not in checkpoint:
         checkpoint["monthly_score_feedback"] = row["monthly_score_feedback"]
+    if row.get("status") == "completed":
+        checkpoint["page"] = "done"
+        checkpoint["submission_finalized"] = True
+        summary_response = (
+            _require_client()
+            .table("session_summaries")
+            .select("*")
+            .eq("session_id", session_id)
+            .limit(1)
+            .execute()
+        )
+        summaries = getattr(summary_response, "data", None) or []
+        if summaries:
+            summary = summaries[0]
+            checkpoint["final_score"] = summary.get("final_score")
+            checkpoint["final_score_breakdown"] = summary
+            checkpoint["loan_balance"] = summary.get("remaining_credit", checkpoint.get("loan_balance", 7000.0))
+            checkpoint["overdraft_balance"] = summary.get("remaining_overdraft", checkpoint.get("overdraft_balance", 0.0))
 
     return checkpoint
 

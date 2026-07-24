@@ -70,16 +70,18 @@ def bootstrap_authenticated_session():
         if prolific_mode
         else None
     )
-    if prolific_mode and has_completed_prolific_session(prolific_params["PROLIFIC_PID"], prolific_params["STUDY_ID"]):
+    same_prolific_attempt = bool(
+        prolific_existing_session
+        and prolific_existing_session.get("prolific_session_id") == prolific_params["SESSION_ID"]
+    )
+    if (
+        prolific_mode
+        and prolific_existing_session
+        and prolific_existing_session.get("status") == "completed"
+        and not same_prolific_attempt
+    ):
         _prolific_access_error("prolific.error_already_completed")
         return
-    if (
-        prolific_existing_session
-        and prolific_existing_session.get("status") == "completed"
-        and not prolific_existing_session.get("completion_code")
-    ):
-        reopen_unconfirmed_prolific_session(prolific_existing_session["id"])
-        prolific_existing_session["status"] = "in_progress"
 
     if not REPEAT_SCENARIO_DEV_MODE and not prolific_mode and account_has_completed(account_key):
         defaults = runtime_defaults()
