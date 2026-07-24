@@ -32,6 +32,7 @@ def render_demographics_page(ctx):
     education_options = t("demographics.options.education")
     field_options = t("demographics.options.field")
     occupation_options = t("demographics.options.occupation")
+    income_options = t("demographics.options.income")
     frequency_options = t("demographics.options.frequency")
     credit_options = t("demographics.options.credit")
     familiarity_options = t("demographics.options.familiarity")
@@ -62,6 +63,9 @@ def render_demographics_page(ctx):
     st.markdown(f"**{t('demographics.occupation_title')}**")
     occupation = st.radio(t("demographics.occupation_prompt"), occupation_options, index=_radio_index(st, "demo_occupation", occupation_options), key="demo_occupation_input")
 
+    st.markdown(f"**{t('demographics.income_title')}**")
+    income = st.radio(t("demographics.income_prompt"), income_options, index=_radio_index(st, "demo_income", income_options), key="demo_income_input")
+
     st.markdown(f"**{t('demographics.financial_decisions_title')}**")
     financial_decisions = st.radio(t("demographics.financial_decisions_prompt"), frequency_options, index=_radio_index(st, "demo_financial_decisions", frequency_options), key="demo_financial_decisions_input")
 
@@ -88,6 +92,7 @@ def render_demographics_page(ctx):
             "demo_education": education,
             "demo_field": field,
             "demo_occupation": occupation,
+            "demo_income": income,
             "demo_financial_decisions": financial_decisions,
             "demo_credit_experience": credit_experience,
             "demo_financial_familiarity": financial_familiarity,

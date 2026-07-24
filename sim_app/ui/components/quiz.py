@@ -8,6 +8,7 @@ DEMOGRAPHIC_KEYS = [
     "demo_education",
     "demo_field",
     "demo_occupation",
+    "demo_income",
     "demo_financial_decisions",
     "demo_credit_experience",
     "demo_financial_familiarity",
