@@ -104,9 +104,11 @@ def assign_prolific_condition(prolific_pid, study_id):
 
 def completion_redirect_url(completion_code=None):
     template = _get_secret("PROLIFIC_COMPLETION_URL")
-    if not template:
-        return None
     code = completion_code or _get_secret("PROLIFIC_COMPLETION_CODE") or ""
+    if not template:
+        if not code:
+            return None
+        return f"https://app.prolific.com/submissions/complete?cc={quote_plus(code)}"
     if "{completion_code}" in template:
         return template.replace("{completion_code}", quote_plus(code))
     return template
