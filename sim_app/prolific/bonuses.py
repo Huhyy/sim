@@ -30,7 +30,7 @@ def pay_bonus_payment(payment_id):
 
 
 def process_prolific_bonus(client, session_id, summary):
-    """Claim, create, and pay one bonus; never retry an ambiguous payment."""
+    """Create one bonus for Prolific review without paying it automatically."""
     if not summary.get("prolific_pid") or not summary.get("prolific_study_id") or not summary.get("prolific_session_id"):
         return {"prolific_bonus_status": "not_applicable"}
     if not autopay_configured():
@@ -57,7 +57,6 @@ def process_prolific_bonus(client, session_id, summary):
         payment_id = created.get("id")
         if not payment_id:
             raise RuntimeError("Prolific did not return a bonus payment ID")
-        pay_bonus_payment(payment_id)
     except (HTTPError, URLError, RuntimeError, ValueError) as exc:
         error = str(exc)[:1000]
         client.table("session_summaries").update(
@@ -70,22 +69,20 @@ def process_prolific_bonus(client, session_id, summary):
         ).eq("session_id", session_id).execute()
         return {"prolific_bonus_status": "manual_review", "prolific_bonus_error": error}
 
-    paid_at = _utcnow()
+    created_at = _utcnow()
     client.table("session_summaries").update(
         {
-            "prolific_bonus_status": "paid",
-            "payment_status": "paid",
+            "prolific_bonus_status": "awaiting_approval",
+            "payment_status": "manual_review",
             "prolific_bonus_payment_id": payment_id,
-            "prolific_bonus_created_at": paid_at,
-            "prolific_bonus_paid_at": paid_at,
-            "updated_at": paid_at,
+            "prolific_bonus_created_at": created_at,
+            "updated_at": created_at,
         }
     ).eq("session_id", session_id).execute()
     return {
-        "prolific_bonus_status": "paid",
+        "prolific_bonus_status": "awaiting_approval",
         "prolific_bonus_payment_id": payment_id,
-        "prolific_bonus_created_at": paid_at,
-        "prolific_bonus_paid_at": paid_at,
+        "prolific_bonus_created_at": created_at,
     }
 
 
