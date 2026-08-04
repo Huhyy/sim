@@ -60,8 +60,17 @@ def current_account_key():
     if not pepper:
         raise RuntimeError("Set ACCOUNT_KEY_PEPPER in Streamlit secrets before enabling participant sessions.")
 
-    prolific_pid = st.session_state.get("prolific_pid") or get_query_param("PROLIFIC_PID")
-    prolific_study_id = st.session_state.get("prolific_study_id") or get_query_param("STUDY_ID")
+    stored_prolific_params = st.session_state.get("_prolific_params") or {}
+    prolific_pid = (
+        st.session_state.get("prolific_pid")
+        or get_query_param("PROLIFIC_PID")
+        or stored_prolific_params.get("PROLIFIC_PID")
+    )
+    prolific_study_id = (
+        st.session_state.get("prolific_study_id")
+        or get_query_param("STUDY_ID")
+        or stored_prolific_params.get("STUDY_ID")
+    )
     if prolific_pid and prolific_study_id:
         identity = f"prolific|{prolific_study_id}|{prolific_pid}".encode("utf-8")
         return hmac.new(str(pepper).encode("utf-8"), identity, hashlib.sha256).hexdigest()
