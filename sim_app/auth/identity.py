@@ -11,6 +11,8 @@ import os
 
 import streamlit as st
 
+from sim_app.session.query_params import get_query_param
+
 
 def _get_secret(name):
     try:
@@ -54,16 +56,21 @@ def current_user_email():
 
 
 def current_account_key():
+    pepper = _get_secret("ACCOUNT_KEY_PEPPER")
+    if not pepper:
+        raise RuntimeError("Set ACCOUNT_KEY_PEPPER in Streamlit secrets before enabling participant sessions.")
+
     if not is_logged_in():
-        return None
+        prolific_pid = st.session_state.get("prolific_pid") or get_query_param("PROLIFIC_PID")
+        prolific_study_id = st.session_state.get("prolific_study_id") or get_query_param("STUDY_ID")
+        if not prolific_pid or not prolific_study_id:
+            return None
+        identity = f"prolific|{prolific_study_id}|{prolific_pid}".encode("utf-8")
+        return hmac.new(str(pepper).encode("utf-8"), identity, hashlib.sha256).hexdigest()
 
     subject = st.user.get("sub")
     if not subject:
         raise RuntimeError("Google authentication did not return a stable subject identifier.")
-
-    pepper = _get_secret("ACCOUNT_KEY_PEPPER")
-    if not pepper:
-        raise RuntimeError("Set ACCOUNT_KEY_PEPPER in Streamlit secrets before enabling Google login.")
 
     issuer = st.user.get("iss", "google")
     identity = f"{issuer}|{subject}".encode("utf-8")

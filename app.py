@@ -946,7 +946,9 @@ if (
     st.error(t("prolific.error_invalid_study"))
     st.stop()
 
-if not is_logged_in():
+prolific_launch = PROLIFIC_MODE_ENABLED and prolific_params_complete(prolific_params_before_login)
+
+if not is_logged_in() and not prolific_launch:
     login_ctx = make_ui_context(st=st, t=t)
     render_language_selector_component(st, t, ensure_language, get_language, set_language)
     render_login_page_component(login_ctx)
@@ -975,19 +977,20 @@ def render_account_menu():
                 st.logout()
 
 
-render_account_menu_component(
-    make_ui_context(
-        st=st,
-        t=t,
-        ensure_language=ensure_language,
-        get_language=get_language,
-        set_language=set_language,
-        is_admin_user=is_admin_user,
-        goto=goto,
-        pre_sections_ro=PRE_SECTIONS_RO,
-        post_sections_ro=POST_SECTIONS_RO,
+if is_logged_in():
+    render_account_menu_component(
+        make_ui_context(
+            st=st,
+            t=t,
+            ensure_language=ensure_language,
+            get_language=get_language,
+            set_language=set_language,
+            is_admin_user=is_admin_user,
+            goto=goto,
+            pre_sections_ro=PRE_SECTIONS_RO,
+            post_sections_ro=POST_SECTIONS_RO,
+        )
     )
-)
 
 
 def normalize_study_session_code(value):
