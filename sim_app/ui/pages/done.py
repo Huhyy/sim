@@ -64,8 +64,8 @@ def render_done_page(ctx):
 """
     )
 
-    completion_code = st.session_state.get("prolific_completion_code") or configured_completion_code()
-    redirect_url = st.session_state.get("prolific_completion_url") or completion_redirect_url(completion_code)
+    completion_code = configured_completion_code() or st.session_state.get("prolific_completion_code")
+    redirect_url = completion_redirect_url(completion_code) or st.session_state.get("prolific_completion_url")
     prolific_session = bool(
         st.session_state.get("prolific_mode")
         or st.session_state.get("prolific_pid")
