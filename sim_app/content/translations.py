@@ -91,6 +91,7 @@ UI_TEXT = {
             "attention_missing": "Please answer the attention check before continuing.",
             "redirecting": "Your responses have been saved. Redirecting to Prolific...",
             "redirect_link": "Return to Prolific",
+            "completion_not_configured": "Linkul de finalizare Prolific nu este configurat. Te rugăm să contactezi cercetătorul înainte de a închide această pagină.",
         },
         "admin": {
             "title": "Panou administrator",
@@ -796,6 +797,7 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "attention_missing": "Please answer the attention check before continuing.",
             "redirecting": "Your responses have been saved. Redirecting to Prolific...",
             "redirect_link": "Return to Prolific",
+            "completion_not_configured": "The Prolific completion link is not configured. Please contact the researcher before closing this page.",
         },
         "admin": {
             "title": "Admin panel",

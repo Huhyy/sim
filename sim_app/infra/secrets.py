@@ -10,6 +10,12 @@ def _get_secret(name: str):
         value = st.secrets.get(name)
         if value:
             return value
+        for section_name in ("prolific", "auth"):
+            section = st.secrets.get(section_name)
+            if section:
+                value = section.get(name)
+                if value:
+                    return value
     except Exception:
         pass
     return os.getenv(name)

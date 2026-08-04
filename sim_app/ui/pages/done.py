@@ -1,6 +1,7 @@
 """Completion page."""
 
 from sim_app.prolific.identity import completion_redirect_url, configured_completion_code
+from sim_app.session.query_params import get_query_param
 from sim_app.ui.formatting import display_euro, display_number
 from sim_app.ui.pages.final_score import render_performance_bonus_summary
 
@@ -70,6 +71,7 @@ def render_done_page(ctx):
         st.session_state.get("prolific_mode")
         or st.session_state.get("prolific_pid")
         or breakdown.get("prolific_pid")
+        or get_query_param("PROLIFIC_PID")
     )
     if prolific_session and st.session_state.get("saved") and redirect_url:
         st.session_state.prolific_completion_code = completion_code
@@ -82,6 +84,8 @@ def render_done_page(ctx):
                 f'<meta http-equiv="refresh" content="1; url={redirect_url}">',
                 unsafe_allow_html=True,
             )
+    elif prolific_session and st.session_state.get("saved"):
+        st.error(t("prolific.completion_not_configured"))
 
 
 __all__ = [
