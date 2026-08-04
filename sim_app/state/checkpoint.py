@@ -6,6 +6,7 @@ from sim_app.config import SCENARIO_VERSION
 from sim_app.domain.loan import Loan
 from sim_app.domain.overdraft import Overdraft
 from sim_app.persistence.participant_sessions import save_session_checkpoint
+from sim_app.session.query_params import set_query_param
 from sim_app.state.defaults import runtime_defaults
 from sim_app.state.navigation import clear_payment_values, resolve_session_id
 
@@ -121,6 +122,14 @@ def hydrate_from_checkpoint(checkpoint):
     st.session_state.prolific_study_id = checkpoint.get("prolific_study_id")
     st.session_state.prolific_session_id = checkpoint.get("prolific_session_id")
     st.session_state.prolific_mode = checkpoint.get("prolific_mode", False)
+    if st.session_state.prolific_mode:
+        for parameter_name, parameter_value in {
+            "PROLIFIC_PID": st.session_state.prolific_pid,
+            "STUDY_ID": st.session_state.prolific_study_id,
+            "SESSION_ID": st.session_state.prolific_session_id,
+        }.items():
+            if parameter_value:
+                set_query_param(parameter_name, parameter_value)
     st.session_state.prolific_completion_url = checkpoint.get("prolific_completion_url")
     st.session_state.prolific_completion_code = checkpoint.get("prolific_completion_code")
     st.session_state.prolific_redirected = checkpoint.get("prolific_redirected", False)
