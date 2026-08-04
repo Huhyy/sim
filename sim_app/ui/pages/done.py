@@ -1,5 +1,7 @@
 """Completion page."""
 
+from html import escape
+
 from sim_app.prolific.identity import completion_redirect_url, configured_completion_code
 from sim_app.session.query_params import get_query_param
 from sim_app.ui.formatting import display_euro, display_number
@@ -77,7 +79,19 @@ def render_done_page(ctx):
         st.session_state.prolific_completion_code = completion_code
         st.session_state.prolific_completion_url = redirect_url
         st.success(t("prolific.redirecting"))
-        st.link_button(t("prolific.redirect_link"), redirect_url)
+        st.markdown(
+            f"""
+<a href="{escape(redirect_url, quote=True)}" target="_blank" rel="noopener noreferrer"
+   style="display:inline-block;padding:0.55rem 0.9rem;border:1px solid #d7cdb6;border-radius:0.45rem;
+          background:#fffaf0;color:#172b29;text-decoration:none;font-weight:600;">
+  {escape(t("prolific.redirect_link"))}
+</a>
+<p style="margin-top:0.75rem;color:#586564;font-size:0.9rem;">
+  {escape(t("prolific.completion_code_fallback"))} <strong>{escape(str(completion_code or ""))}</strong>
+</p>
+""",
+            unsafe_allow_html=True,
+        )
     elif prolific_session and st.session_state.get("saved"):
         st.error(t("prolific.completion_not_configured"))
 
