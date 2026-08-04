@@ -977,7 +977,7 @@ def render_account_menu():
                 st.logout()
 
 
-if is_logged_in():
+if is_logged_in() and not prolific_launch:
     render_account_menu_component(
         make_ui_context(
             st=st,
