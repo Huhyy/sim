@@ -1,5 +1,6 @@
 """Completion page."""
 
+from sim_app.prolific.identity import completion_redirect_url, configured_completion_code
 from sim_app.ui.formatting import display_euro, display_number
 from sim_app.ui.pages.final_score import render_performance_bonus_summary
 
@@ -63,8 +64,16 @@ def render_done_page(ctx):
 """
     )
 
-    redirect_url = st.session_state.get("prolific_completion_url")
-    if st.session_state.get("prolific_mode") and st.session_state.get("saved") and redirect_url:
+    completion_code = st.session_state.get("prolific_completion_code") or configured_completion_code()
+    redirect_url = st.session_state.get("prolific_completion_url") or completion_redirect_url(completion_code)
+    prolific_session = bool(
+        st.session_state.get("prolific_mode")
+        or st.session_state.get("prolific_pid")
+        or breakdown.get("prolific_pid")
+    )
+    if prolific_session and st.session_state.get("saved") and redirect_url:
+        st.session_state.prolific_completion_code = completion_code
+        st.session_state.prolific_completion_url = redirect_url
         st.success(t("prolific.redirecting"))
         st.link_button(t("prolific.redirect_link"), redirect_url)
         if not st.session_state.get("prolific_redirected"):
