@@ -78,12 +78,6 @@ def render_done_page(ctx):
         st.session_state.prolific_completion_url = redirect_url
         st.success(t("prolific.redirecting"))
         st.link_button(t("prolific.redirect_link"), redirect_url)
-        if not st.session_state.get("prolific_redirected"):
-            st.session_state.prolific_redirected = True
-            st.markdown(
-                f'<meta http-equiv="refresh" content="1; url={redirect_url}">',
-                unsafe_allow_html=True,
-            )
     elif prolific_session and st.session_state.get("saved"):
         st.error(t("prolific.completion_not_configured"))
 
