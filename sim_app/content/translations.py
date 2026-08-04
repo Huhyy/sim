@@ -92,6 +92,9 @@ UI_TEXT = {
             "redirecting": "Răspunsurile tale au fost salvate. Apasă butonul de mai jos pentru a reveni la Prolific.",
             "redirect_link": "Return to Prolific",
             "completion_code_fallback": "Dacă linkul nu se deschide, introdu manual în Prolific codul de finalizare:",
+            "completion_ready": "Răspunsurile tale au fost salvate. Copiază codul de finalizare sau deschide manual linkul Prolific de mai jos.",
+            "completion_code_label": "Cod de finalizare Prolific",
+            "completion_link_label": "Link de finalizare Prolific",
             "completion_not_configured": "Linkul de finalizare Prolific nu este configurat. Te rugăm să contactezi cercetătorul înainte de a închide această pagină.",
         },
         "admin": {
@@ -799,6 +802,9 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "redirecting": "Your responses have been saved. Use the button below to return to Prolific.",
             "redirect_link": "Return to Prolific",
             "completion_code_fallback": "If the link does not open, enter this completion code manually in Prolific:",
+            "completion_ready": "Your responses have been saved. Copy the completion code or manually open the Prolific link below.",
+            "completion_code_label": "Prolific completion code",
+            "completion_link_label": "Prolific completion link",
             "completion_not_configured": "The Prolific completion link is not configured. Please contact the researcher before closing this page.",
         },
         "admin": {

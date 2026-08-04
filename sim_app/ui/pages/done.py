@@ -78,17 +78,15 @@ def render_done_page(ctx):
     if prolific_session and st.session_state.get("saved") and redirect_url:
         st.session_state.prolific_completion_code = completion_code
         st.session_state.prolific_completion_url = redirect_url
-        st.success(t("prolific.redirecting"))
+        st.success(t("prolific.completion_ready"))
+        st.markdown(f"**{t('prolific.completion_code_label')}**")
+        st.code(str(completion_code or ""), language=None)
+        st.markdown(f"**{t('prolific.completion_link_label')}**")
         st.markdown(
             f"""
-<a href="{escape(redirect_url, quote=True)}" target="_blank" rel="noopener noreferrer"
-   style="display:inline-block;padding:0.55rem 0.9rem;border:1px solid #d7cdb6;border-radius:0.45rem;
-          background:#fffaf0;color:#172b29;text-decoration:none;font-weight:600;">
-  {escape(t("prolific.redirect_link"))}
+<a href="{escape(redirect_url, quote=True)}" target="_blank" rel="noopener noreferrer">
+  {escape(redirect_url)}
 </a>
-<p style="margin-top:0.75rem;color:#586564;font-size:0.9rem;">
-  {escape(t("prolific.completion_code_fallback"))} <strong>{escape(str(completion_code or ""))}</strong>
-</p>
 """,
             unsafe_allow_html=True,
         )
