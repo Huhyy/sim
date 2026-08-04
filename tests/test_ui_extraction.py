@@ -76,6 +76,7 @@ def test_quiz_helpers_with_plain_answers():
         "demo_living_situation": "x",
         "demo_recurring_responsibilities": "x",
         "demo_country": "x",
+        "demo_income": "x",
     }
     assert demographics_complete(complete_answers)
     assert not demographics_complete({**complete_answers, "demo_country": ""})
@@ -140,6 +141,7 @@ def test_admin_participant_progress_helpers():
         "performance_bonus_gbp": 3,
         "total_payout_gbp": 8,
         "payment_status": "unpaid",
+        "prolific_bonus_status": "not_applicable",
     }
     assert participant_payout_summary(
         {
@@ -156,6 +158,7 @@ def test_admin_participant_progress_helpers():
         "performance_bonus_gbp": 2,
         "total_payout_gbp": 7,
         "payment_status": "unpaid",
+        "prolific_bonus_status": "not_applicable",
     }
 
 

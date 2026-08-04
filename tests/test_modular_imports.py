@@ -134,6 +134,7 @@ def test_prolific_flow_guard_requires_prior_steps():
             "demo_living_situation": "x",
             "demo_recurring_responsibilities": "x",
             "demo_country": "x",
+            "demo_income": "x",
         }
     )
     assert prolific_required_page_before("profile", state, pre_sections=pre_sections, post_sections=post_sections) == "pre_question_0"
