@@ -9,6 +9,8 @@ from sim_app.infra.time import _utcnow
 
 
 PROLIFIC_API_BASE = "https://api.prolific.com/api/v1"
+PROLIFIC_INTEGRATION_URL = "https://scenariucredit.streamlit.app/"
+PROLIFIC_USER_AGENT = "ScenariuCredit/1.0 (Prolific API integration)"
 
 
 def autopay_configured():
@@ -142,7 +144,10 @@ def _request(method, path, payload):
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Authorization": f"Token {token}",
+            "Accept": "application/json",
             "Content-Type": "application/json",
+            "Referer": PROLIFIC_INTEGRATION_URL,
+            "User-Agent": PROLIFIC_USER_AGENT,
         },
         method=method,
     )
