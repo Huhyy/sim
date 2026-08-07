@@ -20,6 +20,17 @@ def test_persistence_modules_expose_database_functions():
     assert callable(save_session_checkpoint)
 
 
+def test_completion_code_conflict_detection_is_narrow():
+    from sim_app.persistence.participation import _is_completion_code_unique_conflict
+
+    matching_error = RuntimeError(
+        "{'code': '23505', 'message': 'duplicate key value violates unique constraint "
+        "participant_sessions_completion_code_key'}"
+    )
+    assert _is_completion_code_unique_conflict(matching_error) is True
+    assert _is_completion_code_unique_conflict(RuntimeError("other database failure")) is False
+
+
 def test_session_and_state_modules_expose_state_functions():
     from sim_app.session import bootstrap_authenticated_session, finalize_participant, start_new_scenario
     from sim_app.state import collect_checkpoint, hydrate_from_checkpoint, runtime_defaults

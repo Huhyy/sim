@@ -50,6 +50,11 @@ def _repair_missing_resume_link(client, account_key: str, session_id: str):
     return True
 
 
+def _is_completion_code_unique_conflict(error):
+    message = str(error)
+    return "23505" in message and "participant_sessions_completion_code_key" in message
+
+
 def finalize_participation(
     account_key: str,
     session_id: str,
@@ -86,25 +91,32 @@ def finalize_participation(
     save_month_results(session_id, monthly_results or [], bonus_max_session=bonus_max_session, metadata=metadata)
     response = save_session_summary(session_id, summary, feedback=feedback)
 
-    client.table("participant_sessions").update(
-        {
-            "status": "completed",
-            "current_page": "done",
-            "completed_at": _utcnow(),
-            "updated_at": _utcnow(),
-            "demographics": _demographic_answers(answers),
-            "participant_code": summary.get("participant_code"),
-            "prolific_pid": summary.get("prolific_pid"),
-            "prolific_study_id": summary.get("prolific_study_id"),
-            "prolific_session_id": summary.get("prolific_session_id"),
-            "prolific_finished_at": _utcnow() if summary.get("prolific_pid") else None,
-            "prolific_completion_redirected_at": _utcnow() if summary.get("prolific_pid") else None,
-            "completion_code": summary.get("completion_code"),
-            "experimental_condition": summary.get("experimental_condition"),
-            "score_frame": summary.get("score_frame"),
-            "monthly_score_feedback": summary.get("monthly_score_feedback"),
-        }
-    ).eq("id", session_id).execute()
+    participant_row = {
+        "status": "completed",
+        "current_page": "done",
+        "completed_at": _utcnow(),
+        "updated_at": _utcnow(),
+        "demographics": _demographic_answers(answers),
+        "participant_code": summary.get("participant_code"),
+        "prolific_pid": summary.get("prolific_pid"),
+        "prolific_study_id": summary.get("prolific_study_id"),
+        "prolific_session_id": summary.get("prolific_session_id"),
+        "prolific_finished_at": _utcnow() if summary.get("prolific_pid") else None,
+        "prolific_completion_redirected_at": _utcnow() if summary.get("prolific_pid") else None,
+        "completion_code": summary.get("completion_code"),
+        "experimental_condition": summary.get("experimental_condition"),
+        "score_frame": summary.get("score_frame"),
+        "monthly_score_feedback": summary.get("monthly_score_feedback"),
+    }
+    try:
+        client.table("participant_sessions").update(participant_row).eq("id", session_id).execute()
+    except Exception as error:
+        if not participant_row.get("completion_code") or not _is_completion_code_unique_conflict(error):
+            raise
+        # Compatibility for databases that have not run the shared-code migration yet.
+        # The canonical Prolific code remains unchanged in session_summaries and the UI.
+        participant_row["completion_code"] = f"{participant_row['completion_code']}:{session_id}"
+        client.table("participant_sessions").update(participant_row).eq("id", session_id).execute()
 
     client.table("completed_accounts").upsert(
         {
@@ -124,5 +136,6 @@ __all__ = [
     "_active_resume_link_exists",
     "_repair_missing_resume_link",
     "_session_exists_for_finalization",
+    "_is_completion_code_unique_conflict",
     "finalize_participation",
 ]

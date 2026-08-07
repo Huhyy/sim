@@ -46,7 +46,9 @@ ALTER TABLE participant_sessions
 ALTER TABLE participant_sessions
   ADD COLUMN IF NOT EXISTS prolific_completion_redirected_at TIMESTAMPTZ;
 ALTER TABLE participant_sessions
-  ADD COLUMN IF NOT EXISTS completion_code TEXT UNIQUE;
+  ADD COLUMN IF NOT EXISTS completion_code TEXT;
+ALTER TABLE participant_sessions
+  DROP CONSTRAINT IF EXISTS participant_sessions_completion_code_key;
 ALTER TABLE participant_sessions
   ADD COLUMN IF NOT EXISTS duplicate_entry BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE participant_sessions
