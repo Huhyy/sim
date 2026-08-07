@@ -58,12 +58,17 @@ def score_frame(value=None):
 
 def performance_bonus(final_score):
     score = float(final_score or 0.0)
-    if score <= 80:
+    if score < 75:
+        return {
+            "performance_bonus_gbp": 0,
+            "loss_amount_gbp": 3,
+        }
+    if score < 80:
         return {
             "performance_bonus_gbp": 1,
             "loss_amount_gbp": 2,
         }
-    if score < 95:
+    if score < 90:
         return {
             "performance_bonus_gbp": 2,
             "loss_amount_gbp": 1,

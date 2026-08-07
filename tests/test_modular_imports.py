@@ -68,9 +68,12 @@ def test_domain_modules_expose_models():
         "score_frame": "loss_frame",
         "monthly_score_feedback": "hidden",
     }
-    assert performance_bonus(80) == {"performance_bonus_gbp": 1, "loss_amount_gbp": 2}
-    assert performance_bonus(94.99) == {"performance_bonus_gbp": 2, "loss_amount_gbp": 1}
-    assert performance_bonus(95) == {"performance_bonus_gbp": 3, "loss_amount_gbp": 0}
+    assert performance_bonus(74.99) == {"performance_bonus_gbp": 0, "loss_amount_gbp": 3}
+    assert performance_bonus(75) == {"performance_bonus_gbp": 1, "loss_amount_gbp": 2}
+    assert performance_bonus(79.99) == {"performance_bonus_gbp": 1, "loss_amount_gbp": 2}
+    assert performance_bonus(80) == {"performance_bonus_gbp": 2, "loss_amount_gbp": 1}
+    assert performance_bonus(89.99) == {"performance_bonus_gbp": 2, "loss_amount_gbp": 1}
+    assert performance_bonus(90) == {"performance_bonus_gbp": 3, "loss_amount_gbp": 0}
 
 
 def test_prolific_helpers_are_deterministic(monkeypatch):

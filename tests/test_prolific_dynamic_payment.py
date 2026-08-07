@@ -4,6 +4,7 @@ from sim_app.prolific.bonuses import complete_with_dynamic_payment, dynamic_rewa
 
 
 def test_dynamic_reward_percentage_includes_base_reward_and_bonus():
+    assert dynamic_reward_percentage(5, 0) == 100
     assert dynamic_reward_percentage(5, 1) == 120
     assert dynamic_reward_percentage(5, 2) == 140
     assert dynamic_reward_percentage(5, 3) == 160
