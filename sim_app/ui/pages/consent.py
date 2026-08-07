@@ -9,13 +9,13 @@ def render_consent_page(ctx):
     ctx.scroll_top_anchor()
     apply_css(st, CONSENT_CSS)
 
-    st.markdown('<div class="consent-page">', unsafe_allow_html=True)
-    st.markdown(t("consent.markdown"))
-    st.markdown('</div>', unsafe_allow_html=True)
     if st.session_state.get("score_frame") == "loss_frame":
         st.info(t("home.loss_frame_notice"))
     else:
         st.info(t("home.gain_frame_notice"))
+    st.markdown('<div class="consent-page">', unsafe_allow_html=True)
+    st.markdown(t("consent.markdown"))
+    st.markdown('</div>', unsafe_allow_html=True)
 
     consent_items = t("consent.items")
     consent_values = [
