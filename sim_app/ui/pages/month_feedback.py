@@ -47,7 +47,12 @@ def render_month_feedback_page(ctx):
     else:
         st.warning(result["feedback_message"])
 
-    if st.button(t("simulation.continue_month_button"), type="primary"):
+    continue_label = (
+        t("simulation.continue_next_page_button")
+        if int(result.get("month", 0)) >= 24
+        else t("simulation.continue_month_button")
+    )
+    if st.button(continue_label, type="primary"):
         st.session_state.loan.balance = result["credit_final"]
         st.session_state.overdraft.balance = result["overdraft_final"]
         st.session_state.total_score += result["monthly_score"]
