@@ -172,8 +172,8 @@ parcurgi o serie de experimente realiste de creditare, în care va trebui să fo
 Scopul este de a înțelege cum interacționează stările afective și profilul psihologic cu
 procesul decizional în situații economice riscante.""",
             "info": "Chestionarele sunt validate științific și nu conțin răspunsuri «corecte» sau «greșite». Răspunde cât mai sincer, alegând opțiunea care reflectă cel mai bine cum ești tu în general.",
-            "gain_frame_notice": "În funcție de scorul comportamental final, poți câștiga până la 3 GBP.",
-            "loss_frame_notice": "În funcție de scorul comportamental final, poți pierde până la 3 GBP.",
+            "gain_frame_notice": "La începutul experimentului, bonusul tău de performanță pornește de la 0 GBP. În funcție de deciziile tale și de scorul comportamental final, bonusul tău de performanță poate ajunge până la 3 GBP.",
+            "loss_frame_notice": "La începutul experimentului, bonusul tău provizoriu de performanță pornește de la 3 GBP. În funcție de deciziile tale și de scorul comportamental final, poți pierde până la 3 GBP din bonusul tău de performanță.",
             "note": "Răspunsurile tale vor fi analizate **în mod anonim** și vor ajuta la înțelegerea legăturii dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții incerte sau stresante.",
             "button": "Începe experimentul →",
         },
@@ -883,8 +883,8 @@ and take decisions involving money, time, and responsibility.
 The goal is to understand how affective states and psychological profile interact with
 decision-making in risky economic situations.""",
             "info": "The questionnaires are scientifically validated and do not contain “correct” or “incorrect” answers. Answer as honestly as possible, choosing the option that best reflects how you are in general.",
-            "gain_frame_notice": "Depending on your final behavioral score, you may earn up to 3 GBP.",
-            "loss_frame_notice": "Depending on your final behavioral score, you may lose up to 3 GBP.",
+            "gain_frame_notice": "At the beginning of the experiment, your performance bonus starts from 0 GBP. Depending on your decisions and final behavioural score your performance bonus may be up to 3 GBP.",
+            "loss_frame_notice": "At the beginning of the experiment, your provisional performance bonus starts from 3 GBP. Depending on your decisions and final behavioural score you may lose up to 3 GBP from your performance bonus.",
             "note": "Your responses will be analyzed **anonymously** and will help us understand the link between individual traits and how people make financial decisions under uncertain or stressful conditions.",
             "button": "Start the experiment →",
         },
