@@ -172,8 +172,8 @@ parcurgi o serie de experimente realiste de creditare, în care va trebui să fo
 Scopul este de a înțelege cum interacționează stările afective și profilul psihologic cu
 procesul decizional în situații economice riscante.""",
             "info": "Chestionarele sunt validate științific și nu conțin răspunsuri «corecte» sau «greșite». Răspunde cât mai sincer, alegând opțiunea care reflectă cel mai bine cum ești tu în general.",
-            "gain_frame_notice": "La începutul experimentului, bonusul tău de performanță pornește de la 0 GBP. În funcție de deciziile tale și de scorul comportamental final, bonusul tău de performanță poate fi de până la 3 GBP.",
-            "loss_frame_notice": "La începutul experimentului, ți se alocă provizoriu un bonus maxim de performanță de 3 GBP. În funcție de deciziile tale și de scorul comportamental final, o parte din acest bonus poate fi pierdută.",
+            "gain_frame_notice": "Începi experimentul cu un bonus de performanță de 0 GBP. În funcție de deciziile tale și de scorul comportamental final, poți câștiga până la 3 GBP, ajungând la un bonus final de performanță între 1 și 3 GBP.",
+            "loss_frame_notice": "Începi experimentul cu un bonus maxim provizoriu de performanță de 3 GBP. În funcție de deciziile tale și de scorul comportamental final, poți pierde până la 2 GBP, ajungând la un bonus final de performanță între 1 și 3 GBP.",
             "note": "Răspunsurile tale vor fi analizate **în mod anonim** și vor ajuta la înțelegerea legăturii dintre trăsăturile individuale și modul în care oamenii iau decizii financiare în condiții incerte sau stresante.",
             "button": "Începe experimentul →",
         },
@@ -882,8 +882,8 @@ and take decisions involving money, time, and responsibility.
 The goal is to understand how affective states and psychological profile interact with
 decision-making in risky economic situations.""",
             "info": "The questionnaires are scientifically validated and do not contain “correct” or “incorrect” answers. Answer as honestly as possible, choosing the option that best reflects how you are in general.",
-            "gain_frame_notice": "At the beginning of the experiment, your performance bonus starts from 0 GBP. Depending on your decisions and final behavioral score, your performance bonus may be up to 3 GBP.",
-            "loss_frame_notice": "At the beginning of the experiment, you are provisionally allocated a maximum performance bonus of 3 GBP. Depending on your decisions and final behavioral score, part of this bonus may be lost.",
+            "gain_frame_notice": "You start the experiment with a performance bonus of 0 GBP. Depending on your decisions and final behavioral score, you can gain up to 3 GBP, resulting in a final performance bonus between 1 and 3 GBP.",
+            "loss_frame_notice": "You start the experiment with a provisional maximum performance bonus of 3 GBP. Depending on your decisions and final behavioral score, you can lose up to 2 GBP, resulting in a final performance bonus between 1 and 3 GBP.",
             "note": "Your responses will be analyzed **anonymously** and will help us understand the link between individual traits and how people make financial decisions under uncertain or stressful conditions.",
             "button": "Start the experiment →",
         },
