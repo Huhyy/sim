@@ -2,7 +2,8 @@
 
 import re
 
-from sim_app.domain.experimental_conditions import condition_from_record
+from sim_app.application.commands import assign_study_session, clear_study_session_assignment
+from sim_app.session.streamlit_state import read_participant_state
 
 
 def normalize_study_session_code(value):
@@ -53,25 +54,15 @@ def render_enter_session_code_page(ctx):
         if not record:
             st.error(t("study_session.invalid"))
             st.stop()
-        st.session_state.study_session_id = record["id"]
-        st.session_state.study_session_code = record["session_code"]
-        st.session_state.participant_code = participant_code
-        condition = condition_from_record(record)
-        st.session_state.experimental_condition = condition["experimental_condition"]
-        st.session_state.score_frame = condition["score_frame"]
-        st.session_state.monthly_score_feedback = condition["monthly_score_feedback"]
-        st.session_state.scroll_to_top = True
-        ctx.goto("home")
+        command = assign_study_session(
+            read_participant_state(st.session_state),
+            record,
+            participant_code,
+        )
+        ctx.commit_command(command, operation="treatment:bind_admin")
     if st.button(t("study_session.skip_button"), type="secondary"):
-        st.session_state.study_session_id = None
-        st.session_state.study_session_code = None
-        st.session_state.participant_code = None
-        condition = condition_from_record()
-        st.session_state.experimental_condition = condition["experimental_condition"]
-        st.session_state.score_frame = condition["score_frame"]
-        st.session_state.monthly_score_feedback = condition["monthly_score_feedback"]
-        st.session_state.scroll_to_top = True
-        ctx.goto("home")
+        command = clear_study_session_assignment(read_participant_state(st.session_state))
+        ctx.commit_command(command, operation="treatment:bind_default")
 
 
 __all__ = [

@@ -1,23 +1,29 @@
-"""Secret lookup helpers."""
+"""Framework-neutral secret lookup with an injectable host adapter."""
 
 import os
+from threading import RLock
 
-import streamlit as st
+
+_provider = None
+_provider_lock = RLock()
+
+
+def configure_secret_provider(provider):
+    global _provider
+    with _provider_lock:
+        _provider = provider
 
 
 def _get_secret(name: str):
-    try:
-        value = st.secrets.get(name)
-        if value:
-            return value
-        for section_name in ("prolific", "auth"):
-            section = st.secrets.get(section_name)
-            if section:
-                value = section.get(name)
-                if value:
-                    return value
-    except Exception:
-        pass
+    with _provider_lock:
+        provider = _provider
+    if provider is not None:
+        try:
+            value = provider(name)
+            if value is not None and value != "":
+                return value
+        except Exception:
+            pass
     return os.getenv(name)
 
 
@@ -32,4 +38,5 @@ def _first_secret(*names):
 __all__ = [
     "_first_secret",
     "_get_secret",
+    "configure_secret_provider",
 ]

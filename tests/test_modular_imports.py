@@ -1,34 +1,17 @@
 def test_persistence_modules_expose_database_functions():
     from sim_app.persistence import (
+        SupabaseExperimentRepository,
         account_has_completed,
-        finalize_participation,
         load_linked_session_id,
         list_participant_sessions_for_study_session,
         load_session_checkpoint,
-        save_month_result,
-        save_resume_link,
-        save_session_checkpoint,
     )
 
     assert callable(account_has_completed)
-    assert callable(finalize_participation)
+    assert callable(SupabaseExperimentRepository)
     assert callable(load_linked_session_id)
     assert callable(list_participant_sessions_for_study_session)
     assert callable(load_session_checkpoint)
-    assert callable(save_month_result)
-    assert callable(save_resume_link)
-    assert callable(save_session_checkpoint)
-
-
-def test_completion_code_conflict_detection_is_narrow():
-    from sim_app.persistence.participation import _is_completion_code_unique_conflict
-
-    matching_error = RuntimeError(
-        "{'code': '23505', 'message': 'duplicate key value violates unique constraint "
-        "participant_sessions_completion_code_key'}"
-    )
-    assert _is_completion_code_unique_conflict(matching_error) is True
-    assert _is_completion_code_unique_conflict(RuntimeError("other database failure")) is False
 
 
 def test_session_and_state_modules_expose_state_functions():
@@ -124,7 +107,7 @@ def test_prolific_params_survive_query_string_loss(monkeypatch):
 
 
 def test_prolific_flow_guard_requires_prior_steps():
-    from sim_app.prolific.flow import prolific_required_page_before
+    from sim_app.application.progression import required_page_before
 
     pre_sections = [{"key_prefix": "dopa", "questions": ["a", "b"]}]
     post_sections = [{"key_prefix": "post", "questions": ["a"]}]
@@ -133,7 +116,7 @@ def test_prolific_flow_guard_requires_prior_steps():
         "answers": {"consent_agreed": "1 - Da", "anti_ai_declaration": True},
     }
 
-    assert prolific_required_page_before("profile", state, pre_sections=pre_sections, post_sections=post_sections) == "demographics"
+    assert required_page_before("profile", state, pre_sections=pre_sections, post_sections=post_sections) == "demographics"
 
     state["answers"].update(
         {
@@ -151,13 +134,13 @@ def test_prolific_flow_guard_requires_prior_steps():
             "demo_income": "x",
         }
     )
-    assert prolific_required_page_before("profile", state, pre_sections=pre_sections, post_sections=post_sections) == "pre_question_0"
+    assert required_page_before("profile", state, pre_sections=pre_sections, post_sections=post_sections) == "pre_question_0"
 
     state["answers"].update({"dopa_0": "x", "dopa_1": "x"})
-    assert prolific_required_page_before("profile", state, pre_sections=pre_sections, post_sections=post_sections) == "instructions"
+    assert required_page_before("profile", state, pre_sections=pre_sections, post_sections=post_sections) == "instructions"
 
     state["comprehension_passed"] = True
-    assert prolific_required_page_before("final_score", state, pre_sections=pre_sections, post_sections=post_sections) == "simulation"
+    assert required_page_before("final_score", state, pre_sections=pre_sections, post_sections=post_sections) == "simulation"
 
 
 def test_persistence_mappers_shape_rows(monkeypatch):

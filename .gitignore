@@ -1,4 +1,8 @@
 .streamlit/secrets.toml
+.env
+.env.*
+!.env.example
+!.env.integration.example
 __pycache__/
 *.pyc
 *.pyo

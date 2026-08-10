@@ -1,6 +1,8 @@
 """Prolific-specific pages."""
 
+from sim_app.application.commands import begin_comprehension_attempt, complete_comprehension_attempt
 from sim_app.infra.time import _utcnow
+from sim_app.session.streamlit_state import read_participant_state
 
 
 COMPREHENSION_QUESTIONS = [
@@ -57,20 +59,21 @@ def render_comprehension_page(ctx):
             st.warning(t("prolific.comprehension_missing"))
             st.stop()
 
-        attempts = int(st.session_state.get("comprehension_attempts") or 0) + 1
-        st.session_state.comprehension_attempts = attempts
+        participant_state = begin_comprehension_attempt(read_participant_state(st.session_state))
+        attempts = participant_state.comprehension_attempts
         passed = _responses_pass(t, responses)
-        _record_comprehension_checks(ctx, responses, attempts, passed)
-
-        if passed:
-            st.session_state.comprehension_passed = True
-            st.session_state.answers["comprehension_passed"] = True
-            st.session_state.answers["comprehension_passed_at"] = _utcnow()
-            ctx.goto("profile")
-        elif attempts >= 2:
-            st.session_state.comprehension_passed = False
-            ctx.goto("prolific_return")
-        else:
+        command = complete_comprehension_attempt(
+            participant_state,
+            passed=passed,
+            passed_at=_utcnow() if passed else None,
+        )
+        ctx.commit_quality_state(
+            command.state,
+            _comprehension_events(responses, attempts, passed),
+            operation=f"quality:comprehension_attempt:{attempts}:{passed}",
+            rerun=bool(command.next_page),
+        )
+        if not command.next_page:
             st.warning(t("prolific.comprehension_retry"))
 
 
@@ -82,18 +85,19 @@ def _responses_pass(t, responses):
     return True
 
 
-def _record_comprehension_checks(ctx, responses, attempt, passed):
-    if not hasattr(ctx, "save_quality_check"):
-        return
-    for question in COMPREHENSION_QUESTIONS:
-        ctx.save_quality_check(
-            check_type="comprehension",
-            check_id=question["id"],
-            attempt_number=attempt,
-            passed=passed and str(responses.get(question["id"]) or "").startswith(question["correct"]),
-            response_value=responses.get(question["id"]),
-            page_id="comprehension",
-        )
+def _comprehension_events(responses, attempt, passed):
+    return [
+        {
+            "check_type": "comprehension",
+            "check_id": question["id"],
+            "attempt_number": attempt,
+            "passed": passed and str(responses.get(question["id"]) or "").startswith(question["correct"]),
+            "response_value": responses.get(question["id"]),
+            "response_time_ms": None,
+            "page_id": "comprehension",
+        }
+        for question in COMPREHENSION_QUESTIONS
+    ]
 
 
 __all__ = [

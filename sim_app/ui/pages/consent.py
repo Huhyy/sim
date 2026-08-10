@@ -1,5 +1,7 @@
 """Consent pages."""
 
+from sim_app.application.commands import accept_consent, decline_consent, go_to_page
+from sim_app.session.streamlit_state import read_participant_state
 from sim_app.ui.styles import CONSENT_CSS, apply_css
 
 
@@ -51,16 +53,15 @@ def render_consent_page(ctx):
         if not consent_complete or not anti_ai_value:
             st.warning(t("consent.warning"))
             st.stop()
-        st.session_state.answers["consent_agreed"] = "1 - Da"
-        if st.session_state.get("prolific_mode"):
-            st.session_state.answers["anti_ai_declaration"] = True
-        st.session_state.scroll_to_top = True
-        ctx.goto("demographics")
+        command = accept_consent(
+            read_participant_state(st.session_state),
+            anti_ai_declaration=anti_ai_value,
+        )
+        ctx.commit_command(command, operation="consent:accept")
 
     if decline_clicked:
-        st.session_state.answers["consent_agreed"] = "0 - Nu"
-        st.session_state.scroll_to_top = True
-        ctx.goto("consent_declined")
+        command = decline_consent(read_participant_state(st.session_state))
+        ctx.commit_command(command, operation="consent:decline")
 
 
 def render_consent_declined_page(ctx):
@@ -70,8 +71,8 @@ def render_consent_declined_page(ctx):
     st.title(t("consent_declined.title"))
     st.markdown(t("consent_declined.body"))
     if st.button(t("consent_declined.button"), type="primary"):
-        st.session_state.scroll_to_top = True
-        ctx.goto("consent")
+        command = go_to_page(read_participant_state(st.session_state), "consent")
+        ctx.commit_command(command, operation="consent:return")
 
 
 __all__ = [

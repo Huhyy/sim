@@ -18,8 +18,7 @@ def get_opening_balance(month, data, monthly_results=None):
     return money(data["position"].get("initial", 0.0))
 
 
-def compute_month_result(month, data, loan, overdraft, payment, monthly_results=None, translate=None):
-    t = translate or (lambda key: key)
+def compute_month_preview(month, data, loan, overdraft, monthly_results=None):
     income_total = month_sum(data["income"])
     expenses_total = month_sum(data["expenses"])
     obligations = data.get("obligations", {})
@@ -37,9 +36,48 @@ def compute_month_result(month, data, loan, overdraft, payment, monthly_results=
     overdraft_after_charges = money(overdraft.balance + deficit_before_credit)
     overdraft_remaining = money(max(0.0, overdraft.limit - min(overdraft_after_charges, overdraft.limit)))
     max_payment = money(liquidity_after_charges + overdraft_remaining)
+    return {
+        "income_total": income_total,
+        "expenses_total": expenses_total,
+        "loan_balance_before_payment": loan_balance_before_payment,
+        "loan_obligation": loan_obligation,
+        "no_loan_due": loan_balance_before_payment <= 0 and loan_obligation <= 0,
+        "credit_interest": credit_interest,
+        "overdraft_interest": overdraft_interest,
+        "penalties": penalties,
+        "opening_balance": opening_balance,
+        "available_total": available_total,
+        "outflows_before_credit": outflows_before_credit,
+        "deficit_before_credit": deficit_before_credit,
+        "liquidity_after_charges": liquidity_after_charges,
+        "overdraft_after_charges": overdraft_after_charges,
+        "overdraft_remaining": overdraft_remaining,
+        "max_payment": max_payment,
+        "blocked": overdraft_after_charges > overdraft.limit,
+    }
 
-    pre_credit_impossible = overdraft_after_charges > overdraft.limit
-    no_loan_due = loan_balance_before_payment <= 0 and loan_obligation <= 0
+
+def compute_month_result(month, data, loan, overdraft, payment, monthly_results=None, translate=None):
+    t = translate or (lambda key: key)
+    preview = compute_month_preview(month, data, loan, overdraft, monthly_results=monthly_results)
+    income_total = preview["income_total"]
+    expenses_total = preview["expenses_total"]
+    loan_balance_before_payment = preview["loan_balance_before_payment"]
+    loan_obligation = preview["loan_obligation"]
+    credit_interest = preview["credit_interest"]
+    overdraft_interest = preview["overdraft_interest"]
+    penalties = preview["penalties"]
+    opening_balance = preview["opening_balance"]
+    available_total = preview["available_total"]
+    outflows_before_credit = preview["outflows_before_credit"]
+    deficit_before_credit = preview["deficit_before_credit"]
+    liquidity_after_charges = preview["liquidity_after_charges"]
+    overdraft_after_charges = preview["overdraft_after_charges"]
+    overdraft_remaining = preview["overdraft_remaining"]
+    max_payment = preview["max_payment"]
+
+    pre_credit_impossible = preview["blocked"]
+    no_loan_due = preview["no_loan_due"]
     payment_value = None if payment is None else money(payment)
     capped_payment = None if payment_value is None else money(min(payment_value, loan.balance))
     payment_valid = (

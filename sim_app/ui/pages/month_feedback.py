@@ -1,5 +1,9 @@
 """Monthly feedback page."""
 
+from sim_app.application.commands import normalize_pending_month_feedback
+from sim_app.application.progression import redirect_before_month_feedback
+from sim_app.session.streamlit_service import acknowledge_month_feedback
+from sim_app.session.streamlit_state import apply_participant_state, read_participant_state
 from sim_app.ui.formatting import display_euro, display_number
 
 
@@ -8,11 +12,14 @@ def render_month_feedback_page(ctx):
     t = ctx.t
     ctx.scroll_top_anchor()
 
-    result = st.session_state.get("pending_month_result")
-    if not result:
-        ctx.goto("simulation")
-    result = ctx.normalize_month_result_score(result)
-    st.session_state.pending_month_result = result
+    participant_state = read_participant_state(st.session_state)
+    result = participant_state.pending_month_result
+    redirect_page = redirect_before_month_feedback(bool(result))
+    if redirect_page:
+        ctx.goto(redirect_page)
+    participant_state = normalize_pending_month_feedback(participant_state)
+    apply_participant_state(st.session_state, participant_state)
+    result = participant_state.pending_month_result
 
     month = result["month"]
     st.title(t("simulation.feedback_title", month=month))
@@ -53,41 +60,7 @@ def render_month_feedback_page(ctx):
         else t("simulation.continue_month_button")
     )
     if st.button(continue_label, type="primary"):
-        st.session_state.loan.balance = result["credit_final"]
-        st.session_state.overdraft.balance = result["overdraft_final"]
-        st.session_state.total_score += result["monthly_score"]
-        st.session_state.monthly_points += result["monthly_score"]
-        st.session_state.accumulated_costs += result["costs_this_month"]
-        st.session_state.monthly_results.append(result)
-        if int(result.get("month", 0)) >= 24:
-            try:
-                ctx.save_month_results(
-                    st.session_state.session_id,
-                    [
-                        ctx.normalize_month_result_score(month_result)
-                        for month_result in st.session_state.get("monthly_results", [])
-                    ],
-                    bonus_max_session=ctx.get_bonus_max_session(),
-                    metadata={
-                        "study_session_id": st.session_state.get("study_session_id"),
-                        "study_session_code": st.session_state.get("study_session_code"),
-                        "participant_code": st.session_state.get("participant_code"),
-                    },
-                )
-                st.session_state.month_results_last_save = {
-                    "ok": True,
-                    "session_id": st.session_state.session_id,
-                    "months": len(st.session_state.get("monthly_results", [])),
-                }
-            except Exception as e:
-                st.session_state.month_results_last_save = {
-                    "ok": False,
-                    "session_id": st.session_state.session_id,
-                    "error": str(e),
-                }
-        st.session_state.pending_month_result = None
-        st.session_state.month += 1
-        ctx.goto("simulation")
+        acknowledge_month_feedback(st, ctx.experiment_service)
 
 
 __all__ = [

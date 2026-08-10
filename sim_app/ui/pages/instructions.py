@@ -1,5 +1,7 @@
 """Participant instructions page."""
 
+from sim_app.application.commands import complete_instructions
+from sim_app.session.streamlit_state import read_participant_state
 from sim_app.ui.styles import INSTRUCTIONS_CSS, apply_css
 
 
@@ -17,8 +19,8 @@ def render_instructions_page(ctx):
     st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button(t("instructions.button"), type="primary"):
-        st.session_state.scroll_to_top = True
-        ctx.goto("comprehension" if st.session_state.get("prolific_mode") else "profile")
+        command = complete_instructions(read_participant_state(st.session_state))
+        ctx.commit_command(command, operation="instructions:complete")
 
 
 __all__ = [

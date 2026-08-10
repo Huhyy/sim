@@ -70,6 +70,7 @@ def render_quiz_chapter(
     before_continue=None,
     validate_extra=None,
     on_valid_continue=None,
+    on_complete=None,
 ):
     st = ctx.st
     t = ctx.t
@@ -83,7 +84,10 @@ def render_quiz_chapter(
         if st.button(dev_label, type="secondary", key=f"dev_{section['key_prefix']}_{chapter_index}"):
             randomize_section(section, st.session_state.answers)
             st.session_state.scroll_to_top = True
-            ctx.goto(next_page)
+            if on_complete:
+                on_complete()
+            else:
+                ctx.goto(next_page)
 
     if not all_answered([section], st.session_state.answers):
         st.warning(t("quiz.chapter_required_warning"))
@@ -98,7 +102,10 @@ def render_quiz_chapter(
             if on_valid_continue:
                 on_valid_continue(extra_value)
             st.session_state.scroll_to_top = True
-            ctx.goto(next_page)
+            if on_complete:
+                on_complete()
+            else:
+                ctx.goto(next_page)
         else:
             st.error(t("quiz.chapter_missing_error"))
 

@@ -2,8 +2,14 @@
 
 from .loan import Loan
 from .overdraft import Overdraft
-from .scoring import compute_final_score_from_results, compute_monthly_score, get_final_score_breakdown_from_results
-from .simulation import compute_month_result
+from .scoring import (
+    compute_final_score_from_results,
+    compute_monthly_score,
+    get_bonus_max_session,
+    get_final_score_breakdown_from_results,
+    normalize_month_result_score,
+)
+from .simulation import compute_month_preview, compute_month_result, get_opening_balance, month_sum
 from .experimental_conditions import (
     CONDITIONS,
     DEFAULT_EXPERIMENTAL_CONDITION,
@@ -23,8 +29,13 @@ from .experimental_conditions import (
 __all__ = [
     "compute_final_score_from_results",
     "compute_month_result",
+    "compute_month_preview",
     "compute_monthly_score",
+    "get_bonus_max_session",
     "get_final_score_breakdown_from_results",
+    "get_opening_balance",
+    "month_sum",
+    "normalize_month_result_score",
     "Loan",
     "Overdraft",
     "CONDITIONS",

@@ -1,5 +1,11 @@
 """Scoring helpers for the financial simulation."""
 
+from sim_app.domain.experimental_conditions import (
+    DEFAULT_PAYMENT_STATUS,
+    PROLIFIC_BASE_REWARD_GBP,
+    performance_bonus,
+)
+
 RECOMMENDED_BUFFER = 5.0
 SESSION_MONTHS = 24
 EURO_PER_MONTHLY_POINT = 0.005
@@ -96,6 +102,15 @@ def get_final_score_breakdown_from_results(
     remaining_overdraft,
     study_session_id=None,
     study_session_code=None,
+    participant_code=None,
+    experimental_condition=None,
+    score_frame=None,
+    monthly_score_feedback=None,
+    payment_status=DEFAULT_PAYMENT_STATUS,
+    prolific_pid=None,
+    prolific_study_id=None,
+    prolific_session_id=None,
+    completion_code=None,
     bonus_max_session=None,
 ):
     normalized = [normalize_month_result_score(result) for result in monthly_results or []]
@@ -103,6 +118,7 @@ def get_final_score_breakdown_from_results(
     final_score = money(min(MAX_MONTHLY_SCORE, max(0.0, monthly_score_sum / SESSION_MONTHS)))
     resolved_bonus_max_session = get_bonus_max_session() if bonus_max_session is None else money(bonus_max_session)
     bonus_final = money(monthly_score_sum * EURO_PER_MONTHLY_POINT)
+    bonus = performance_bonus(final_score)
     total_repaid = money(sum(float(result.get("accepted_payment", 0.0)) for result in normalized))
     credit_interest_total = money(sum(float(result.get("credit_interest", 0.0)) for result in normalized))
     overdraft_interest_total = money(sum(float(result.get("overdraft_interest", 0.0)) for result in normalized))
@@ -112,8 +128,21 @@ def get_final_score_breakdown_from_results(
         "final_score": final_score,
         "bonus_max_session": resolved_bonus_max_session,
         "bonus_final": bonus_final,
+        "performance_bonus_gbp": bonus["performance_bonus_gbp"],
+        "loss_amount_gbp": bonus["loss_amount_gbp"],
+        "prolific_base_reward_gbp": PROLIFIC_BASE_REWARD_GBP,
+        "total_payout_gbp": PROLIFIC_BASE_REWARD_GBP + bonus["performance_bonus_gbp"],
+        "experimental_condition": experimental_condition,
+        "score_frame": score_frame,
+        "monthly_score_feedback": monthly_score_feedback,
+        "payment_status": payment_status,
         "study_session_id": study_session_id,
         "study_session_code": study_session_code,
+        "participant_code": participant_code,
+        "prolific_pid": prolific_pid,
+        "prolific_study_id": prolific_study_id,
+        "prolific_session_id": prolific_session_id,
+        "completion_code": completion_code,
         "total_repaid": total_repaid,
         "remaining_credit": money(remaining_credit),
         "remaining_overdraft": money(remaining_overdraft),

@@ -4,6 +4,8 @@ from html import escape
 
 from sim_app.prolific.identity import completion_redirect_url, configured_completion_code
 from sim_app.session.query_params import get_query_param
+from sim_app.session.streamlit_service import finalize_experiment
+from sim_app.session.streamlit_state import apply_participant_state, read_participant_state
 from sim_app.ui.formatting import display_euro, display_number
 from sim_app.ui.pages.final_score import render_performance_bonus_summary
 
@@ -12,34 +14,17 @@ def render_done_page(ctx):
     st = ctx.st
     t = ctx.t
     ctx.scroll_top_anchor()
-    if st.session_state.get("submission_finalized") and st.session_state.get("final_score_breakdown"):
-        breakdown = st.session_state.final_score_breakdown
-        st.session_state.final_score = breakdown.get("final_score")
-    else:
-        st.session_state.final_score = ctx.compute_final_score()
-        breakdown = ctx.get_final_score_breakdown()
-    st.session_state.answers["financial_summary"] = breakdown
-
-    if not st.session_state.get("saved"):
-        try:
-            ctx.finalize_participant(
-                st.session_state.session_id,
-                st.session_state.answers,
-                st.session_state.final_score,
-                monthly_results=[
-                    ctx.normalize_month_result_score(result)
-                    for result in st.session_state.get("monthly_results", [])
-                ],
-                summary={
-                    **breakdown,
-                    "scenario_version": ctx.scenario_version,
-                },
-                pre_sections=ctx.pre_sections_ro,
-                post_sections=ctx.post_sections_ro,
-            )
-            st.session_state.saved = True
-        except Exception as e:
-            st.error(t("done.save_error", error=e))
+    participant_state = read_participant_state(st.session_state)
+    if not participant_state.saved:
+        participant_state = finalize_experiment(
+            st,
+            ctx.experiment_service,
+            account_key=ctx.current_account_key(),
+            pre_sections=ctx.pre_sections_ro,
+            post_sections=ctx.post_sections_ro,
+        )
+        apply_participant_state(st.session_state, participant_state)
+    breakdown = participant_state.final_score_breakdown
 
     st.title(t("done.title"))
     st.metric(t("done.score_metric"), f"{display_number(st.session_state.final_score)} / 100")

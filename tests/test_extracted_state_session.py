@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 from sim_app.domain.loan import Loan
 from sim_app.domain.overdraft import Overdraft
 
@@ -48,7 +50,7 @@ def test_extracted_hydrate_preserves_existing_session_id(monkeypatch):
     assert dummy_state.monthly_score_feedback == "hidden"
 
 
-def test_extracted_persist_recovers_session_id_from_url(monkeypatch):
+def test_checkpoint_adapter_recovers_session_id_and_saves_reduced_projection(monkeypatch):
     import sim_app.state.checkpoint as checkpoint
     import sim_app.state.navigation as navigation
 
@@ -67,74 +69,30 @@ def test_extracted_persist_recovers_session_id_from_url(monkeypatch):
     monkeypatch.setattr(checkpoint.st, "session_state", dummy_state)
     monkeypatch.setattr(navigation.st, "session_state", dummy_state)
     monkeypatch.setattr(navigation, "get_query_param", lambda name: "session-456" if name == "sid" else None)
+    def save_stage(state, **kwargs):
+        saved.update(
+            session_id=state.session_id,
+            checkpoint=state.to_resume_projection(),
+            expected_version=kwargs["expected_version"],
+        )
+        state.state_version += 1
+        return SimpleNamespace(state=state)
+
     monkeypatch.setattr(
         checkpoint,
-        "save_session_checkpoint",
-        lambda session_id, saved_checkpoint, status="in_progress": saved.update(
-            session_id=session_id,
-            checkpoint=saved_checkpoint,
-            status=status,
-        ),
+        "get_experiment_service",
+        lambda: SimpleNamespace(save_stage=save_stage),
     )
 
     assert checkpoint.persist_checkpoint()
     assert dummy_state.session_id == "session-456"
     assert dummy_state.checkpoint_last_save["ok"] is True
     assert saved["session_id"] == "session-456"
-    assert saved["checkpoint"]["participant_code"] == "P002"
-    assert saved["checkpoint"]["experimental_condition"] == "C2"
-    assert saved["checkpoint"]["monthly_score_feedback"] == "hidden"
-
-
-def test_save_session_checkpoint_writes_condition_columns(monkeypatch):
-    import sim_app.persistence.participant_sessions as participant_sessions
-
-    saved = {}
-
-    class FakeTable:
-        def upsert(self, row):
-            saved.update(row)
-            return self
-
-        def execute(self):
-            return None
-
-    class FakeClient:
-        def table(self, name):
-            assert name == "participant_sessions"
-            return FakeTable()
-
-    monkeypatch.setattr(participant_sessions, "_require_client", lambda: FakeClient())
-    monkeypatch.setattr(participant_sessions, "_utcnow", lambda: "2026-06-16T00:00:00+00:00")
-
-    participant_sessions.save_session_checkpoint(
-        "session-1",
-        {
-            "page": "simulation",
-            "study_session_code": "022809",
-            "participant_code": "P031",
-            "prolific_pid": "prolific-1",
-            "prolific_study_id": "study-1",
-            "prolific_session_id": "submission-1",
-            "prolific_mode": True,
-            "answers": {"anti_ai_declaration": True},
-            "comprehension_attempts": 1,
-            "comprehension_passed": True,
-            "attention_failed_count": 0,
-            "experimental_condition": "C4",
-            "score_frame": "loss_frame",
-            "monthly_score_feedback": "hidden",
-        },
-    )
-
-    assert saved["experimental_condition"] == "C4"
-    assert saved["score_frame"] == "loss_frame"
-    assert saved["monthly_score_feedback"] == "hidden"
-    assert saved["prolific_pid"] == "prolific-1"
-    assert saved["prolific_study_id"] == "study-1"
-    assert saved["prolific_session_id"] == "submission-1"
-    assert saved["anti_ai_declaration"] is True
-    assert saved["comprehension_passed"] is True
+    assert saved["expected_version"] == 0
+    assert saved["checkpoint"]["page"] == "simulation"
+    assert "participant_code" not in saved["checkpoint"]
+    assert "experimental_condition" not in saved["checkpoint"]
+    assert "monthly_results" not in saved["checkpoint"]
 
 
 def test_extracted_finalize_recovers_session_id_before_final_save(monkeypatch):
@@ -145,32 +103,48 @@ def test_extracted_finalize_recovers_session_id_before_final_save(monkeypatch):
         session_id=None,
         checkpoint_last_load={"session_id": "session-789"},
     )
-    saved = {}
+    from sim_app.application.state import ParticipantState
+    from sim_app.config import SCENARIO_VERSION
+
+    durable = ParticipantState.initial(SCENARIO_VERSION)
+    durable.session_id = "session-789"
+    finalized = durable.copy()
+    finalized.state_version = 2
+    finalized.submission_finalized = True
+    finalized.page = "done"
+    calls = []
+
+    class Service:
+        def load_session(self, session_id):
+            calls.append(("load", session_id))
+            return durable
+
+        def save_stage(self, proposed, **kwargs):
+            calls.append(("save_stage", kwargs["expected_version"], proposed.answers))
+            proposed.state_version = 1
+            return SimpleNamespace(state=proposed)
+
+        def finalize(self, **kwargs):
+            calls.append(("finalize", kwargs["session_id"], kwargs["expected_version"], kwargs["account_key"]))
+            return SimpleNamespace(state=finalized)
+
     monkeypatch.setattr(finalization.st, "session_state", dummy_state)
     monkeypatch.setattr(navigation.st, "session_state", dummy_state)
     monkeypatch.setattr(finalization, "resolve_session_id", navigation.resolve_session_id)
     monkeypatch.setattr(navigation, "get_query_param", lambda _name: None)
     monkeypatch.setattr(finalization, "clear_query_param", lambda _name: None)
     monkeypatch.setattr(finalization, "current_account_key", lambda: "account-key")
-    monkeypatch.setattr(
-        finalization,
-        "db_finalize_participation",
-        lambda account_key, session_id, answers, final_score, **kwargs: saved.update(
-            account_key=account_key,
-            session_id=session_id,
-            answers=answers,
-            final_score=final_score,
-            allow_repeat=kwargs.get("allow_repeat"),
-            monthly_results=kwargs.get("monthly_results"),
-        ),
-    )
+    monkeypatch.setattr(finalization, "get_experiment_service", lambda: Service())
 
     finalization.finalize_participant(None, {"q_1": 5}, 18.25)
 
     assert dummy_state.session_id == "session-789"
-    assert saved["account_key"] == "account-key"
-    assert saved["session_id"] == "session-789"
     assert dummy_state.submission_finalized is True
+    assert calls == [
+        ("load", "session-789"),
+        ("save_stage", 0, {"q_1": 5}),
+        ("finalize", "session-789", 1, "account-key"),
+    ]
 
 
 def test_extracted_repeat_mode_does_not_block_previously_completed_account(monkeypatch):
@@ -189,10 +163,12 @@ def test_extracted_repeat_mode_does_not_block_previously_completed_account(monke
     monkeypatch.setattr(manager, "load_linked_session_id", lambda _account_key: None)
     monkeypatch.setattr(manager, "get_query_param", lambda _name: None)
     monkeypatch.setattr(manager, "set_query_param", lambda _name, _value: None)
-    monkeypatch.setattr(manager, "load_session_checkpoint", lambda _session_id: None)
-    monkeypatch.setattr(manager, "persist_checkpoint", lambda: True)
-    monkeypatch.setattr(manager, "save_resume_link", lambda _account_key, _session_id: None)
     monkeypatch.setattr(manager, "new_session_id", lambda: "session-new")
+    service = SimpleNamespace(
+        find_session=lambda _session_id: None,
+        create_session=lambda state, **_kwargs: SimpleNamespace(state=state),
+    )
+    monkeypatch.setattr(manager, "get_experiment_service", lambda: service)
 
     manager.bootstrap_authenticated_session()
 
@@ -201,7 +177,7 @@ def test_extracted_repeat_mode_does_not_block_previously_completed_account(monke
     assert dummy_state.already_completed is False
 
 
-def test_new_authenticated_session_persists_checkpoint_before_resume_link(monkeypatch):
+def test_new_authenticated_session_uses_one_atomic_claim(monkeypatch):
     import sim_app.session.manager as manager
 
     dummy_state = DummySessionState()
@@ -213,15 +189,15 @@ def test_new_authenticated_session_persists_checkpoint_before_resume_link(monkey
     monkeypatch.setattr(manager, "load_linked_session_id", lambda _account_key: None)
     monkeypatch.setattr(manager, "get_query_param", lambda _name: None)
     monkeypatch.setattr(manager, "set_query_param", lambda _name, _value: None)
-    monkeypatch.setattr(manager, "load_session_checkpoint", lambda _session_id: None)
     monkeypatch.setattr(manager, "new_session_id", lambda: "session-new")
-    monkeypatch.setattr(manager, "persist_checkpoint", lambda: calls.append("persist_checkpoint") or True)
-    monkeypatch.setattr(
-        manager,
-        "save_resume_link",
-        lambda _account_key, _session_id: calls.append("save_resume_link"),
+    service = SimpleNamespace(
+        find_session=lambda _session_id: calls.append("read") or None,
+        create_session=lambda state, **_kwargs: (
+            calls.append("atomic_claim") or SimpleNamespace(state=state)
+        ),
     )
+    monkeypatch.setattr(manager, "get_experiment_service", lambda: service)
 
     manager.bootstrap_authenticated_session()
 
-    assert calls == ["persist_checkpoint", "save_resume_link"]
+    assert calls == ["read", "atomic_claim"]

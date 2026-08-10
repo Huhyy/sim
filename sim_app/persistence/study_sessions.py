@@ -15,10 +15,6 @@ def create_admin_study_session(created_by_email: str, experimental_condition: st
 
     for _ in range(25):
         session_code = f"{secrets.randbelow(1_000_000):06d}"
-        existing = load_admin_study_session_by_code(session_code, require_active=False)
-        if existing:
-            continue
-
         row = {
             "id": str(uuid.uuid4()),
             "session_code": session_code,
@@ -28,8 +24,15 @@ def create_admin_study_session(created_by_email: str, experimental_condition: st
             "created_at": _utcnow(),
             "updated_at": _utcnow(),
         }
-        client.table("admin_study_sessions").insert(row).execute()
-        return row
+        try:
+            client.table("admin_study_sessions").insert(row).execute()
+            return row
+        except Exception as exc:
+            # The unique database index is the reservation primitive. A
+            # concurrent collision simply tries another generated code.
+            if "23505" in str(exc) or "admin_study_sessions_session_code_key" in str(exc):
+                continue
+            raise
 
     raise RuntimeError("Could not generate a unique 6-digit session code. Please try again.")
 

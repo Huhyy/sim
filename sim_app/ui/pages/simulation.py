@@ -2,40 +2,45 @@
 
 import re
 
-from sim_app.ui.formatting import display_euro, display_number, display_value_table, money, month_sum
+from sim_app.application.progression import redirect_before_simulation
+from sim_app.domain.simulation import compute_month_preview
+from sim_app.session.streamlit_service import submit_month_decision
+from sim_app.session.streamlit_state import read_participant_state
+from sim_app.ui.formatting import display_euro, display_number, display_value_table
 
 
 def render_simulation_page(ctx):
     st = ctx.st
     t = ctx.t
+    participant_state = read_participant_state(st.session_state)
 
-    if st.session_state.month > 24:
-        ctx.goto("post_question_0")
+    redirect_page = redirect_before_simulation(participant_state.month)
+    if redirect_page:
+        ctx.goto(redirect_page)
 
     ctx.scroll_top_anchor()
 
-    month = st.session_state.month
-    loan = st.session_state.loan
-    overdraft = st.session_state.overdraft
+    month = participant_state.month
+    loan = participant_state.loan
+    overdraft = participant_state.overdraft
 
     data = ctx.get_month(month)
-    income_total = month_sum(data["income"])
-    expenses_total = month_sum(data["expenses"])
-    obligations = data.get("obligations", {})
-    opening_balance = ctx.get_opening_balance(month, data)
-    loan_obligation = money(loan.get_required_payment())
-    no_loan_due = loan.balance <= 0 and loan_obligation <= 0
-    credit_interest = money(loan.apply_interest())
-    overdraft_interest = money(overdraft.apply_interest())
-    penalties = money(obligations.get("penalties", 0))
-    available_total = money(opening_balance + income_total)
-    outflows_before_credit = money(expenses_total + overdraft_interest + credit_interest + penalties)
-    liquidity_after_charges = money(max(0.0, available_total - outflows_before_credit))
-    deficit_before_credit = money(max(0.0, outflows_before_credit - available_total))
-    overdraft_after_charges = money(overdraft.balance + deficit_before_credit)
-    overdraft_remaining = money(max(0.0, overdraft.limit - min(overdraft_after_charges, overdraft.limit)))
-    max_payment = money(liquidity_after_charges + overdraft_remaining)
-    blocked = overdraft_after_charges > overdraft.limit
+    preview = compute_month_preview(
+        month,
+        data,
+        loan,
+        overdraft,
+        monthly_results=participant_state.monthly_results,
+    )
+    income_total = preview["income_total"]
+    expenses_total = preview["expenses_total"]
+    opening_balance = preview["opening_balance"]
+    loan_obligation = preview["loan_obligation"]
+    no_loan_due = preview["no_loan_due"]
+    credit_interest = preview["credit_interest"]
+    overdraft_interest = preview["overdraft_interest"]
+    liquidity_after_charges = preview["liquidity_after_charges"]
+    blocked = preview["blocked"]
 
     st.title(t("simulation.month_title", month=month))
 
@@ -115,9 +120,12 @@ def render_simulation_page(ctx):
             st.warning(t("simulation.payment_validation_warning"))
             st.stop()
 
-        result = ctx.normalize_month_result_score(ctx.compute_month_result(month, data, loan, overdraft, payment))
-        st.session_state.pending_month_result = result
-        ctx.goto("month_feedback")
+        submit_month_decision(
+            st,
+            ctx.experiment_service,
+            payment=payment,
+            translate=t,
+        )
 
 
 __all__ = [

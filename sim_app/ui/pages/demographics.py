@@ -1,5 +1,8 @@
 """Demographic profile page."""
 
+from sim_app.application.commands import submit_demographics
+from sim_app.application.progression import required_page_before_demographics
+from sim_app.session.streamlit_state import read_participant_state
 from sim_app.ui.components.quiz import demographics_complete
 from sim_app.ui.styles import DEMOGRAPHICS_CSS, apply_css
 
@@ -13,8 +16,9 @@ def render_demographics_page(ctx):
     st = ctx.st
     t = ctx.t
     ctx.scroll_top_anchor()
-    if st.session_state.answers.get("consent_agreed") != "1 - Da":
-        ctx.goto("consent")
+    required_page = required_page_before_demographics(read_participant_state(st.session_state))
+    if required_page:
+        ctx.goto(required_page)
 
     apply_css(st, DEMOGRAPHICS_CSS)
 
@@ -104,9 +108,8 @@ def render_demographics_page(ctx):
             st.warning(t("demographics.warning"))
             st.stop()
 
-        st.session_state.answers.update(values)
-        st.session_state.scroll_to_top = True
-        ctx.goto("pre_question_0")
+        command = submit_demographics(read_participant_state(st.session_state), values)
+        ctx.commit_command(command, operation="demographics:submit")
 
 
 __all__ = [

@@ -1,10 +1,12 @@
-﻿import re
-import random
 import os
 import streamlit as st
-import pandas as pd
 
-from sim_app.auth import current_user_email, is_admin_user, is_logged_in
+from sim_app.session.streamlit_secrets import configure_from_streamlit
+
+configure_from_streamlit(st.secrets)
+
+from sim_app.auth import current_account_key, current_user_email, is_admin_user, is_logged_in
+from sim_app.application.errors import ExperimentError
 from sim_app.content.tables import get_month
 from sim_app.content.questions import PRE_SECTIONS as PRE_SECTIONS_RO
 from sim_app.content.questions import POST_SECTIONS as POST_SECTIONS_RO
@@ -20,9 +22,9 @@ from sim_app.content.translations import (
 )
 from sim_app.config import REPEAT_SCENARIO_DEV_MODE, SCENARIO_VERSION
 from sim_app.config import PROLIFIC_MODE_ENABLED
-from sim_app.domain.experimental_conditions import DEFAULT_PAYMENT_STATUS, PROLIFIC_BASE_REWARD_GBP, condition_options, performance_bonus
+from sim_app.domain.experimental_conditions import condition_options
 from sim_app.prolific import has_any_prolific_param, load_prolific_params, prolific_params_complete
-from sim_app.prolific.identity import clear_browser_prolific_params, prolific_study_allowed
+from sim_app.prolific.identity import prolific_study_allowed
 from sim_app.persistence.study_sessions import (
     cancel_admin_study_session,
     create_admin_study_session,
@@ -30,11 +32,12 @@ from sim_app.persistence.study_sessions import (
     list_participant_sessions_for_study_session,
     load_admin_study_session_by_code,
 )
-from sim_app.persistence.quality import save_quality_check
-from sim_app.persistence.results import save_month_results
-from sim_app.session.finalization import finalize_participant
 from sim_app.session.manager import bootstrap_authenticated_session, ensure_current_scenario_version, start_new_scenario
-from sim_app.state.checkpoint import persist_checkpoint
+from sim_app.session.service_provider import get_experiment_service
+from sim_app.session.streamlit_service import commit_command as commit_streamlit_command
+from sim_app.session.streamlit_service import commit_quality_state as commit_streamlit_quality_state
+from sim_app.session.streamlit_service import commit_state as commit_streamlit_state
+from sim_app.session.streamlit_service import navigate_committed
 from sim_app.ui.components.account import render_account_menu as render_account_menu_component
 from sim_app.ui.components.language import render_language_selector as render_language_selector_component
 from sim_app.ui.context import make_ui_context
@@ -42,16 +45,8 @@ from sim_app.ui.pages.login import render_login_page as render_login_page_compon
 from sim_app.ui.pages.router import render_current_page
 
 DEV = os.getenv("SCENARIO_DEV", "").lower() == "true"
-RECOMMENDED_BUFFER = 5.0
-SESSION_MONTHS = 24
-EURO_PER_MONTHLY_POINT = 0.005
-MAX_MONTHLY_SCORE = 100.0
-DEFAULT_BONUS_MAX_SESSION = SESSION_MONTHS * MAX_MONTHLY_SCORE * EURO_PER_MONTHLY_POINT
 ENABLE_PARENT_DOM_HACKS = False
-
-
-def get_bonus_max_session():
-    return money(DEFAULT_BONUS_MAX_SESSION)
+experiment_service = get_experiment_service()
 
 st.markdown("""
 <style>
@@ -568,10 +563,42 @@ if ENABLE_PARENT_DOM_HACKS:
 
 
 def goto(page):
-    st.session_state.page = page
-    st.session_state.scroll_to_top = True
-    persist_checkpoint()
-    st.rerun()
+    if not st.session_state.get("session_id") or page in {"admin", "admin_sessions"}:
+        st.session_state.page = page
+        st.session_state.scroll_to_top = True
+        st.rerun()
+    navigate_committed(st, experiment_service, page)
+
+
+def commit_command(command, *, operation="stage_transition", rerun=True):
+    return commit_streamlit_command(
+        st,
+        experiment_service,
+        command,
+        operation=operation,
+        rerun=rerun,
+    )
+
+
+def commit_state(state, *, operation, rerun=True):
+    return commit_streamlit_state(
+        st,
+        experiment_service,
+        state,
+        operation=operation,
+        rerun=rerun,
+    )
+
+
+def commit_quality_state(state, quality_events, *, operation, rerun=True):
+    return commit_streamlit_quality_state(
+        st,
+        experiment_service,
+        state,
+        quality_events,
+        operation=operation,
+        rerun=rerun,
+    )
 
 
 def scroll_top_anchor():
@@ -727,206 +754,6 @@ def attach_payment_keyboard_bridge():
     )
 
 
-def randomize_sections(sections):
-    for section in sections:
-        randomize_section(section)
-
-
-def randomize_section(section):
-    for i in range(len(section["questions"])):
-        key = f"{section['key_prefix']}_{i}"
-        st.session_state.answers[key] = random.choice(section["scale"])
-
-
-def render_language_buttons(prefix="lang"):
-    ensure_language()
-    current_language = get_language()
-    with st.container():
-        col_en, col_ro = st.columns(2)
-        with col_en:
-            if st.button(
-                t("language.en"),
-                type="primary" if current_language == "en" else "secondary",
-                key=f"{prefix}_en",
-                use_container_width=True,
-            ):
-                if current_language != "en":
-                    set_language("en")
-                    st.rerun()
-        with col_ro:
-            if st.button(
-                t("language.ro"),
-                type="primary" if current_language == "ro" else "secondary",
-                key=f"{prefix}_ro",
-                use_container_width=True,
-            ):
-                if current_language != "ro":
-                    set_language("ro")
-                    st.rerun()
-
-
-def render_language_selector():
-    render_language_buttons("lang")
-
-
-def render_login_page():
-    st.markdown(
-        """
-<style>
-.st-key-auth_card {
-    margin: 0;
-}
-
-.auth-brand {
-    display: flex;
-    align-items: center;
-    gap: 0.72rem;
-    color: #1d4a46;
-    font: 700 0.82rem/1 'Manrope', sans-serif;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-}
-
-.auth-brand-mark {
-    display: grid;
-    place-items: center;
-    width: 2.05rem;
-    height: 2.05rem;
-    border-radius: 0.75rem;
-    color: #fbf8f0;
-    background: #174b47;
-    letter-spacing: 0;
-    font-size: 1rem;
-}
-
-.auth-rule {
-    width: 100%;
-    height: 1px;
-    margin: 1.45rem 0 1.35rem;
-    background: #e5decc;
-}
-
-.auth-title {
-    margin: 0 0 0.75rem;
-    color: #172b29 !important;
-    font: 600 clamp(1.75rem, 4vw, 2.12rem)/1.13 'Fraunces', serif;
-    letter-spacing: -0.03em;
-}
-
-.auth-copy {
-    margin: 0 0 1.35rem;
-    color: #586564;
-    font: 500 0.95rem/1.6 'Manrope', sans-serif;
-}
-
-.auth-signals {
-    display: flex;
-    gap: 0.48rem;
-    flex-wrap: wrap;
-    margin: 0 0 1.55rem;
-}
-
-.auth-chip {
-    padding: 0.42rem 0.65rem;
-    border-radius: 999px;
-    color: #2e5753;
-    background: #e8efea;
-    font: 600 0.73rem/1 'Manrope', sans-serif;
-}
-
-.st-key-google_login button {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.68rem;
-    width: 100%;
-    min-height: 3.15rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid #747775 !important;
-    border-radius: 999px !important;
-    color: #1f1f1f !important;
-    background: #ffffff !important;
-    box-shadow: none !important;
-    transition: background 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
-}
-
-.st-key-google_login button::before {
-    content: "";
-    width: 1.18rem;
-    height: 1.18rem;
-    flex: 0 0 1.18rem;
-    background: url("https://developers.google.com/static/identity/images/g-logo.png") center / contain no-repeat;
-}
-
-.st-key-google_login button p {
-    color: #1f1f1f !important;
-    font: 500 0.9rem/1.25 'Roboto', sans-serif !important;
-}
-
-.st-key-google_login button:hover {
-    background: #f8faff !important;
-    border-color: #5f6368 !important;
-    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.18) !important;
-}
-
-.st-key-google_login button:focus-visible {
-    outline: 2px solid #1a73e8 !important;
-    outline-offset: 2px;
-}
-
-.auth-privacy {
-    margin: 1.45rem 0 0;
-    padding-top: 1.15rem;
-    border-top: 1px solid #e5decc;
-    color: #687472;
-    font: 500 0.76rem/1.55 'Manrope', sans-serif;
-}
-
-.auth-privacy strong {
-    color: #304c49;
-}
-
-@media (max-width: 520px) {
-    .st-key-auth_card {
-        margin: 0;
-    }
-}
-</style>
-""",
-        unsafe_allow_html=True,
-    )
-
-    with st.container(key="auth_card"):
-        st.markdown(
-            f"""
-<div class="auth-brand">
-  <span class="auth-brand-mark">E</span>
-  <span>{t("auth.brand")}</span>
-</div>
-<div class="auth-rule"></div>
-<h1 class="auth-title">{t("auth.title")}</h1>
-<p class="auth-copy">{t("auth.copy")}</p>
-<div class="auth-signals">
-  <span class="auth-chip">{t("auth.chips")[0]}</span>
-  <span class="auth-chip">{t("auth.chips")[1]}</span>
-  <span class="auth-chip">{t("auth.chips")[2]}</span>
-</div>
-""",
-            unsafe_allow_html=True,
-        )
-        if st.button(t("auth.google_button"), key="google_login", use_container_width=True):
-            st.login()
-        st.markdown(
-            f"""
-<p class="auth-privacy">{t("auth.privacy_html")}</p>
-<div class="auth-info">
-  <span class="auth-info-icon">i</span>
-  <span>{t("auth.privacy_note")}</span>
-</div>
-""",
-            unsafe_allow_html=True,
-        )
 # AUTHENTICATION AND INIT STATE
 
 # -------------------------
@@ -955,26 +782,14 @@ if not is_logged_in() and not prolific_launch:
     st.stop()
 
 if not st.session_state.get("_bootstrap_done"):
-    bootstrap_authenticated_session()
-    st.session_state._bootstrap_done = True
+    try:
+        bootstrap_authenticated_session()
+        st.session_state._bootstrap_done = True
+    except ExperimentError as exc:
+        st.error(f"The saved experiment session could not be loaded safely. Please retry. ({exc})")
+        st.stop()
 else:
     ensure_current_scenario_version()
-
-
-def render_account_menu():
-    email = st.user.get("email") or st.user.get("name") or t("auth.account_fallback")
-    with st.container(key="account_menu"):
-        with st.expander(email):
-            st.markdown(f'<div class="account-language-label">{t("auth.language_label")}</div>', unsafe_allow_html=True)
-            render_language_buttons("account_lang")
-            if is_admin_user():
-                if st.button(t("auth.admin_page"), key="account_admin", use_container_width=True):
-                    st.session_state.admin_return_page = st.session_state.get("page", "home")
-                    goto("admin")
-            if st.button(t("auth.logout"), icon=":material/logout:", key="account_logout", use_container_width=True):
-                st.session_state.pop("_prolific_params", None)
-                clear_browser_prolific_params()
-                st.logout()
 
 
 if is_logged_in() and not prolific_launch:
@@ -993,355 +808,6 @@ if is_logged_in() and not prolific_launch:
     )
 
 
-def normalize_study_session_code(value):
-    return re.sub(r"\D", "", str(value or ""))[:6]
-
-
-def has_study_session_assignment():
-    return bool(st.session_state.get("study_session_id") and st.session_state.get("study_session_code"))
-
-
-def render_question_section(section, chapter_number, question_offset=0):
-    st.markdown(f"### {t('quiz.chapter_heading', number=chapter_number)}")
-    st.caption(section["instruction"])
-    for i, q in enumerate(section["questions"]):
-        key = f"{section['key_prefix']}_{i}"
-        current = st.session_state.answers.get(key)
-        idx = section["scale"].index(current) if current in section["scale"] else None
-        st.session_state.answers[key] = st.radio(
-            f"{question_offset + i + 1}. {q}",
-            options=section["scale"],
-            index=idx,
-            horizontal=True,
-            key=f"radio_{key}",
-        )
-
-
-def all_answered(sections):
-    for section in sections:
-        for i in range(len(section["questions"])):
-            key = f"{section['key_prefix']}_{i}"
-            if st.session_state.answers.get(key) is None:
-                return False
-    return True
-
-
-DEMOGRAPHIC_KEYS = [
-    "demo_age",
-    "demo_gender",
-    "demo_education",
-    "demo_field",
-    "demo_occupation",
-    "demo_financial_decisions",
-    "demo_credit_experience",
-    "demo_financial_familiarity",
-    "demo_living_situation",
-    "demo_recurring_responsibilities",
-    "demo_country",
-]
-
-
-def demographics_complete():
-    return all(st.session_state.answers.get(key) not in (None, "") for key in DEMOGRAPHIC_KEYS)
-
-
-def render_quiz_chapter(
-    section,
-    chapter_index,
-    total_chapters,
-    next_page,
-    dev_label,
-    title,
-    question_offset=0,
-):
-    st.title(title)
-    st.caption(t("quiz.chapter_label", current=chapter_index + 1, total=total_chapters))
-    st.markdown(t("quiz.chapter_continue_help"))
-    st.progress((chapter_index + 1) / total_chapters)
-    render_question_section(section, chapter_index + 1, question_offset)
-
-    if DEV:
-        if st.button(dev_label, type="secondary", key=f"dev_{section['key_prefix']}_{chapter_index}"):
-            randomize_section(section)
-            st.session_state.scroll_to_top = True
-            goto(next_page)
-
-    if not all_answered([section]):
-        st.warning(t("quiz.chapter_required_warning"))
-
-    if st.button(t("quiz.continue_button"), type="primary", key=f"continue_{section['key_prefix']}_{chapter_index}"):
-        if all_answered([section]):
-            st.session_state.scroll_to_top = True
-            goto(next_page)
-        else:
-            st.error(t("quiz.chapter_missing_error"))
-
-
-def money(value):
-    return round(float(value), 2)
-
-
-def display_number(value):
-    value = money(value)
-    if value == int(value):
-        return str(int(value))
-    return f"{value:.2f}"
-
-
-def display_euro(value):
-    return f"{display_number(value)} €"
-
-
-def display_value_table(values):
-    rows = [(get_category_label(category), display_number(amount)) for category, amount in values.items()]
-    return pd.DataFrame(rows, columns=[t("table.category"), t("table.value")])
-
-
-def month_sum(values):
-    return money(sum(values.values()))
-
-
-def get_opening_balance(month, data):
-    if month <= 1:
-        return money(data["position"]["initial"])
-
-    for result in reversed(st.session_state.get("monthly_results", [])):
-        if int(result.get("month", 0)) == month - 1:
-            return money(result.get("cash_final", 0.0))
-
-    # Keep older/incomplete checkpoints usable if the previous result is absent.
-    return money(data["position"].get("initial", 0.0))
-
-
-def zero_score_data():
-    return {
-        "score_model": "behavioral_v1",
-        "score_repayment": 0.0,
-        "score_liquidity": 0.0,
-        "score_overdraft": 0.0,
-        "monthly_score": 0.0,
-        "bonus_lunar": 0.0,
-    }
-
-
-def compute_monthly_score(
-    accepted_payment,
-    cash_final,
-    overdraft_final,
-    overdraft_limit,
-    loan_obligation,
-    loan_balance_before_payment=None,
-    loan_closed_by_payment=False,
-):
-    reference_payment = money(loan_obligation)
-    remaining_balance = reference_payment if loan_balance_before_payment is None else money(loan_balance_before_payment)
-    expected_repayment = money(
-        min(reference_payment, remaining_balance)
-        if loan_closed_by_payment
-        else reference_payment
-    )
-
-    if expected_repayment <= 0:
-        repayment_score = 40.0
-    else:
-        repayment_score = min(accepted_payment / expected_repayment, 1.0) * 40.0
-
-    liquidity_score = min(cash_final / RECOMMENDED_BUFFER, 1.0) * 30.0
-    overdraft_score = 30.0 if overdraft_limit <= 0 else max(0.0, 30.0 * (1.0 - overdraft_final / overdraft_limit))
-    monthly_score = min(100.0, max(0.0, repayment_score + liquidity_score + overdraft_score))
-
-    return {
-        "score_model": "behavioral_v1",
-        "score_repayment": money(repayment_score),
-        "score_liquidity": money(liquidity_score),
-        "score_overdraft": money(overdraft_score),
-        "monthly_score": money(monthly_score),
-        "bonus_lunar": money(monthly_score * EURO_PER_MONTHLY_POINT),
-    }
-
-
-def normalize_month_result_score(result):
-    if result.get("score_model") == "behavioral_v1":
-        return result
-
-    if not result.get("payment_valid") or result.get("pre_credit_impossible"):
-        result.update(zero_score_data())
-        return result
-
-    result.update(
-        compute_monthly_score(
-            money(result.get("accepted_payment", 0.0)),
-            money(result.get("cash_final", 0.0)),
-            money(result.get("overdraft_final", 0.0)),
-            3000.0,
-            money(result.get("loan_obligation", 317.71)),
-            money(result.get("loan_balance_before_payment", result.get("loan_obligation", 317.71))),
-            money(result.get("credit_final", 0.0)) <= 0 and money(result.get("loan_balance_before_payment", 0.0)) > 0,
-        )
-    )
-    return result
-
-
-def compute_month_result(month, data, loan, overdraft, payment):
-    income_total = month_sum(data["income"])
-    expenses_total = month_sum(data["expenses"])
-    obligations = data.get("obligations", {})
-    loan_balance_before_payment = money(loan.balance)
-    loan_obligation = money(loan.get_required_payment())
-    credit_interest = money(loan.apply_interest())
-    overdraft_interest = money(overdraft.apply_interest())
-    penalties = money(obligations.get("penalties", 0))
-    opening_balance = get_opening_balance(month, data)
-
-    available_total = money(opening_balance + income_total)
-    outflows_before_credit = money(expenses_total + overdraft_interest + credit_interest + penalties)
-    deficit_before_credit = money(max(0.0, outflows_before_credit - available_total))
-    liquidity_after_charges = money(max(0.0, available_total - outflows_before_credit))
-    overdraft_after_charges = money(overdraft.balance + deficit_before_credit)
-    overdraft_remaining = money(max(0.0, overdraft.limit - min(overdraft_after_charges, overdraft.limit)))
-    max_payment = money(liquidity_after_charges + overdraft_remaining)
-
-    pre_credit_impossible = overdraft_after_charges > overdraft.limit
-    no_loan_due = loan_balance_before_payment <= 0 and loan_obligation <= 0
-    payment_value = None if payment is None else money(payment)
-    capped_payment = None if payment_value is None else money(min(payment_value, loan.balance))
-    payment_valid = (
-        not pre_credit_impossible
-        and (
-            no_loan_due
-            or (
-                payment_value is not None
-                and payment_value >= 0
-                and capped_payment <= max_payment
-            )
-        )
-    )
-
-    if pre_credit_impossible:
-        feedback_message = t("simulation.feedback_pre_credit")
-        accepted_payment = 0.0
-        overdraft_from_payment = 0.0
-        overdraft_final = money(overdraft.limit)
-        cash_final = 0.0
-        credit_final = money(loan.balance)
-        score_data = zero_score_data()
-        invalid_reason = "pre_credit"
-    elif payment_valid:
-        accepted_payment = 0.0 if no_loan_due else capped_payment
-        overdraft_from_payment = money(max(0.0, accepted_payment - liquidity_after_charges))
-        overdraft_final = money(overdraft_after_charges + overdraft_from_payment)
-        cash_final = money(max(0.0, liquidity_after_charges - accepted_payment))
-        credit_final = money(max(0.0, loan.balance - accepted_payment))
-        score_data = compute_monthly_score(
-            accepted_payment,
-            cash_final,
-            overdraft_final,
-            overdraft.limit,
-            loan_obligation,
-            loan_balance_before_payment,
-            credit_final <= 0 and loan_balance_before_payment > 0,
-        )
-        feedback_message = t("simulation.feedback_no_payment_due") if no_loan_due else t("simulation.feedback_success")
-        invalid_reason = None
-    else:
-        accepted_payment = 0.0
-        overdraft_from_payment = 0.0
-        overdraft_final = money(overdraft_after_charges)
-        cash_final = money(liquidity_after_charges)
-        credit_final = money(loan.balance)
-        score_data = zero_score_data()
-        feedback_message = t("simulation.feedback_invalid")
-        invalid_reason = "payment"
-
-    if overdraft_final > overdraft.limit:
-        overdraft_final = money(overdraft.limit)
-        cash_final = 0.0
-        if score_data["monthly_score"] > 0:
-            accepted_payment = 0.0
-            credit_final = money(loan.balance)
-            overdraft_from_payment = 0.0
-            score_data = zero_score_data()
-            feedback_message = t("simulation.feedback_invalid")
-            invalid_reason = "payment"
-
-    return {
-        "month": month,
-        "opening_balance": opening_balance,
-        "income_total": income_total,
-        "expenses_total": expenses_total,
-        "loan_balance_before_payment": loan_balance_before_payment,
-        "loan_obligation": loan_obligation,
-        "credit_interest": credit_interest,
-        "overdraft_interest": overdraft_interest,
-        "penalties": penalties,
-        "available_total": available_total,
-        "outflows_before_credit": outflows_before_credit,
-        "deficit_before_credit": deficit_before_credit,
-        "liquidity_after_charges": liquidity_after_charges,
-        "overdraft_after_charges": overdraft_after_charges,
-        "overdraft_remaining": overdraft_remaining,
-        "max_payment": max_payment,
-        "payment_input": 0.0 if payment_value is None else payment_value,
-        "accepted_payment": accepted_payment,
-        "overdraft_from_payment": overdraft_from_payment,
-        "overdraft_final": overdraft_final,
-        "cash_final": cash_final,
-        "credit_final": credit_final,
-        **score_data,
-        "costs_this_month": money(credit_interest + overdraft_interest + penalties),
-        "feedback_message": feedback_message,
-        "invalid_reason": invalid_reason,
-        "pre_credit_impossible": pre_credit_impossible,
-        "payment_valid": payment_valid,
-    }
-
-
-def compute_final_score():
-    monthly_results = [normalize_month_result_score(result) for result in st.session_state.get("monthly_results", [])]
-    score_sum = sum(float(result.get("monthly_score", 0.0)) for result in monthly_results)
-    return money(min(100.0, max(0.0, score_sum / SESSION_MONTHS)))
-
-
-def get_final_score_breakdown():
-    monthly_results = [normalize_month_result_score(result) for result in st.session_state.get("monthly_results", [])]
-    monthly_score_sum = money(sum(float(result.get("monthly_score", 0.0)) for result in monthly_results))
-    final_score = money(min(MAX_MONTHLY_SCORE, max(0.0, monthly_score_sum / SESSION_MONTHS)))
-    bonus_max_session = get_bonus_max_session()
-    bonus_final = money(monthly_score_sum * EURO_PER_MONTHLY_POINT)
-    bonus = performance_bonus(final_score)
-    total_repaid = money(sum(float(result.get("accepted_payment", 0.0)) for result in monthly_results))
-    credit_interest_total = money(sum(float(result.get("credit_interest", 0.0)) for result in monthly_results))
-    overdraft_interest_total = money(sum(float(result.get("overdraft_interest", 0.0)) for result in monthly_results))
-    return {
-        "months_completed": len(monthly_results),
-        "monthly_score_sum": monthly_score_sum,
-        "final_score": final_score,
-        "bonus_max_session": bonus_max_session,
-        "bonus_final": bonus_final,
-        "performance_bonus_gbp": bonus["performance_bonus_gbp"],
-        "loss_amount_gbp": bonus["loss_amount_gbp"],
-        "prolific_base_reward_gbp": PROLIFIC_BASE_REWARD_GBP,
-        "total_payout_gbp": PROLIFIC_BASE_REWARD_GBP + bonus["performance_bonus_gbp"],
-        "experimental_condition": st.session_state.get("experimental_condition"),
-        "score_frame": st.session_state.get("score_frame"),
-        "monthly_score_feedback": st.session_state.get("monthly_score_feedback"),
-        "payment_status": st.session_state.get("payment_status", DEFAULT_PAYMENT_STATUS),
-        "study_session_id": st.session_state.get("study_session_id"),
-        "study_session_code": st.session_state.get("study_session_code"),
-        "participant_code": st.session_state.get("participant_code"),
-        "prolific_pid": st.session_state.get("prolific_pid"),
-        "prolific_study_id": st.session_state.get("prolific_study_id"),
-        "prolific_session_id": st.session_state.get("prolific_session_id"),
-        "completion_code": st.session_state.get("prolific_completion_code"),
-        "total_repaid": total_repaid,
-        "remaining_credit": money(st.session_state.loan.balance),
-        "remaining_overdraft": money(st.session_state.overdraft.balance),
-        "credit_interest_total": credit_interest_total,
-        "overdraft_interest_total": overdraft_interest_total,
-        "interest_total": money(credit_interest_total + overdraft_interest_total),
-    }
-
-
 # ==================== PAGE ROUTING ====================
 ui_ctx = make_ui_context(
     st=st,
@@ -1352,6 +818,10 @@ ui_ctx = make_ui_context(
     pre_sections_ro=PRE_SECTIONS_RO,
     post_sections_ro=POST_SECTIONS_RO,
     goto=goto,
+    commit_command=commit_command,
+    commit_state=commit_state,
+    commit_quality_state=commit_quality_state,
+    experiment_service=experiment_service,
     scroll_top_anchor=scroll_top_anchor,
     auto_open_context_narrativ=auto_open_context_narrativ,
     attach_payment_keyboard_bridge=attach_payment_keyboard_bridge,
@@ -1360,23 +830,14 @@ ui_ctx = make_ui_context(
     get_display_pre_sections=get_display_pre_sections,
     get_display_post_sections=get_display_post_sections,
     get_localized_narrative=get_localized_narrative,
-    get_opening_balance=get_opening_balance,
-    compute_month_result=compute_month_result,
-    normalize_month_result_score=normalize_month_result_score,
-    compute_final_score=compute_final_score,
-    get_final_score_breakdown=get_final_score_breakdown,
-    get_bonus_max_session=get_bonus_max_session,
-    persist_checkpoint=persist_checkpoint,
-    save_quality_check=save_quality_check,
-    finalize_participant=finalize_participant,
     load_admin_study_session_by_code=load_admin_study_session_by_code,
     create_admin_study_session=create_admin_study_session,
     list_admin_study_sessions=list_admin_study_sessions,
     list_participant_sessions_for_study_session=list_participant_sessions_for_study_session,
     cancel_admin_study_session=cancel_admin_study_session,
-    save_month_results=save_month_results,
     condition_options=condition_options,
     current_user_email=current_user_email,
+    current_account_key=current_account_key,
     is_admin_user=is_admin_user,
     start_new_scenario=start_new_scenario,
 )

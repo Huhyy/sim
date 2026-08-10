@@ -1,5 +1,7 @@
 """Final score preview page."""
 
+from sim_app.application.commands import calculate_final_scores, complete_final_score
+from sim_app.session.streamlit_state import read_participant_state
 from sim_app.ui.formatting import display_euro, display_number
 
 
@@ -23,12 +25,8 @@ def render_final_score_page(ctx):
     t = ctx.t
     ctx.scroll_top_anchor()
 
-    st.session_state.final_score = ctx.compute_final_score()
-
-    breakdown = ctx.get_final_score_breakdown()
-    st.session_state.final_score_breakdown = breakdown
-    if hasattr(ctx, "persist_checkpoint"):
-        ctx.persist_checkpoint()
+    participant_state = calculate_final_scores(read_participant_state(st.session_state))
+    breakdown = participant_state.final_score_breakdown
 
     st.title(t("final_score.title"))
     st.markdown(t("final_score.intro"))
@@ -60,8 +58,8 @@ def render_final_score_page(ctx):
     st.caption(t("final_score.caption"))
 
     if st.button(t("final_score.button"), type="primary"):
-        st.session_state.scroll_to_top = True
-        ctx.goto("done")
+        command = complete_final_score(participant_state)
+        ctx.commit_command(command, operation="final_score:continue")
 
 
 __all__ = [

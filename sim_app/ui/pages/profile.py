@@ -1,5 +1,7 @@
 """Participant profile page."""
 
+from sim_app.application.commands import complete_profile
+from sim_app.session.streamlit_state import read_participant_state
 from sim_app.ui.styles import PROFILE_CSS, apply_css
 
 
@@ -20,8 +22,8 @@ def render_profile_page(ctx):
     st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button(t("profile.button"), type="primary"):
-        st.session_state.scroll_to_top = True
-        ctx.goto("simulation")
+        command = complete_profile(read_participant_state(st.session_state))
+        ctx.commit_command(command, operation="profile:complete")
 
 
 __all__ = [

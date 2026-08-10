@@ -1,6 +1,7 @@
 """Page routing helpers for the Streamlit UI."""
 
-from sim_app.prolific.flow import prolific_required_page_before
+from sim_app.application.progression import required_page_before
+from sim_app.session.streamlit_state import read_participant_state
 from sim_app.ui.pages.admin import render_admin_page
 from sim_app.ui.pages.admin_sessions import render_admin_sessions_page
 from sim_app.ui.pages.already_completed import render_already_completed_page
@@ -56,9 +57,10 @@ def render_current_page(ctx):
     ctx.st.session_state.page = page
     pre_sections = ctx.get_display_pre_sections() if hasattr(ctx, "get_display_pre_sections") else []
     post_sections = ctx.get_display_post_sections() if hasattr(ctx, "get_display_post_sections") else []
-    required_page = prolific_required_page_before(
+    participant_state = read_participant_state(ctx.st.session_state)
+    required_page = required_page_before(
         page,
-        ctx.st.session_state,
+        participant_state,
         pre_sections=pre_sections,
         post_sections=post_sections,
     )

@@ -1,5 +1,7 @@
 """Home page."""
 
+from sim_app.application.commands import go_to_page
+from sim_app.session.streamlit_state import read_participant_state
 from sim_app.ui.styles import HOME_CSS, apply_css
 
 
@@ -20,11 +22,11 @@ def render_home_page(ctx):
     st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button(t("home.button"), type="primary"):
-        st.session_state.scroll_to_top = True
-        ctx.goto("consent")
+        command = go_to_page(read_participant_state(st.session_state), "consent")
+        ctx.commit_command(command, operation="home:start")
     if st.button(t("study_session.optional_button"), type="secondary"):
-        st.session_state.scroll_to_top = True
-        ctx.goto("enter_session_code")
+        command = go_to_page(read_participant_state(st.session_state), "enter_session_code")
+        ctx.commit_command(command, operation="home:study_session")
 
 
 __all__ = [

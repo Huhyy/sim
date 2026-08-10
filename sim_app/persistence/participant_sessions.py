@@ -1,7 +1,6 @@
-"""Participant session checkpoint reads and writes."""
+"""Read-only compatibility access to legacy participant checkpoints."""
 
 from sim_app.infra.supabase import _require_client
-from sim_app.infra.time import _utcnow
 
 
 def load_session_row(session_id: str):
@@ -62,15 +61,6 @@ def load_session_checkpoint(session_id: str):
         if summaries:
             summary = summaries[0]
             checkpoint["submission_finalized"] = True
-            if row.get("status") != "completed":
-                _require_client().table("participant_sessions").update(
-                    {
-                        "status": "completed",
-                        "current_page": "done",
-                        "completed_at": row.get("completed_at") or _utcnow(),
-                        "updated_at": _utcnow(),
-                    }
-                ).eq("id", session_id).execute()
             checkpoint["final_score"] = summary.get("final_score")
             checkpoint["final_score_breakdown"] = summary
             checkpoint["loan_balance"] = summary.get("remaining_credit", checkpoint.get("loan_balance", 7000.0))
@@ -78,55 +68,7 @@ def load_session_checkpoint(session_id: str):
 
     return checkpoint
 
-
-def save_session_checkpoint(session_id: str, checkpoint: dict, status: str = "in_progress"):
-    client = _require_client()
-
-    row = {
-        "id": session_id,
-        "status": status,
-        "current_page": checkpoint.get("page") or "home",
-        "checkpoint": checkpoint,
-        "updated_at": _utcnow(),
-    }
-
-    if checkpoint.get("study_session_id"):
-        row["study_session_id"] = checkpoint.get("study_session_id")
-    if checkpoint.get("study_session_code"):
-        row["study_session_code"] = checkpoint.get("study_session_code")
-    if checkpoint.get("participant_code"):
-        row["participant_code"] = checkpoint.get("participant_code")
-    if checkpoint.get("prolific_pid"):
-        row["prolific_pid"] = checkpoint.get("prolific_pid")
-    if checkpoint.get("prolific_study_id"):
-        row["prolific_study_id"] = checkpoint.get("prolific_study_id")
-    if checkpoint.get("prolific_session_id"):
-        row["prolific_session_id"] = checkpoint.get("prolific_session_id")
-    if checkpoint.get("prolific_mode"):
-        row["missing_prolific_params"] = False
-    if checkpoint.get("comprehension_attempts") is not None:
-        row["comprehension_attempts"] = int(checkpoint.get("comprehension_attempts") or 0)
-    if checkpoint.get("comprehension_passed") is not None:
-        row["comprehension_passed"] = bool(checkpoint.get("comprehension_passed"))
-    if checkpoint.get("attention_failed_count") is not None:
-        row["attention_failed_count"] = int(checkpoint.get("attention_failed_count") or 0)
-    if checkpoint.get("answers", {}).get("anti_ai_declaration") is True:
-        row["anti_ai_declaration"] = True
-        row["anti_ai_declared_at"] = _utcnow()
-    if checkpoint.get("experimental_condition"):
-        row["experimental_condition"] = checkpoint.get("experimental_condition")
-    if checkpoint.get("score_frame"):
-        row["score_frame"] = checkpoint.get("score_frame")
-    if checkpoint.get("monthly_score_feedback"):
-        row["monthly_score_feedback"] = checkpoint.get("monthly_score_feedback")
-    if status == "completed":
-        row["completed_at"] = _utcnow()
-
-    client.table("participant_sessions").upsert(row).execute()
-
-
 __all__ = [
     "load_session_checkpoint",
     "load_session_row",
-    "save_session_checkpoint",
 ]
