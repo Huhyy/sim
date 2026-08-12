@@ -1,0 +1,15 @@
+"""Persistence contract required by the admin application service."""
+
+from __future__ import annotations
+
+from typing import Protocol
+
+
+class AdminRepository(Protocol):
+    def create_study_session(self, created_by_email: str, experimental_condition: str): ...
+    def list_study_sessions(self, created_by_email: str): ...
+    def list_participants(self, study_session_id: str, study_session_code: str): ...
+    def cancel_study_session(self, session_id: str, created_by_email: str): ...
+
+
+__all__ = ["AdminRepository"]

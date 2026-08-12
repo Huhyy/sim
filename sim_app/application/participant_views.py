@@ -10,6 +10,7 @@ from sim_app.content.translations import (
     get_display_post_sections,
     get_display_pre_sections,
     get_localized_narrative,
+    get_ui_section,
     t,
 )
 from sim_app.domain.simulation import compute_month_preview
@@ -25,6 +26,7 @@ def participant_session_view(state: ParticipantState, *, idempotency_replayed=Fa
         "stage": stage,
         "month": state.month,
         "language": language,
+        "labels": _stage_labels(stage, state, language),
         "view": _stage_view(state, stage, language),
         "idempotency_replayed": bool(idempotency_replayed),
     }
@@ -128,6 +130,38 @@ def _stage_view(state, stage, language):
         key = "prolific.return_message" if stage == "prolific_return" else "prolific.error_missing_params"
         return {"type": stage, "message": t(key, language=language)}
     return {"type": "unavailable"}
+
+
+def _stage_labels(stage, state, language):
+    if stage in {"home", "enter_session_code"}:
+        sections = ("home", "study_session")
+    elif stage in {"consent", "consent_declined"}:
+        sections = ("consent", "consent_declined", "prolific")
+    elif stage == "demographics":
+        sections = ("demographics",)
+    elif stage.startswith(("pre_question_", "post_question_")):
+        sections = ("quiz", "prolific")
+    elif stage == "instructions":
+        sections = ("instructions",)
+    elif stage == "comprehension":
+        sections = ("prolific",)
+    elif stage == "profile":
+        sections = ("profile",)
+    elif stage in {"simulation", "month_feedback"}:
+        sections = ("simulation", "table")
+    elif stage == "final_score":
+        sections = ("final_score",)
+    elif stage == "done":
+        sections = ("done", "prolific")
+    else:
+        sections = ("auth", "already_completed", "prolific")
+    labels = {section: get_ui_section(section, language) for section in sections}
+    if stage in {"simulation", "month_feedback"} and state.monthly_score_feedback != "displayed":
+        simulation_labels = labels.get("simulation", {})
+        for key in tuple(simulation_labels):
+            if key.startswith("score_") or key.startswith("monthly_score"):
+                simulation_labels.pop(key, None)
+    return labels
 
 
 def _demographics_view(state, language):

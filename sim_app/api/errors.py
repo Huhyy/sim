@@ -17,6 +17,8 @@ from sim_app.application.errors import (
     InvalidTransition,
     PersistenceReadError,
     PersistenceWriteError,
+    ParticipationCompleted,
+    ProlificLaunchError,
     SessionAccessDenied,
     SessionNotFound,
     TreatmentConflict,
@@ -39,6 +41,8 @@ def install_exception_handlers(app):
     app.add_exception_handler(InvalidTransition, _application_error)
     app.add_exception_handler(PersistenceReadError, _application_error)
     app.add_exception_handler(PersistenceWriteError, _application_error)
+    app.add_exception_handler(ParticipationCompleted, _application_error)
+    app.add_exception_handler(ProlificLaunchError, _application_error)
     app.add_exception_handler(Exception, _unexpected_error)
 
 
@@ -103,6 +107,10 @@ def _mapping(exc):
         return 503, "persistence_read_failed", "Participant state could not be read safely.", True
     if isinstance(exc, PersistenceWriteError):
         return 503, "persistence_write_failed", "The action was not committed. Retry with the same idempotency key.", True
+    if isinstance(exc, ParticipationCompleted):
+        return 409, "participation_completed", str(exc), False
+    if isinstance(exc, ProlificLaunchError):
+        return 400, "prolific_launch_error", str(exc), False
     return 500, "internal_error", "An unexpected server error occurred.", True
 
 

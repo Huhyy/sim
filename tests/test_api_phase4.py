@@ -318,6 +318,9 @@ def test_feedback_experimental_blindness(harness, condition, score_visible):
     }
     assert forbidden.isdisjoint(set(_all_keys(body)))
     assert ACCOUNT_KEY not in json.dumps(body)
+    if not score_visible:
+        keys = set(_all_keys(body))
+        assert not {key for key in keys if key.startswith("score_") or key.startswith("monthly_score")}
 
 
 def test_questionnaire_attention_and_comprehension_are_server_evaluated():
@@ -511,6 +514,10 @@ def test_complete_non_prolific_api_journey(harness):
     assert completed["stage"] == "done"
     assert completed["view"]["saved"] is True
     assert repository.finalization_count(session_id) == 1
+    app.state.principal_provider = lambda _request: ParticipantPrincipal(
+        ACCOUNT_KEY,
+        bound_session_id=session_id,
+    )
     retry = client.post(
         f"/api/v1/sessions/{session_id}/finalize",
         headers=_headers("journey-finalize"),
@@ -525,8 +532,8 @@ def test_complete_non_prolific_api_journey(harness):
         headers=_headers("journey-finalize"),
         json={"expected_version": current["state_version"]},
     )
-    assert stolen_retry.status_code == 409
-    assert stolen_retry.json()["error"]["code"] == "idempotency_conflict"
+    assert stolen_retry.status_code == 403
+    assert stolen_retry.json()["error"]["code"] == "session_access_denied"
 
 
 def test_api_architecture_has_no_persistence_shortcut():

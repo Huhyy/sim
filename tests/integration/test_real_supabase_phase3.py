@@ -27,7 +27,7 @@ from sim_app.domain.overdraft import Overdraft
 from sim_app.domain.simulation import compute_month_preview, compute_month_result
 from sim_app.infra.supabase import get_client, reset_shared_client
 from sim_app.persistence.experiment_repository import SupabaseExperimentRepository
-from sim_app.session.service_provider import get_experiment_service, set_experiment_service
+from sim_app.composition import get_experiment_service, set_experiment_service
 
 
 ENABLED = (

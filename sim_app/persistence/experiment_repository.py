@@ -33,7 +33,7 @@ class SupabaseExperimentRepository:
     def client(self):
         if self._client is None:
             # The synchronous Supabase/httpx client is not safe to share
-            # concurrently across Streamlit or future transport worker threads.
+            # concurrently across synchronous transport worker threads.
             # Infrastructure returns one reusable client per worker thread.
             return _require_client()
         return self._client
@@ -56,6 +56,38 @@ class SupabaseExperimentRepository:
             return str(rows[0]["session_id"]) if rows else None
         except Exception as exc:
             raise PersistenceReadError("Could not resolve participant session ownership") from exc
+
+    def account_has_completed(self, account_key):
+        try:
+            with self.metrics.measure("completed_account_lookup", layer="database"):
+                self.metrics.increment("database_request_count")
+                response = (
+                    self.client.table("completed_accounts")
+                    .select("account_key")
+                    .eq("account_key", account_key)
+                    .limit(1)
+                    .execute()
+                )
+            return bool(getattr(response, "data", None) or [])
+        except Exception as exc:
+            raise PersistenceReadError("Could not verify completed participation") from exc
+
+    def find_prolific_session(self, prolific_pid, study_id):
+        try:
+            with self.metrics.measure("prolific_session_lookup", layer="database"):
+                self.metrics.increment("database_request_count")
+                response = (
+                    self.client.table("participant_sessions")
+                    .select("id,status,prolific_session_id,completion_code")
+                    .eq("prolific_pid", str(prolific_pid))
+                    .eq("prolific_study_id", str(study_id))
+                    .limit(1)
+                    .execute()
+                )
+            rows = getattr(response, "data", None) or []
+            return dict(rows[0]) if rows else None
+        except Exception as exc:
+            raise PersistenceReadError("Could not verify Prolific participation") from exc
 
     def account_owns_session(self, account_key, session_id):
         linked = self.find_session_id_for_account(account_key)

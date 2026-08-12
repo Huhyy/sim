@@ -2,7 +2,7 @@
 
 import ast
 
-from sim_app.auth.identity import _get_secret, current_user_email
+from sim_app.infra.secrets import _get_secret
 
 
 def _parse_admin_emails(raw_value):
@@ -43,16 +43,15 @@ def configured_admin_emails_text():
     return ", ".join(emails)
 
 
-def is_admin_user():
-    email = current_user_email()
+def is_admin_email(email):
     if not email:
         return False
-    return email in admin_emails()
+    return str(email).strip().lower() in admin_emails()
 
 
 __all__ = [
     "_parse_admin_emails",
     "admin_emails",
     "configured_admin_emails_text",
-    "is_admin_user",
+    "is_admin_email",
 ]

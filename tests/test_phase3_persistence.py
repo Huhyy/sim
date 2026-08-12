@@ -12,6 +12,7 @@ from sim_app.application.errors import (
     TreatmentConflict,
 )
 from sim_app.application.services import ExperimentService
+from sim_app.application.principal import ParticipantPrincipal
 from sim_app.application.state import ParticipantState
 from sim_app.config import SCENARIO_VERSION
 from sim_app.domain.experimental_conditions import condition_config
@@ -464,60 +465,29 @@ def test_resume_projection_excludes_authoritative_economic_and_treatment_data():
         assert key not in projection
 
 
-def test_bootstrap_read_failure_preserves_existing_runtime_state(monkeypatch):
-    import sim_app.session.manager as manager
-
-    runtime = type("Runtime", (dict,), {
-        "__getattr__": lambda self, key: self[key],
-        "__setattr__": lambda self, key, value: self.__setitem__(key, value),
-    })(sentinel="preserve-me")
-    monkeypatch.setattr(manager.st, "session_state", runtime)
-    monkeypatch.setattr(manager, "REPEAT_SCENARIO_DEV_MODE", True)
-    monkeypatch.setattr(manager, "current_account_key", lambda: "a" * 64)
-    monkeypatch.setattr(manager, "load_prolific_params", lambda: {})
-    monkeypatch.setattr(manager, "has_any_prolific_param", lambda _params: False)
-    monkeypatch.setattr(manager, "load_linked_session_id", lambda _key: "existing-session")
-    monkeypatch.setattr(manager, "get_query_param", lambda _key: None)
-    monkeypatch.setattr(
-        manager,
-        "get_experiment_service",
-        lambda: SimpleNamespace(find_session=lambda _session_id: (_ for _ in ()).throw(PersistenceReadError("offline"))),
-    )
-
+def test_bootstrap_read_failure_does_not_initialize_or_replace_state():
+    repository = InMemoryExperimentRepository()
+    service = ExperimentService(repository)
+    principal = ParticipantPrincipal("a" * 64)
+    repository.fail_next("find_session_for_account", phase="before")
     with pytest.raises(PersistenceReadError):
-        manager.bootstrap_authenticated_session()
-
-    assert runtime["sentinel"] == "preserve-me"
-    assert "page" not in runtime
+        service.bootstrap_session(principal, expected_version=0, language="en", request_id="create")
+    assert repository._sessions == {}
 
 
-def test_streamlit_adapter_does_not_apply_stage_when_write_fails():
-    from sim_app.session.streamlit_service import commit_state
-
-    class StopRendering(Exception):
-        pass
-
+def test_application_does_not_return_advanced_state_when_write_fails():
     state = _service_state()
-    runtime = type("Runtime", (dict,), {
-        "__getattr__": lambda self, key: self[key],
-        "__setattr__": lambda self, key, value: self.__setitem__(key, value),
-    })(state.to_runtime_defaults())
+    repository = InMemoryExperimentRepository()
+    service = ExperimentService(repository)
+    service.create_session(state, account_key="a" * 64, request_id="create")
     proposed = state.copy()
     proposed.page = "consent"
-    st = SimpleNamespace(
-        session_state=runtime,
-        error=lambda *_args, **_kwargs: None,
-        stop=lambda: (_ for _ in ()).throw(StopRendering()),
-    )
-    service = SimpleNamespace(
-        save_stage=lambda *_args, **_kwargs: (_ for _ in ()).throw(PersistenceWriteError("offline"))
-    )
-
-    with pytest.raises(StopRendering):
-        commit_state(st, service, proposed, operation="test", rerun=False)
-
-    assert runtime.page == "simulation"
-    assert runtime.state_version == 0
+    repository.fail_next("save_stage", phase="before")
+    with pytest.raises(PersistenceWriteError):
+        service.save_stage(proposed, expected_version=0, request_id="stage")
+    durable = service.load_session(state.session_id)
+    assert durable.page == "simulation"
+    assert durable.state_version == 0
 
 
 class _PaymentQuery:

@@ -1,38 +1,28 @@
 def test_persistence_modules_expose_database_functions():
     from sim_app.persistence import (
+        SupabaseAdminRepository,
         SupabaseExperimentRepository,
-        account_has_completed,
-        load_linked_session_id,
-        list_participant_sessions_for_study_session,
-        load_session_checkpoint,
     )
 
-    assert callable(account_has_completed)
+    assert callable(SupabaseAdminRepository)
     assert callable(SupabaseExperimentRepository)
-    assert callable(load_linked_session_id)
-    assert callable(list_participant_sessions_for_study_session)
-    assert callable(load_session_checkpoint)
 
 
 def test_session_and_state_modules_expose_state_functions():
-    from sim_app.session import bootstrap_authenticated_session, finalize_participant, start_new_scenario
-    from sim_app.state import collect_checkpoint, hydrate_from_checkpoint, runtime_defaults
+    from sim_app.application import ExperimentService, ParticipantState
+    from sim_app.composition import get_experiment_service
 
-    assert callable(bootstrap_authenticated_session)
-    assert callable(finalize_participant)
-    assert callable(start_new_scenario)
-    assert callable(collect_checkpoint)
-    assert callable(hydrate_from_checkpoint)
-    assert callable(runtime_defaults)
+    assert callable(ExperimentService)
+    assert callable(ParticipantState)
+    assert callable(get_experiment_service)
 
 
 def test_auth_modules_expose_auth_functions():
-    from sim_app.auth import current_account_key, current_user_email, is_admin_user, is_logged_in
+    from sim_app.auth import derive_account_key, derive_prolific_account_key, is_admin_email
 
-    assert callable(current_account_key)
-    assert callable(current_user_email)
-    assert callable(is_admin_user)
-    assert callable(is_logged_in)
+    assert callable(derive_account_key)
+    assert callable(derive_prolific_account_key)
+    assert callable(is_admin_email)
 
 
 def test_domain_modules_expose_models():
@@ -87,19 +77,14 @@ def test_prolific_helpers_are_deterministic(monkeypatch):
     assert completion_redirect_url("FIN-123") == "https://app.prolific.com/submissions/complete?cc=FIN-123"
 
 
-def test_prolific_params_survive_query_string_loss(monkeypatch):
-    import sim_app.prolific.identity as identity
+def test_prolific_params_are_normalized_at_the_server_boundary():
+    from sim_app.prolific.identity import normalize_prolific_params
 
-    identity.st.session_state.clear()
-    values = iter(["", "", ""])
-    monkeypatch.setattr(identity, "get_query_param", lambda _name: next(values))
-    identity.st.session_state._prolific_params = {
+    assert normalize_prolific_params({
         "PROLIFIC_PID": "pid-1",
         "STUDY_ID": "study-1",
         "SESSION_ID": "submission-1",
-    }
-
-    assert identity.load_prolific_params() == {
+    }) == {
         "PROLIFIC_PID": "pid-1",
         "STUDY_ID": "study-1",
         "SESSION_ID": "submission-1",

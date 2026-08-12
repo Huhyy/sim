@@ -29,14 +29,17 @@ def test_dynamic_completion_uses_submission_id_and_completion_data():
     )
 
 
-def test_api_request_identifies_the_streamlit_integration():
+def test_api_request_identifies_the_same_origin_web_integration():
     response = MagicMock()
     response.read.return_value = b"{}"
     response.__enter__.return_value = response
     response.__exit__.return_value = False
 
     with (
-        patch("sim_app.prolific.bonuses._get_secret", return_value="api-token"),
+        patch("sim_app.prolific.bonuses._get_secret", side_effect=lambda name: {
+            "PROLIFIC_API_TOKEN": "api-token",
+            "PROLIFIC_INTEGRATION_URL": "https://simulator.example/",
+        }.get(name)),
         patch("sim_app.prolific.bonuses.urlopen", return_value=response) as urlopen,
     ):
         complete_with_dynamic_payment("submission-1", "CFQP1FU2", 100, "Performance reward")
@@ -44,5 +47,5 @@ def test_api_request_identifies_the_streamlit_integration():
     request = urlopen.call_args.args[0]
     assert request.get_header("Authorization") == "Token api-token"
     assert request.get_header("Accept") == "application/json"
-    assert request.get_header("Referer") == "https://scenariucredit.streamlit.app/"
+    assert request.get_header("Referer") == "https://simulator.example/"
     assert request.get_header("User-agent") == "ScenariuCredit/1.0 (Prolific API integration)"

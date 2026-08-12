@@ -1,7 +1,7 @@
-streamlit[auth]==1.56.0
-Authlib==1.6.11
-pandas
-supabase
+supabase==2.30.0
 fastapi==0.141.1
 uvicorn==0.52.1
 pydantic==2.13.4
+httpx==0.28.1
+PyJWT==2.10.1
+cryptography==44.0.1

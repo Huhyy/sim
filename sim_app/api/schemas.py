@@ -25,6 +25,10 @@ class ConsentRequest(VersionedCommandRequest):
     anti_ai_declaration: bool = False
 
 
+class LanguageRequest(VersionedCommandRequest):
+    language: Literal["en", "ro"]
+
+
 class DemographicsRequest(VersionedCommandRequest):
     demo_age: int = Field(ge=18, le=75)
     demo_gender: str = Field(min_length=1)
@@ -66,6 +70,37 @@ class FeedbackAcknowledgementRequest(VersionedCommandRequest):
 
 class FinalizeRequest(VersionedCommandRequest):
     pass
+
+
+class AdminCreateSessionRequest(StrictModel):
+    experimental_condition: Literal["C1", "C2", "C3", "C4"]
+
+
+class AdminPayoutView(StrictModel):
+    final_score: float
+    performance_bonus_gbp: float
+    total_payout_gbp: float
+    payment_status: str
+    prolific_bonus_status: str
+
+
+class AdminParticipantView(StrictModel):
+    participant_code: str | None
+    stage: str
+    page_label: str
+    progress_percent: int
+    status: str
+    payout: AdminPayoutView | None
+    updated_at: str | None
+
+
+class AdminStudySessionView(StrictModel):
+    id: str
+    session_code: str
+    experimental_condition: Literal["C1", "C2", "C3", "C4"]
+    status: str
+    created_at: str | None
+    participants: list[AdminParticipantView]
 
 
 class HomeView(StrictModel):
@@ -277,6 +312,7 @@ class ParticipantSessionResponse(StrictModel):
     stage: str
     month: int
     language: Literal["en", "ro"]
+    labels: dict[str, Any]
     view: ParticipantView = Field(discriminator="type")
     idempotency_replayed: bool = False
 

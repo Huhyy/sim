@@ -32,9 +32,6 @@ from sim_app.domain.scoring import compute_monthly_score
 from sim_app.domain.simulation import compute_month_preview, compute_month_result
 from sim_app.application.services import ExperimentService
 from sim_app.persistence.memory import InMemoryExperimentRepository
-from sim_app.session.streamlit_state import navigate
-from sim_app.ui.pages.month_feedback import render_month_feedback_page
-from sim_app.ui.pages.simulation import render_simulation_page
 
 
 class DummySessionState(dict):
@@ -238,7 +235,7 @@ def test_checkpoint_round_trip_preserves_the_exact_legacy_representation():
     assert state.to_checkpoint() == checkpoint
 
 
-def test_full_framework_neutral_progression_matches_the_streamlit_flow():
+def test_full_framework_neutral_progression_matches_the_research_flow():
     state = ParticipantState.initial(SCENARIO_VERSION)
     assert required_page_before_demographics(state) == "consent"
     assert required_page_before_pre_questions(state) == "consent"
@@ -308,19 +305,17 @@ def test_prolific_instructions_and_comprehension_progression_are_stable():
     assert passed.state.answers["comprehension_passed_at"] == "now"
 
 
-def test_navigation_preserves_checkpoint_then_rerun_order():
-    calls = []
-    state = DummySessionState(page="home", scroll_to_top=False)
-    navigate(
-        state,
-        "consent",
-        lambda: calls.append(("checkpoint", state.page, state.scroll_to_top)),
-        lambda: calls.append(("rerun", state.page, state.scroll_to_top)),
-    )
-    assert calls == [
-        ("checkpoint", "consent", True),
-        ("rerun", "consent", True),
-    ]
+def test_committed_navigation_returns_only_after_repository_accepts_transition():
+    repository = InMemoryExperimentRepository()
+    service = ExperimentService(repository)
+    state = ParticipantState.initial(SCENARIO_VERSION)
+    state.session_id = "session"
+    service.create_session(state, account_key="a" * 64, request_id="create")
+    proposed = state.copy()
+    proposed.page = "consent"
+    result = service.save_stage(proposed, expected_version=0, request_id="navigate")
+    assert result.state.page == "consent"
+    assert service.load_session("session").page == "consent"
 
 
 class _NoOpColumn:
@@ -328,7 +323,7 @@ class _NoOpColumn:
         return None
 
 
-class _FeedbackStreamlit:
+class _FeedbackAdapterFake:
     def __init__(self, session_state):
         self.session_state = session_state
 
@@ -348,7 +343,7 @@ class _ContextBlock:
         return False
 
 
-class _SimulationStreamlit(_FeedbackStreamlit):
+class _SimulationAdapterFake(_FeedbackAdapterFake):
     def __getattr__(self, name):
         if name == "expander":
             return lambda *args, **kwargs: _ContextBlock()
@@ -365,40 +360,18 @@ def test_normal_month_commits_before_feedback_and_acknowledges_separately():
     repository = InMemoryExperimentRepository()
     service = ExperimentService(repository)
     service.create_session(runtime, account_key="a" * 64, request_id="create")
-    session_state = DummySessionState(runtime.to_runtime_defaults())
-    session_state.session_id = runtime.session_id
-    calls = []
-    ctx = SimpleNamespace(
-        st=_SimulationStreamlit(session_state),
-        t=lambda key, **kwargs: key,
-        experiment_service=service,
-        goto=lambda page: calls.append(("unexpected_navigation", page)),
-        scroll_top_anchor=lambda: None,
-        get_month=get_month,
-        get_localized_narrative=lambda _month: "Narrative",
-        auto_open_context_narrativ=lambda _label: None,
-        get_category_label=lambda value: value,
-        attach_payment_keyboard_bridge=lambda: None,
+    committed = service.submit_month_decision(
+        session_id="session", expected_version=0, expected_month=1,
+        payment=100.0, request_id="decision",
     )
-
-    render_simulation_page(ctx)
-    assert calls == []
-    assert session_state.pending_month_result["month"] == 1
+    assert committed.state.pending_month_result["month"] == 1
     assert repository.month_result_count("session") == 1
-    assert session_state.state_version == 1
-
-    feedback_ctx = SimpleNamespace(
-        st=_FeedbackStreamlit(session_state),
-        t=lambda key, **kwargs: key,
-        scroll_top_anchor=lambda: None,
-        experiment_service=service,
-        goto=lambda page: calls.append(("unexpected_navigation", page)),
+    assert committed.state.state_version == 1
+    acknowledged = service.acknowledge_month_feedback(
+        session_id="session", expected_version=1, expected_month=1, request_id="feedback",
     )
-    render_month_feedback_page(feedback_ctx)
-
-    assert calls == []
-    assert session_state.month == 2
-    assert session_state.state_version == 2
+    assert acknowledged.state.month == 2
+    assert acknowledged.state.state_version == 2
     assert repository.month_result_count("session") == 1
 
 
@@ -422,18 +395,9 @@ def test_month_24_acknowledgment_uses_existing_structured_ledger():
     repository.seed_legacy(runtime, account_key="a" * 64)
     repository.replace_state_and_ledger(runtime)
     service = ExperimentService(repository)
-    session_state = DummySessionState(runtime.to_runtime_defaults())
-    session_state.session_id = runtime.session_id
-    session_state.pending_month_result = runtime.pending_month_result
-    ctx = SimpleNamespace(
-        st=_FeedbackStreamlit(session_state),
-        t=lambda key, **kwargs: key,
-        scroll_top_anchor=lambda: None,
-        experiment_service=service,
-        goto=lambda page: None,
+    acknowledged = service.acknowledge_month_feedback(
+        session_id="session", expected_version=47, expected_month=24, request_id="feedback-24",
     )
-    render_month_feedback_page(ctx)
-
-    assert session_state.month == 25
-    assert session_state.pending_month_result is None
+    assert acknowledged.state.month == 25
+    assert acknowledged.state.pending_month_result is None
     assert repository.month_result_count("session") == 24

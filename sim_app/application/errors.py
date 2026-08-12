@@ -43,6 +43,14 @@ class SessionAccessDenied(ExperimentError):
     pass
 
 
+class ParticipationCompleted(ExperimentError):
+    pass
+
+
+class ProlificLaunchError(ExperimentError):
+    pass
+
+
 class InputValidationError(ExperimentError):
     pass
 
@@ -61,6 +69,8 @@ __all__ = [
     "InvalidTransition",
     "PersistenceReadError",
     "PersistenceWriteError",
+    "ParticipationCompleted",
+    "ProlificLaunchError",
     "SessionNotFound",
     "SessionAccessDenied",
     "TreatmentConflict",

@@ -67,7 +67,7 @@ def redirect_for_post_question_index(section_index: int, section_count: int) -> 
 
 def page_after_month_feedback() -> str:
     # Preserve the legacy intermediate checkpoint at page=simulation, month=25.
-    # The next Streamlit rerun then applies redirect_before_simulation.
+    # The next safe-view render then applies redirect_before_simulation.
     return "simulation"
 
 

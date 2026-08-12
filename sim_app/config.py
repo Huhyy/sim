@@ -4,16 +4,11 @@ import os
 
 
 def _feature_flag(name, default):
-    try:
-        import streamlit as st
-
-        value = st.secrets.get(name, default)
-    except Exception:
-        value = os.getenv(name, default)
+    value = os.getenv(name, default)
     return str(value).lower() == "true"
 
 
-REPEAT_SCENARIO_DEV_MODE = _feature_flag("ALLOW_REPEAT_PARTICIPATION", "true")
+REPEAT_SCENARIO_DEV_MODE = _feature_flag("ALLOW_REPEAT_PARTICIPATION", "false")
 PROLIFIC_MODE_ENABLED = _feature_flag("PROLIFIC_MODE_ENABLED", "true")
 SCENARIO_VERSION = "income-baseline-1000-720-initial-150"
 

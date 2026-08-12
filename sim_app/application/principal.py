@@ -10,8 +10,8 @@ class ParticipantPrincipal:
     """Trusted identity material produced by a transport authentication adapter.
 
     None of these values are accepted from participant command payloads.
-    Prolific fields are optional because the current Streamlit transport also
-    supports ordinary OIDC participants.
+    Prolific fields are optional because ordinary OIDC participants do not
+    carry research-launch identifiers.
     """
 
     account_key: str
@@ -19,6 +19,10 @@ class ParticipantPrincipal:
     prolific_pid: str | None = None
     prolific_study_id: str | None = None
     prolific_session_id: str | None = None
+    email: str | None = None
+    display_name: str | None = None
+    bound_session_id: str | None = None
+    is_admin: bool = False
 
 
 __all__ = ["ParticipantPrincipal"]

@@ -1,6 +1,6 @@
 """Framework-neutral participant experiment state.
 
-The model intentionally mirrors the existing Streamlit/checkpoint shape.  It is
+The model intentionally mirrors the legacy runtime/checkpoint shape. It is
 not a new persistence contract: ``to_checkpoint`` emits the same fields that
 the legacy checkpoint collector emitted, and runtime-only fields remain
 runtime-only.
@@ -283,7 +283,7 @@ class ParticipantState:
         }
 
     def to_runtime_defaults(self) -> dict[str, Any]:
-        """Return the exact legacy default key set used by Streamlit."""
+        """Return the exact legacy default key set used by the former UI adapter."""
         return {
             "page": self.page,
             "session_id": self.session_id,

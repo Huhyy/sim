@@ -1,77 +1,56 @@
-# Google Authentication Setup
+# Browser Authentication Setup
 
-The app uses Google authentication only to resume unfinished participation and prevent duplicate submissions. It stores a peppered HMAC account key in Supabase, never the participant's email or Google profile beside experimental answers.
+The complete application is served by FastAPI. Google and Prolific identities are converted server-side into an opaque HMAC account key; neither the account key nor identity pepper is returned to browser JavaScript or stored beside research answers.
 
-## 1. Run The Supabase Schema
+## Google OIDC
 
-Run `setup.sql` or `migration_structured_results.sql` once in the Supabase SQL Editor before allowing participants to use the app.
-
-The schema:
-
-- creates `admin_study_sessions` for admin-created 6-digit participant access codes;
-- creates `participant_sessions` as the session connector and recovery checkpoint table;
-- creates `psychometric_pre_answers` with one row per pre-questionnaire answer;
-- creates `psychometric_post_answers` with one row per post-questionnaire answer;
-- creates `month_results` with one row per session and month, including `cash_final`;
-- creates `session_summaries` for final score, bonus, and financial totals;
-- creates `resume_links` for temporary in-progress recovery;
-- creates `completed_accounts` for duplicate prevention only;
-- drops old legacy result tables/functions: `participants`, `months`, `legacy_responses`, `study_responses`, and `finalize_study_response`;
-- enables Row Level Security on all app tables.
-
-## 2. Configure Google OIDC
-
-In Google Auth Platform, create a Web application OAuth client and add the deployed Streamlit callback URL as an authorized redirect URI. On Streamlit Community Cloud, use the hosted callback route:
+Create a Google OAuth Web application and configure this exact callback:
 
 ```text
-https://<your-app-domain>/~/+/oauth2callback
+https://<your-app-domain>/auth/google/callback
 ```
 
-For local testing, additionally allow:
+For local development, also allow:
 
 ```text
-http://localhost:8501/oauth2callback
+http://localhost:8000/auth/google/callback
 ```
 
-## 3. Configure Streamlit Secrets
+Set these server environment variables:
 
-Set these values in Streamlit Community Cloud app secrets:
-
-```toml
-SUPABASE_URL = "https://<project-ref>.supabase.co"
-SUPABASE_SECRET_KEY = "sb_secret_<server-only-key>"
-ACCOUNT_KEY_PEPPER = "<long-random-secret-generated-once>"
-ALLOW_REPEAT_PARTICIPATION = false
-
-[auth]
-redirect_uri = "https://<your-app-domain>/~/+/oauth2callback"
-cookie_secret = "<long-random-cookie-secret>"
-client_id = "<google-oauth-client-id>"
-client_secret = "<google-oauth-client-secret>"
-server_metadata_url = "https://accounts.google.com/.well-known/openid-configuration"
+```text
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REDIRECT_URI=https://<your-app-domain>/auth/google/callback
+ACCOUNT_KEY_PEPPER=<stable high-entropy secret>
+BROWSER_SESSION_SECRET=<independent high-entropy secret>
+PUBLIC_ORIGIN=https://<your-app-domain>
+COOKIE_SECURE=true
+ADMIN_EMAILS=admin@example.com
+ALLOW_REPEAT_PARTICIPATION=false
 ```
 
-Do not use a Supabase publishable key for app storage. The app requires a server-only secret key because sensitive tables are protected with RLS.
+The implementation uses authorization code flow, state, nonce, PKCE, signature/issuer/audience/expiry validation, and an encrypted HttpOnly browser cookie. State-changing JSON endpoints additionally require the cookie-bound CSRF token and a same-origin request.
 
-Do not rotate `ACCOUNT_KEY_PEPPER` during data collection. Changing it makes prior participants appear new and prevents recovery of existing in-progress sessions.
+Do not rotate `ACCOUNT_KEY_PEPPER` during data collection: doing so prevents existing-account recovery. Rotating `BROWSER_SESSION_SECRET` logs browsers out but does not alter durable participant identity.
 
-Set `ALLOW_REPEAT_PARTICIPATION = true` only during testing. Set it to `false` before collecting real study responses to enforce one completion per Google account.
+## Prolific launches
 
-## Completion Privacy Flow
+Prolific should launch the same-origin application with the complete `PROLIFIC_PID`, `STUDY_ID`, and `SESSION_ID` query set. Browser code immediately sends that set to `/auth/prolific/launch`; the server validates the configured study, creates an HttpOnly authenticated session, and redirects to `/` so identifiers disappear from the visible URL.
 
-While a participant is in progress:
+Configure:
 
-- `resume_links` contains only the opaque account key and random session id;
-- `participant_sessions` contains the recoverable checkpoint for that same session id.
+```text
+PROLIFIC_ALLOWED_STUDY_IDS=...
+PROLIFIC_COMPLETION_CODE=...
+PROLIFIC_COMPLETION_URL=...
+PROLIFIC_INTEGRATION_URL=https://<your-app-domain>/
+```
 
-At final submission:
+`PROLIFIC_ALLOWED_STUDY_IDS` is fail-closed: when Prolific mode is enabled, an empty allowlist makes readiness fail and all launch attempts are rejected.
 
-- `psychometric_pre_answers` stores pre-questionnaire answers by `session_id`;
-- `psychometric_post_answers` stores post-questionnaire answers by `session_id`;
-- `month_results` stores monthly decisions and calculated financial state by `session_id` and `month_number`;
-- `session_summaries` stores the final score and financial summary by `session_id`;
-- `participant_sessions` and `session_summaries` also keep the linked `study_session_code` / `study_session_id`;
-- `completed_accounts` stores only the opaque account key for duplicate prevention;
-- the temporary `resume_links` row is deleted.
+Payment secrets remain server-only. Automated tests use memory repositories and fake/no payment processors and never invoke a live payment.
 
-The completed experimental data is connected by session id, not by Google email, name, or profile photo.
+## Privacy and durable recovery
+
+In-progress ownership remains in `resume_links`. Finalization stores the opaque account key in `completed_accounts` and removes the resume row. The encrypted browser session binds the finalized session ID long enough to recover a lost finalization response without exposing the account key or recreating a resume link.

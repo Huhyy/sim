@@ -1482,13 +1482,7 @@ CATEGORY_LABELS = {
 
 
 def ensure_language():
-    import streamlit as st
-
-    language = st.session_state.get("language", "en")
-    if language not in SUPPORTED_LANGUAGES:
-        language = "en"
-    st.session_state.language = language
-    return language
+    return "en"
 
 
 def get_language():
@@ -1496,9 +1490,7 @@ def get_language():
 
 
 def set_language(language):
-    import streamlit as st
-
-    st.session_state.language = language if language in SUPPORTED_LANGUAGES else "en"
+    return language if language in SUPPORTED_LANGUAGES else "en"
 
 
 def _lookup(mapping, key):
@@ -1514,6 +1506,12 @@ def t(key, language=None, **kwargs):
     if isinstance(value, str) and kwargs:
         return value.format(**kwargs)
     return value
+
+
+def get_ui_section(section, language="en"):
+    """Return an isolated copy of one translation section for safe projections."""
+    selected_language = language if language in SUPPORTED_LANGUAGES else "en"
+    return deepcopy(UI_TEXT[selected_language][section])
 
 
 def get_category_label(category_key, language=None):

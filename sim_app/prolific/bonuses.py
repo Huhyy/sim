@@ -9,32 +9,13 @@ from sim_app.infra.time import _utcnow
 
 
 PROLIFIC_API_BASE = "https://api.prolific.com/api/v1"
-PROLIFIC_INTEGRATION_URL = "https://scenariucredit.streamlit.app/"
 PROLIFIC_USER_AGENT = "ScenariuCredit/1.0 (Prolific API integration)"
-
-
-def autopay_configured():
-    token = _get_secret("PROLIFIC_API_TOKEN")
-    enabled = str(_get_secret("PROLIFIC_BONUS_AUTOPAY_ENABLED") or "true").lower()
-    return bool(token) and enabled not in {"0", "false", "no", "off"}
 
 
 def dynamic_payment_configured():
     token = _get_secret("PROLIFIC_API_TOKEN")
     enabled = str(_get_secret("PROLIFIC_DYNAMIC_PAYMENT_ENABLED") or "true").lower()
     return bool(token) and enabled not in {"0", "false", "no", "off"}
-
-
-def create_bonus_payment(study_id, submission_id, amount_gbp):
-    payload = {
-        "study_id": str(study_id),
-        "csv_bonuses": f"{submission_id},{float(amount_gbp):.2f}\n",
-    }
-    return _request("POST", "/submissions/bonus-payments/", payload)
-
-
-def pay_bonus_payment(payment_id):
-    return _request("POST", f"/bulk-bonus-payments/{payment_id}/pay/", {})
 
 
 def dynamic_reward_percentage(base_reward_gbp, performance_bonus_gbp):
@@ -220,7 +201,7 @@ def _request(method, path, payload):
             "Authorization": f"Token {token}",
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "Referer": PROLIFIC_INTEGRATION_URL,
+            "Referer": _get_secret("PROLIFIC_INTEGRATION_URL") or _get_secret("PUBLIC_ORIGIN") or "http://localhost:8000/",
             "User-Agent": PROLIFIC_USER_AGENT,
         },
         method=method,
@@ -231,11 +212,8 @@ def _request(method, path, payload):
 
 
 __all__ = [
-    "autopay_configured",
     "complete_with_dynamic_payment",
-    "create_bonus_payment",
     "dynamic_payment_configured",
     "dynamic_reward_percentage",
-    "pay_bonus_payment",
     "process_prolific_bonus",
 ]

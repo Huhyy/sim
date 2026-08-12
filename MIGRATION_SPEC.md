@@ -1196,3 +1196,244 @@ The final Phase 4 security and parity review found and corrected three narrow tr
 - FastAPI passes `Idempotency-Key` to `ExperimentService` without normalization. Session bootstrap now checks the durable creation payload hash so reuse of the same key with a different creation payload returns `409 idempotency_conflict`, while a new logical request still resumes the account's existing session.
 
 These corrections do not change progression, domain behavior, persistence RPC semantics, treatment assignment, or participant-visible research behavior.
+
+# Phase 5A — Standalone Frontend Migration Audit
+
+Phase 5A was a read-only migration audit. It mapped every participant-facing page and interaction from the former UI adapter to the Phase 4 command API and concluded that a build-free, same-origin HTML/CSS/vanilla-JavaScript client was sufficient. The chosen browser model was one HTML shell driven exclusively by the stage-discriminated participant-safe projection; no experiment state machine or economic calculation would be copied into JavaScript.
+
+The audit identified the contracts that had to close before browser migration: an authoritative language command, consent reconsideration, legacy stage aliases, completed-account bootstrap protection, exact Prolific relaunch handling, completion-response recovery, a safe account display, and localized participant UI labels. It also required production browser authentication, cookie/CSRF protection, a separate admin service/API, safe retry storage, C1–C4 network-level blindness, browser tests, and a zero-runtime dependency removal gate.
+
+# Phase 5B — Complete Web Frontend Migration and Retired Runtime Removal
+
+## 1. Scope and Architecture
+
+Before Phase 5B:
+
+```text
+participant/admin UI adapter ─┐
+                              ├→ ExperimentService → domain → repository → PostgreSQL RPCs
+FastAPI participant transport ┘
+```
+
+After Phase 5B:
+
+```text
+Browser
+  ↓ same-origin HTML/CSS/ES modules
+FastAPI
+  ├── Google OIDC + Prolific launch authentication
+  ├── encrypted browser session + CSRF boundary
+  ├── /api/v1 participant commands and safe views
+  ├── /api/v1/admin commands and safe monitoring views
+  └── / and /static/* frontend delivery
+        ↓
+ExperimentService / AdminService
+        ↓
+application commands and participant state
+        ↓
+authoritative Python domain
+        ↓
+repository interfaces and Supabase implementations
+        ↓
+existing atomic/versioned/idempotent PostgreSQL RPCs
+```
+
+There is one server process and one normal entry point:
+
+```text
+uvicorn sim_app.api.app:app
+```
+
+No container, Cloud Run, Secret Manager, custom-domain, database-schema, or RPC work is part of this phase.
+
+## 2. Phase 5A Contracts Closed
+
+- `ExperimentService.change_language` validates `en`/`ro`, requires ownership, expected version, and request ID, and commits the new language through existing stage persistence.
+- `ExperimentService.reconsider_consent` implements only `consent_declined → consent` through normal transition/version/idempotency rules.
+- Study-session bind/skip accepts the durable `enter_session_code` alias; questionnaire submission accepts the legacy `pre_questions` and `post_questions` aliases at section zero. Safe projections remain canonical.
+- Completed ordinary accounts are checked before creating a new attempt when repeat mode is disabled.
+- Trusted Prolific relaunches preserve deterministic treatment, same-study ownership, active-attempt continuation, trusted new `SESSION_ID` rebinding, same-attempt completion recovery, and rejection of a new attempt after completion.
+- A finalized session can be safely recovered from the encrypted browser-session binding after the temporary resume link is removed. Possession of a raw session UUID is never sufficient.
+- `/api/v1/auth/session` exposes only safe display identity, admin capability, bound session ID, and CSRF token. It never returns the account key.
+- Participant responses carry stage-scoped labels copied from the existing Python translation corpus. JavaScript contains no second research wording corpus.
+
+## 3. Authentication Architecture
+
+Google login uses authorization-code OIDC through `/auth/google/login` and `/auth/google/callback`. The adapter uses state, nonce, S256 PKCE, an exact configured redirect URI, RS256 signature verification against Google JWKS, issuer/audience/expiry/issued-at/subject validation, nonce verification, and verified-email enforcement. Google access and refresh tokens are neither returned to JavaScript nor persisted.
+
+The trusted issuer and subject are converted into the existing stable HMAC account-key representation with `ACCOUNT_KEY_PEPPER`. Admin authorization is derived server-side from the verified email and configured admin list.
+
+Prolific launches require the complete `PROLIFIC_PID`, `STUDY_ID`, and `SESSION_ID` set. The server validates the study allowlist, derives the established opaque identity, resolves safe relaunch ownership through `ExperimentService`, sets the authenticated browser session, and redirects to `/`. No Prolific identifier is stored in browser-readable storage or returned by participant projections.
+
+Browser authentication is an encrypted and integrity-protected, expiring, HttpOnly cookie. Production defaults require `Secure` and `SameSite=Lax`; localhost tests explicitly use a non-Secure cookie. The minimal trusted principal is encrypted inside the cookie and cannot be read or altered by JavaScript.
+
+All cookie-authenticated mutations use JSON, a custom cookie-bound `X-CSRF-Token`, SameSite protection, and exact configured Origin validation. No permissive CORS configuration was introduced.
+
+## 4. Frontend Architecture and State
+
+The frontend uses one `index.html`, owned CSS, and vanilla ES modules. It has no Node runtime, package manifest, bundler, framework, or source-map pipeline.
+
+Browser memory contains only the current safe response, authentication display response, loading state, and current form draft. `sessionStorage` contains only language preference and an unresolved logical mutation `{url, payload, idempotencyKey}`. The browser never stores authoritative state, treatment, ledgers, questionnaire history, account keys, provider tokens, database credentials, or Prolific identifiers.
+
+The render loop is:
+
+```text
+GET authenticated safe state
+  → render response.view.type
+  → collect narrow user input
+  → send expected_version + Idempotency-Key
+  → wait for committed server response
+  → render returned safe state
+```
+
+JavaScript does not select the next page/month, evaluate attention/comprehension answers, calculate financial validity, score a month, determine treatment, or finalize payment values.
+
+## 5. Mutation, Concurrency, and Retry UX
+
+The shared mutation controller freezes the URL/body/current expected version, generates one `crypto.randomUUID()` logical idempotency key, disables the submitting control, and renders only a successful committed response. Each network attempt receives a separate `X-Request-ID`.
+
+- Response-loss and 503 retries use the exact same URL, body, expected version, and idempotency key.
+- The unresolved action survives reload in `sessionStorage`; the browser reloads authority first and only offers same-key retry when the durable version has not advanced.
+- A newer durable version clears the unresolved snapshot.
+- Concurrency conflicts reload and render the authoritative state.
+- Idempotency conflicts stop blind retry and reload authority.
+- Double-clicks are blocked while a command is in flight.
+- Form input is not optimistically converted into an advanced research state.
+
+## 6. Participant Migration
+
+The standalone renderer covers login, Prolific launch/error/return, completed account, home, optional study-session entry, consent accept/decline/reconsider, demographics, every pre/post questionnaire section, attention checks, instructions, comprehension retry/failure, profile, all 24 simulation decisions, monthly feedback, final score, finalization, completion code/link, and completion refresh recovery.
+
+One generic questionnaire renderer consumes safe section data and supports localized prompts/options, required radio groups, saved current-section values, server-evaluated attention input, and optional post-study feedback. Correct attention/comprehension answers do not appear in HTML, JavaScript, data attributes, or response fields.
+
+The simulation renderer displays only server-projected narrative, income, expenses, balances, interest, liquidity, obligation, and payment controls. Browser validation is syntactic. Economic validity, invalid-payment behavior, month calculation, score, and commit remain in Python.
+
+Trusted research Markdown is handled by a deliberately small renderer that escapes all input before applying a fixed heading/list/emphasis subset. Participant-entered feedback never enters this rich-text path or `innerHTML` unescaped.
+
+## 7. Experimental Blindness
+
+Participant JavaScript never receives treatment identifiers or configuration. C2/C4 feedback responses omit the score object, score values, score components, and component-specific label keys. C1/C3 receive only the score presentation already visible in the former UI. No condition is placed in participant DOM classes or data attributes.
+
+Admin condition values remain available only through authenticated admin responses because selecting and monitoring conditions is an explicit administrator capability.
+
+## 8. Admin Migration
+
+`AdminService` is the application boundary for listing, creating, monitoring, and cancelling administrator study sessions. `AdminRepository` separates these use cases from Supabase syntax; `SupabaseAdminRepository` uses the existing persistence implementation and thread-local client lifecycle. `MemoryAdminRepository` supports isolated API/browser tests.
+
+Authenticated `/api/v1/admin/*` routes require the server-derived `is_admin` principal. The browser cannot grant itself admin access by supplying an email or flag. Monitoring responses project participant code, safe stage/progress, timestamps, and final payout summary without returning checkpoints or answer maps. The browser polls every ten seconds only while visible and avoids overlapping refreshes.
+
+## 9. Files Added
+
+- `sim_app/api/auth_routes.py` — Google/Prolific authentication, public localized login content, browser session/logout routes.
+- `sim_app/api/admin_routes.py` — authenticated admin transport.
+- `sim_app/api/frontend_routes.py` — same-origin shell routes and frontend path.
+- `sim_app/auth/browser_session.py` — encrypted HttpOnly session and OIDC transaction cookies.
+- `sim_app/auth/oidc.py` — synchronous Google authorization-code OIDC/PKCE verifier.
+- `sim_app/application/admin_repositories.py` — admin persistence protocol.
+- `sim_app/application/admin_services.py` — admin authorization/use cases and safe monitoring projection.
+- `sim_app/persistence/admin_repository.py` / `admin_memory.py` — production and test admin repositories.
+- `sim_app/frontend/index.html` — single browser shell.
+- `sim_app/frontend/static/css/app.css` — owned responsive design system and page styling.
+- `sim_app/frontend/static/js/api.js` — request/idempotency controller.
+- `sim_app/frontend/static/js/app.js` — participant safe-view dispatcher and forms.
+- `sim_app/frontend/static/js/admin.js` — administrator rendering and polling.
+- `sim_app/frontend/static/js/render.js` — escaping, constrained rich text, formatting, and shared UI primitives.
+- `requirements-test.txt` — pinned test/browser tooling.
+- Phase 5 contract, authentication/admin, browser E2E, and static architecture test modules.
+
+## 10. Retired Runtime Removal
+
+After participant and admin browser gates passed, the former root entrypoint, `sim_app/main.py`, all `sim_app/session/*`, all `sim_app/state/*` adapter modules, all `sim_app/ui/*` pages/components/styles, retired direct persistence wrappers, and their obsolete adapter tests were removed. Shared application state, commands, progression, content, domain, repositories, auth identity rules, and research data remain.
+
+The old local `.streamlit/secrets.toml` contained only Supabase configuration already represented by the ignored `.env` harness and was removed with the obsolete runtime. `.env` remains ignored. The runtime dependency and its UI-only dataframe/auth dependencies were removed.
+
+Repository-wide runtime searches find no active former-framework import, session state, rerun, widget, DOM selector, component bridge, toolbar/chrome suppression, or deployment hack. Historical migration text remains intentionally accurate.
+
+## 11. Dependencies
+
+Runtime versions are pinned to the verified environment: FastAPI 0.141.1, Uvicorn 0.52.1, Pydantic 2.13.4, Supabase 2.30.0, HTTPX 0.28.1, PyJWT 2.10.1, and cryptography 44.0.1. Test tooling pins pytest 8.3.4 and Playwright 1.60.0. No frontend framework or cloud/deployment SDK was added.
+
+## 12. Verification
+
+```text
+python -m pytest -q
+result: 115 passed, 6 skipped
+
+python -m pytest -q tests/test_phase5_browser.py
+result: 10 passed
+
+python -m pytest -q tests/test_phase5_auth_admin.py
+result: 6 passed
+
+python -m pytest -q tests/test_domain_simulation.py tests/test_application_refactor.py -k "golden or treatment or score or bonus or 24_months"
+result: 15 passed, 9 deselected
+
+configured real-Supabase Phase 3.5 suite
+result: 6 passed; live payment credentials excluded and payment paths disabled
+
+uvicorn sim_app.api.app:app --host 127.0.0.1 --port 8765
+GET /health, /, /admin, /static/js/app.js
+result: all HTTP 200
+```
+
+The browser suite exercises a full 24-month journey, invalid economic payment, questionnaire/finalization flow, refresh recovery, EN/RO authority, consent decline/reconsider, C1–C4 feedback blindness, response-loss retry, 503 retry, stale second tab, comprehension evaluation, and admin authorization/session creation/rendering. Desktop and 390px mobile screenshots were visually inspected.
+
+The golden economic digest remains exactly:
+
+```text
+17f8a2632d861e432c2cd81f86495c4b75356deaa7b55911c2eca6a53f75ab43
+```
+
+No real Prolific payment was sent.
+
+## 13. Remaining Deployment Work and Live Validation
+
+- Register the final deployed Google redirect URI and validate login/logout against a real Google OAuth client.
+- Validate a real allowed-study Prolific launch, clean redirect, same/new attempt behavior, and completion return without enabling live payment during initial acceptance.
+- Configure production `PUBLIC_ORIGIN`, `COOKIE_SECURE=true`, secrets, TLS, and deployment probes in the later deployment phase.
+- Run broader visual comparison on target browsers and assistive-technology checks.
+- Docker, Cloud Run, Secret Manager, custom domain, and production load testing remain Phase 6/7 work.
+
+## 14. Final Adversarial Freeze Review
+
+The pre-containerization review corrected five transport/security defects without changing domain, research, schema, or RPC behavior:
+
+- Cookie-authenticated mutations now fail closed unless the CSRF token matches, the content type is JSON, and either `Origin` or the `Referer` origin exactly matches `PUBLIC_ORIGIN` (or the direct request origin in local development).
+- A finalized idempotency request ID is not treated as an ownership credential. Finalized recovery requires the encrypted browser-session binding to the same participant session.
+- Prolific launches honor `PROLIFIC_MODE_ENABLED`; the study allowlist is fail-closed when missing, and browser navigation errors redirect to a clean localized error screen without retaining launch identifiers in the URL.
+- Admin comprehension progress once again uses the exact former admin-stage classification instead of being reclassified as a monthly stage.
+- Authentication/API responses are marked `no-store`; the owned frontend carries same-origin CSP, frame-denial, referrer, and MIME-sniffing protections.
+
+The review also made repeat participation fail-safe by default (`ALLOW_REPEAT_PARTICIPATION=false`) while retaining its explicit development override. Questionnaire structure is now regression-asserted at 22/156 pre-study sections/questions and 2/35 post-study sections/questions for both EN and RO, including key and option-count ordering.
+
+Final freeze verification:
+
+```text
+python -m compileall -q sim_app tests
+result: passed
+
+python -m pytest -p no:cacheprovider -q
+result: 119 passed, 6 skipped
+
+python -m pytest -p no:cacheprovider -q tests/test_api_phase4.py
+result: 20 passed
+
+Phase 5 contract/auth/static suites
+result: 21 passed
+
+python -m pytest -p no:cacheprovider -q tests/test_phase5_browser.py
+result: 10 passed
+
+domain/golden selection
+result: 15 passed, 9 deselected
+
+configured real-Supabase Phase 3.5 suite
+result: 6 passed; Prolific credentials excluded and payment paths disabled
+
+uvicorn sim_app.api.app:app
+result: /health, /, /admin, and /static/js/app.js returned 200;
+        unauthenticated participant state returned 401;
+        unconfigured /ready returned 503 and configured /ready returned 200
+```
+
+The golden digest remains `17f8a2632d861e432c2cd81f86495c4b75356deaa7b55911c2eca6a53f75ab43`. No real Prolific payment was sent. The reviewed Phase 5B change is published on `master` with commit message `feat: replace Streamlit with standalone FastAPI web app`; the exact immutable commit identifier is recorded by Git history and the release handoff report.

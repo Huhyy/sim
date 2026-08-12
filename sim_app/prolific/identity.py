@@ -1,97 +1,28 @@
-"""Prolific URL identity and deterministic condition assignment."""
+"""Framework-neutral Prolific launch configuration and validation."""
 
-import json
-from urllib.parse import quote_plus, unquote
+from __future__ import annotations
 
-import streamlit as st
+from collections.abc import Mapping
+from urllib.parse import quote_plus
 
 from sim_app.domain.experimental_conditions import assign_prolific_condition, condition_options
 from sim_app.infra.secrets import _get_secret
-from sim_app.session.query_params import get_query_param
 
 
 PROLIFIC_QUERY_PARAMS = ("PROLIFIC_PID", "STUDY_ID", "SESSION_ID")
-_PROLIFIC_COOKIE_PREFIX = "sim_prolific_"
 
 
-def load_prolific_params():
-    stored = st.session_state.get("_prolific_params") or {}
-    cookies = _browser_cookie_params()
-    params = {
-        name: _clean(get_query_param(name)) or _clean(stored.get(name)) or _clean(cookies.get(name))
-        for name in PROLIFIC_QUERY_PARAMS
-    }
-    if any(params.values()):
-        st.session_state._prolific_params = params
-        _remember_in_browser(params)
-    return params
+def normalize_prolific_params(values: Mapping[str, object] | None) -> dict[str, str | None]:
+    values = values or {}
+    return {name: _clean(values.get(name)) for name in PROLIFIC_QUERY_PARAMS}
 
 
-def _browser_cookie_params():
-    try:
-        cookies = st.context.cookies
-    except Exception:
-        return {}
-    return {
-        name: unquote(cookies.get(f"{_PROLIFIC_COOKIE_PREFIX}{name}"))
-        for name in PROLIFIC_QUERY_PARAMS
-        if cookies.get(f"{_PROLIFIC_COOKIE_PREFIX}{name}")
-    }
+def has_any_prolific_param(params: Mapping[str, object] | None = None) -> bool:
+    return any(normalize_prolific_params(params).values())
 
 
-def _remember_in_browser(params):
-    values = {
-        name: str(params.get(name) or "")
-        for name in PROLIFIC_QUERY_PARAMS
-        if params.get(name)
-    }
-    if not values:
-        return
-    assignments = "".join(
-        "(function(v) {"
-        "try { document.cookie = v; } catch (e) {}"
-        "try { window.top.document.cookie = v; } catch (e) {}"
-        "})(%s + encodeURIComponent(%s) + '; Path=/; Max-Age=1800; SameSite=Lax');"
-        % (json.dumps(f"{_PROLIFIC_COOKIE_PREFIX}{name}="), json.dumps(value))
-        for name, value in values.items()
-    )
-    try:
-        st.components.v1.html(
-            f"<script>try {{ {assignments} }} catch (e) {{}}</script>",
-            height=0,
-        )
-    except Exception:
-        pass
-
-
-def persist_prolific_params_for_login(params=None):
-    """Write the launch parameters immediately before starting OAuth."""
-    params = params or load_prolific_params()
-    if params:
-        st.session_state._prolific_params = params
-        _remember_in_browser(params)
-
-
-def clear_browser_prolific_params():
-    assignments = "".join(
-        "window.top.document.cookie = %s + '=; Path=/; Max-Age=0; SameSite=Lax';"
-        % json.dumps(f"{_PROLIFIC_COOKIE_PREFIX}{name}")
-        for name in PROLIFIC_QUERY_PARAMS
-    )
-    try:
-        st.components.v1.html(f"<script>try {{ {assignments} }} catch (e) {{}}</script>", height=0)
-    except Exception:
-        pass
-
-
-def has_any_prolific_param(params=None):
-    params = params or load_prolific_params()
-    return any(params.get(name) for name in PROLIFIC_QUERY_PARAMS)
-
-
-def prolific_params_complete(params=None):
-    params = params or load_prolific_params()
-    return all(params.get(name) for name in PROLIFIC_QUERY_PARAMS)
+def prolific_params_complete(params: Mapping[str, object] | None = None) -> bool:
+    return all(normalize_prolific_params(params).values())
 
 
 def completion_redirect_url(completion_code=None):
@@ -113,7 +44,7 @@ def configured_completion_code():
 def prolific_study_allowed(study_id):
     raw = _get_secret("PROLIFIC_ALLOWED_STUDY_IDS")
     if not raw:
-        return True
+        return False
     allowed = {
         item.strip()
         for item in str(raw).replace(";", ",").split(",")
@@ -125,3 +56,16 @@ def prolific_study_allowed(study_id):
 def _clean(value):
     value = str(value or "").strip()
     return value or None
+
+
+__all__ = [
+    "PROLIFIC_QUERY_PARAMS",
+    "assign_prolific_condition",
+    "completion_redirect_url",
+    "condition_options",
+    "configured_completion_code",
+    "has_any_prolific_param",
+    "normalize_prolific_params",
+    "prolific_params_complete",
+    "prolific_study_allowed",
+]

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Request, Response
 
-from sim_app.api.dependencies import get_principal, get_ready_service, get_service, require_idempotency_key
+from sim_app.api.dependencies import get_browser_session_manager, get_principal, get_ready_service, get_service, require_csrf, require_idempotency_key
 from sim_app.api.presentation import present_result, present_state
 from sim_app.api.schemas import (
     ConsentRequest,
@@ -15,6 +15,7 @@ from sim_app.api.schemas import (
     FeedbackAcknowledgementRequest,
     FinalizeRequest,
     MonthDecisionRequest,
+    LanguageRequest,
     ParticipantSessionResponse,
     QuestionnaireSectionRequest,
     StudySessionBindingRequest,
@@ -25,7 +26,7 @@ from sim_app.application.principal import ParticipantPrincipal
 
 
 router = APIRouter()
-participant_router = APIRouter(prefix="/api/v1", tags=["participant"])
+participant_router = APIRouter(prefix="/api/v1", tags=["participant"], dependencies=[Depends(require_csrf)])
 
 
 @router.get("/health", tags=["health"])
@@ -52,6 +53,7 @@ def _present(response: Response, result):
 
 @participant_router.post("/sessions", response_model=ParticipantSessionResponse, response_model_exclude_none=True, status_code=201)
 def create_session(
+    request: Request,
     payload: CreateSessionRequest,
     response: Response,
     service: ServiceDependency,
@@ -64,7 +66,17 @@ def create_session(
         language=payload.language,
         request_id=idempotency_key,
     )
-    return _present(response, result)
+    presented = _present(response, result)
+    if getattr(request.app.state, "principal_provider", None) is None:
+        from dataclasses import replace
+        manager = get_browser_session_manager(request)
+        _current, csrf_token = manager.decode_principal(request.cookies.get("sim_browser_session"))
+        manager.set_principal_cookie(
+            response,
+            replace(principal, bound_session_id=result.state.session_id),
+            csrf_token=csrf_token,
+        )
+    return presented
 
 
 @participant_router.get("/sessions/{session_id}", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
@@ -97,6 +109,21 @@ def submit_consent(session_id: str, payload: ConsentRequest, response: Response,
         session_id, principal, expected_version=payload.expected_version,
         request_id=idempotency_key, accepted=payload.accepted,
         anti_ai_declaration=payload.anti_ai_declaration,
+    ))
+
+
+@participant_router.post("/sessions/{session_id}/consent/reconsider", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
+def reconsider_consent(session_id: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
+    return _present(response, service.reconsider_consent(
+        session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key,
+    ))
+
+
+@participant_router.post("/sessions/{session_id}/language", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
+def change_language(session_id: str, payload: LanguageRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
+    return _present(response, service.change_language(
+        session_id, principal, expected_version=payload.expected_version,
+        request_id=idempotency_key, language=payload.language,
     ))
 
 

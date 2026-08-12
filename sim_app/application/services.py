@@ -35,6 +35,8 @@ from sim_app.application.errors import (
     IdempotencyConflict,
     InputValidationError,
     InvalidTransition,
+    ParticipationCompleted,
+    ProlificLaunchError,
     SessionAccessDenied,
     SessionNotFound,
 )
@@ -42,12 +44,13 @@ from sim_app.application.instrumentation import DEFAULT_METRICS
 from sim_app.application.principal import ParticipantPrincipal
 from sim_app.application.repositories import ExperimentRepository
 from sim_app.application.state import ParticipantState
-from sim_app.config import SCENARIO_VERSION
+from sim_app.config import REPEAT_SCENARIO_DEV_MODE, SCENARIO_VERSION
 from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS
 from sim_app.content.tables import get_month
 from sim_app.content.translations import get_display_post_sections, get_display_pre_sections, t
 from sim_app.domain.experimental_conditions import assign_prolific_condition
 from sim_app.infra.time import _utcnow
+from sim_app.prolific.identity import completion_redirect_url, configured_completion_code
 
 
 DEMOGRAPHIC_KEYS = (
@@ -97,9 +100,28 @@ class ExperimentService:
 
     def load_owned_session(self, session_id: str, principal: ParticipantPrincipal) -> ParticipantState:
         self._require_principal(principal)
-        if not self.repository.account_owns_session(principal.account_key, session_id):
-            raise SessionAccessDenied("The authenticated participant does not own this session")
-        return self.load_session(session_id)
+        if self.repository.account_owns_session(principal.account_key, session_id):
+            return self.load_session(session_id)
+        if principal.bound_session_id == session_id:
+            state = self.load_session(session_id)
+            if state.submission_finalized:
+                return state
+        raise SessionAccessDenied("The authenticated participant does not own this session")
+
+    def find_prolific_owned_session_id(self, principal: ParticipantPrincipal) -> str | None:
+        self._require_principal(principal)
+        if principal.identity_kind != "prolific":
+            return None
+        record = self.repository.find_prolific_session(principal.prolific_pid, principal.prolific_study_id)
+        if not record or not record.get("id"):
+            return None
+        completed = record.get("status") == "completed"
+        same_attempt = record.get("prolific_session_id") == principal.prolific_session_id
+        if completed and not same_attempt:
+            raise ProlificLaunchError("This Prolific study participation is already complete")
+        # Active relaunches go through bootstrap so a new trusted SESSION_ID is
+        # durably rebound with normal version/idempotency protection.
+        return str(record["id"]) if completed and same_attempt else None
 
     def bootstrap_session(self, principal, *, expected_version, language, request_id):
         self._require_principal(principal)
@@ -117,6 +139,8 @@ class ExperimentService:
             state.prolific_pid = principal.prolific_pid
             state.prolific_study_id = principal.prolific_study_id
             state.prolific_session_id = principal.prolific_session_id
+            state.prolific_completion_code = configured_completion_code()
+            state.prolific_completion_url = completion_redirect_url(state.prolific_completion_code)
             state.experimental_condition = treatment["experimental_condition"]
             state.score_frame = treatment["score_frame"]
             state.monthly_score_feedback = treatment["monthly_score_feedback"]
@@ -131,7 +155,52 @@ class ExperimentService:
             })
             if stored_hash is not None and stored_hash != requested_hash:
                 raise IdempotencyConflict("The creation request key has a different payload")
-            return ServiceResult(self.load_owned_session(linked_session_id, principal), idempotency_hit=True)
+            linked_state = self.load_owned_session(linked_session_id, principal)
+            if (
+                principal.identity_kind == "prolific"
+                and linked_state.prolific_session_id != principal.prolific_session_id
+            ):
+                proposed = linked_state.copy()
+                proposed.prolific_session_id = principal.prolific_session_id
+                return self.save_stage(
+                    proposed,
+                    expected_version=linked_state.state_version,
+                    request_id=request_id,
+                )
+            return ServiceResult(linked_state, idempotency_hit=True)
+        if principal.identity_kind == "prolific":
+            existing = self.repository.find_prolific_session(
+                principal.prolific_pid,
+                principal.prolific_study_id,
+            )
+            if existing:
+                same_attempt = existing.get("prolific_session_id") == principal.prolific_session_id
+                completed = existing.get("status") == "completed"
+                if completed and not same_attempt:
+                    raise ProlificLaunchError("This Prolific study participation is already complete")
+                existing_state = self.load_session(existing["id"])
+                if (
+                    existing_state.prolific_pid != principal.prolific_pid
+                    or existing_state.prolific_study_id != principal.prolific_study_id
+                ):
+                    raise SessionAccessDenied("The Prolific identity does not own this session")
+                if completed:
+                    return ServiceResult(existing_state, idempotency_hit=True)
+                if existing_state.prolific_session_id != principal.prolific_session_id:
+                    proposed = existing_state.copy()
+                    proposed.prolific_session_id = principal.prolific_session_id
+                    return self.save_stage(
+                        proposed,
+                        expected_version=existing_state.state_version,
+                        request_id=request_id,
+                    )
+                return ServiceResult(existing_state, idempotency_hit=True)
+        if (
+            principal.identity_kind != "prolific"
+            and not REPEAT_SCENARIO_DEV_MODE
+            and self.repository.account_has_completed(principal.account_key)
+        ):
+            raise ParticipationCompleted("This account has already completed the experiment")
         return self.create_session(
             state,
             account_key=principal.account_key,
@@ -145,6 +214,23 @@ class ExperimentService:
             expected_version=expected_version,
             request_id=request_id,
             expected_page="home",
+            command=lambda state: go_to_page(state, "consent"),
+        )
+
+    def change_language(self, session_id, principal, *, expected_version, request_id, language):
+        language = _validate_language(language)
+        state = self.load_owned_session(session_id, principal)
+        proposed = state.copy()
+        proposed.language = language
+        return self.save_stage(proposed, expected_version=expected_version, request_id=request_id)
+
+    def reconsider_consent(self, session_id, principal, *, expected_version, request_id):
+        return self._stage_command(
+            session_id,
+            principal,
+            expected_version=expected_version,
+            request_id=request_id,
+            expected_page="consent_declined",
             command=lambda state: go_to_page(state, "consent"),
         )
 
@@ -179,7 +265,7 @@ class ExperimentService:
             principal,
             expected_version=expected_version,
             request_id=request_id,
-            expected_page="home",
+            expected_page=("home", "enter_session_code"),
             command=lambda state: assign_study_session(state, record, normalized_participant),
         )
 
@@ -189,7 +275,7 @@ class ExperimentService:
             principal,
             expected_version=expected_version,
             request_id=request_id,
-            expected_page="home",
+            expected_page=("home", "enter_session_code"),
             command=clear_study_session_assignment,
         )
 
@@ -294,7 +380,8 @@ class ExperimentService:
                 and state.page == "simulation"
                 and state.month > 24
             ):
-                self._require_page(state, expected_page)
+                legacy_page = f"{phase}_questions" if section_index == 0 else expected_page
+                self._require_page(state, (expected_page, legacy_page))
             section = sections[section_index]
             supplied = dict(answers or {})
             expected_keys = {
@@ -508,8 +595,13 @@ class ExperimentService:
             self.load_owned_session(session_id, principal)
         except SessionAccessDenied:
             # Finalization removes the resume-link ownership row. Verify the
-            # durable logical request before loading the finalized state.
-            if not self.repository.finalization_request_matches(session_id, request_id):
+            # encrypted browser-session binding as well as the durable logical
+            # request before loading the finalized state. A request ID alone is
+            # never an ownership credential.
+            if (
+                principal.bound_session_id != session_id
+                or not self.repository.finalization_request_matches(session_id, request_id)
+            ):
                 raise
             state = self.load_session(session_id)
             if not state.submission_finalized:
@@ -761,7 +853,8 @@ class ExperimentService:
 
     @staticmethod
     def _require_page(state, expected_page):
-        if state.page != expected_page:
+        expected_pages = (expected_page,) if isinstance(expected_page, str) else tuple(expected_page)
+        if state.page not in expected_pages:
             raise InvalidTransition(f"This action requires stage {expected_page}")
 
 

@@ -21,6 +21,7 @@ class InMemoryExperimentRepository:
         self._ledgers = {}
         self._idempotency = {}
         self._accounts = {}
+        self._completed_accounts = set()
         self._finalizations = {}
         self._quality = {}
         self._legacy = set()
@@ -54,6 +55,22 @@ class InMemoryExperimentRepository:
         with self._lock:
             self._raise_failure("find_session_for_account", "before", read=True)
             return self._accounts.get(account_key)
+
+    def account_has_completed(self, account_key):
+        with self._lock:
+            return account_key in self._completed_accounts
+
+    def find_prolific_session(self, prolific_pid, study_id):
+        with self._lock:
+            for state in self._sessions.values():
+                if state.prolific_pid == prolific_pid and state.prolific_study_id == study_id:
+                    return {
+                        "id": state.session_id,
+                        "status": "completed" if state.submission_finalized else "in_progress",
+                        "prolific_session_id": state.prolific_session_id,
+                        "completion_code": state.prolific_completion_code,
+                    }
+            return None
 
     def account_owns_session(self, account_key, session_id):
         return self.find_session_id_for_account(account_key) == session_id
@@ -270,6 +287,7 @@ class InMemoryExperimentRepository:
             self._sessions[session_id] = updated
             self._finalizations[session_id] = self._finalizations.get(session_id, 0) + 1
             self._accounts.pop(account_key, None)
+            self._completed_accounts.add(account_key)
             return self._remember(session_id, "finalize", request_id, payload_hash, updated)
 
     def seed_legacy(self, state, *, account_key):
