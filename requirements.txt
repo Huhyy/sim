@@ -2,3 +2,6 @@ streamlit[auth]==1.56.0
 Authlib==1.6.11
 pandas
 supabase
+fastapi==0.141.1
+uvicorn==0.52.1
+pydantic==2.13.4

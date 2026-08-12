@@ -926,3 +926,273 @@ The verified tree is committed with `refactor: harden simulator architecture and
 ## 21. Push
 
 The verified commit is pushed normally to `origin/master` without force. The exact push result and final working-tree state are reported in the task's final report after the external operation completes.
+
+---
+
+# Phase 4 — FastAPI Transport over ExperimentService
+
+## 1. Scope and Starting State
+
+Phase 4 started from `master` at `b7c9371f0613e501ae320b3408a9d3a94799e14e`. It adds FastAPI only as a second transport. Streamlit, the Python domain, the application progression rules, the persistence repository, and every PostgreSQL RPC remain in place.
+
+No frontend, Docker, Cloud Run, Google Secret Manager, database migration, or production browser-authentication implementation is included.
+
+## 2. Architecture Before
+
+```text
+Streamlit UI
+    ↓
+Streamlit adapter
+    ↓
+ExperimentService
+    ↓
+Application/domain
+    ↓
+ExperimentRepository
+    ↓
+Supabase/Postgres RPCs
+```
+
+## 3. Architecture After
+
+```text
+                     ┌── Streamlit adapter ── Streamlit UI
+Transport clients ───┤
+                     └── FastAPI transport
+                               ↓
+                    narrow participant use cases
+                               ↓
+                       ExperimentService
+                               ↓
+                     existing application/domain
+                               ↓
+                    existing ExperimentRepository
+                               ↓
+                     existing Supabase/Postgres RPCs
+```
+
+FastAPI contains HTTP parsing, dependencies, error mapping, request observability, and DTO serialization. It does not calculate economics, determine treatment, construct Supabase queries, or own progression.
+
+## 4. Dependencies
+
+The following exact runtime dependencies were added:
+
+```text
+fastapi==0.141.1
+uvicorn==0.52.1
+pydantic==2.13.4
+```
+
+No async Supabase library, cloud SDK, multipart package, frontend framework, or deployment package was added.
+
+## 5. Files Added
+
+- `sim_app/api/__init__.py`: FastAPI package export.
+- `sim_app/api/app.py`: application factory, configurable documentation, and request observability.
+- `sim_app/api/routes.py`: synchronous health and participant command routes.
+- `sim_app/api/schemas.py`: strict request and stage-specific response DTOs.
+- `sim_app/api/dependencies.py`: service, principal, readiness, and idempotency dependencies.
+- `sim_app/api/errors.py`: stable sanitized HTTP error mapping.
+- `sim_app/api/presentation.py`: conversion from application-safe projections into API DTOs.
+- `sim_app/application/principal.py`: framework-neutral server-derived `ParticipantPrincipal`.
+- `sim_app/application/participant_views.py`: participant-safe stage projections and experimental-blindness enforcement.
+- `sim_app/composition.py`: transport-neutral `ExperimentService` composition.
+- `tests/test_api_phase4.py`: FastAPI transport, progression, security, concurrency, and architecture tests.
+
+## 6. Major Files Modified
+
+- `sim_app/application/services.py`: ownership-aware and command-specific participant use cases were added while preserving legacy methods for Streamlit.
+- `sim_app/application/repositories.py`: active ownership, study-session lookup, and finalization-retry verification contracts were added.
+- `sim_app/persistence/experiment_repository.py`: implements those read-only repository capabilities through the existing thread-local client resource.
+- `sim_app/persistence/memory.py`: implements equivalent behavior for deterministic transport tests.
+- `sim_app/session/service_provider.py`: now re-exports transport-neutral composition for Streamlit compatibility.
+- `sim_app/content/translations.py` and `sim_app/config.py`: Streamlit imports are lazy so explicit-language/config-independent API paths remain framework-neutral.
+- `sim_app/domain/experimental_conditions.py` and `sim_app/prolific/identity.py`: the unchanged deterministic Prolific assignment algorithm is now pure domain logic and is reused by both adapters.
+- `requirements.txt`: pinned Phase 4 dependencies.
+
+No files were moved or renamed.
+
+## 7. ExperimentService Boundary
+
+Existing trusted methods remain available to Streamlit. The HTTP transport uses narrow operations that load authoritative state, verify the `ParticipantPrincipal`, enforce ownership and expected version/stage, invoke existing commands, persist through existing repository methods, and return committed state.
+
+The added participant-facing use cases cover session bootstrap/load, start, study-session binding/skip, consent, demographics, questionnaire sections, instructions, comprehension, profile, monthly decisions, feedback acknowledgement, final-score acknowledgement, and finalization.
+
+The browser never constructs or submits `ParticipantState`.
+
+## 8. Principal and Ownership Model
+
+`ParticipantPrincipal` contains only trusted server-derived account identity and optional trusted Prolific launch identity. API request DTOs contain no account key or account hash.
+
+The FastAPI principal dependency has no insecure default. Without a configured authentication adapter, participant routes return `401`. Tests inject fake principals explicitly.
+
+Active session ownership is checked through the durable `resume_links` mapping. A finalization response-loss retry is the one deliberate exception after the resume link has been removed: it is allowed only when the submitted idempotency key matches the durable `finalization_request_id`. The original account key remains part of the persisted payload hash, so another principal cannot reuse that request successfully.
+
+Streamlit OIDC, Prolific query/cookie handling, account hashing, and admin authorization are unchanged.
+
+## 9. Participant-Safe View Model
+
+`participant_session_view()` emits only the data needed by the participant's current stage. Pydantic serializes that already-safe projection; it never receives raw `ParticipantState` as a response model.
+
+The safe response envelope contains session ID, committed version, effective stage, current month, language, stage-specific view, and idempotency replay status.
+
+It excludes raw treatment identifiers, treatment binding, complete month history, raw pending results, the full questionnaire map, account identity, raw Prolific identity, checkpoint data, payment-processing internals, persistence fields, and internal completion state.
+
+## 10. Endpoint Surface
+
+```text
+GET  /health
+GET  /ready
+
+POST /api/v1/sessions
+GET  /api/v1/sessions/{session_id}
+POST /api/v1/sessions/{session_id}/start
+POST /api/v1/sessions/{session_id}/study-session
+POST /api/v1/sessions/{session_id}/study-session/skip
+POST /api/v1/sessions/{session_id}/consent
+POST /api/v1/sessions/{session_id}/demographics
+POST /api/v1/sessions/{session_id}/questionnaires/{phase}/sections/{section_index}
+POST /api/v1/sessions/{session_id}/instructions/acknowledge
+POST /api/v1/sessions/{session_id}/comprehension
+POST /api/v1/sessions/{session_id}/profile/acknowledge
+POST /api/v1/sessions/{session_id}/months/{month}/decision
+POST /api/v1/sessions/{session_id}/months/{month}/feedback/acknowledge
+POST /api/v1/sessions/{session_id}/final-score/acknowledge
+POST /api/v1/sessions/{session_id}/finalize
+```
+
+No admin routes or generic state/quality mutation endpoints were added.
+
+## 11. Questionnaire and Quality Migration
+
+Questionnaire submissions accept answers for exactly the current section. The application service validates keys and localized scale values, updates only those answers, uses existing progression commands, and persists the committed projection.
+
+Attention-check responses and comprehension choices are submitted as participant inputs. Correctness, pass/fail, attempt counters, retry/return progression, and durable quality-event construction are computed server-side using the same answer rules and thresholds previously used by Streamlit.
+
+Correct comprehension answers are not returned by the API.
+
+## 12. Versioning and Idempotency
+
+Every state-changing endpoint requires `expected_version`. Month routes additionally derive the expected month from the URL. All mutations retain the Phase 3 repository/RPC optimistic-concurrency checks; FastAPI performs no last-write-wins update.
+
+Every mutation requires the `Idempotency-Key` HTTP header. FastAPI passes it unchanged as the application request ID. It never generates a replacement logical key. Identical response-loss retries reuse the committed transition; a changed payload with the same key returns `409 idempotency_conflict`.
+
+Idempotent responses include `idempotency_replayed: true` and `Idempotency-Replayed: true`.
+
+`X-Request-ID` identifies one HTTP attempt and remains separate from the application idempotency key.
+
+## 13. HTTP Error Mapping
+
+All errors use a stable `{"error": {...}}` envelope with a safe code, message, retry flag, HTTP request ID, and authoritative version only when known.
+
+```text
+request validation       → 422 validation_error
+missing idempotency key  → 400 idempotency_key_required
+missing authentication  → 401 authentication_required
+ownership failure       → 403 session_access_denied
+missing session          → 404 session_not_found
+stale/version conflict   → 409 concurrency_conflict
+idempotency conflict     → 409 idempotency_conflict
+treatment conflict       → 409 treatment_conflict
+invalid transition       → 409 invalid_transition
+persistence read failure → 503 persistence_read_failed
+persistence write failure→ 503 persistence_write_failed
+unexpected failure       → 500 internal_error
+```
+
+SQL, Supabase messages, stack traces, credentials, and participant state are not returned.
+
+## 14. Experimental Blindness
+
+For C2/C4 hidden-feedback sessions, the month-feedback JSON contains no `score` property and no score components. For C1/C3 displayed-feedback sessions, only the score values already rendered by Streamlit are returned. Gain/loss presentation is projected into participant-visible wording/fields without returning the treatment or framing identifiers.
+
+Final-score and completion views expose only the existing participant-facing final score, summary, and frame-appropriate bonus presentation.
+
+## 15. Composition, Sync, and Supabase Lifecycle
+
+Both FastAPI and Streamlit resolve the same transport-neutral composition. The process-level service/repository object does not hold one shared synchronous HTTP client. Repository access continues to resolve a reusable credential-keyed client local to the executing worker thread.
+
+All participant route handlers are ordinary synchronous `def` functions. FastAPI runs their blocking Supabase calls in its worker threadpool, preserving the verified Phase 3.5 client lifecycle. No fake async or async persistence layer was introduced.
+
+## 16. Health, Readiness, Documentation, and Observability
+
+`/health` returns `{"status":"ok"}` without accessing Supabase. `/ready` verifies injected composition in tests or required server persistence configuration in the default app, without running an expensive database query.
+
+OpenAPI, Swagger, and ReDoc are enabled by default for development and can be disabled with `API_DOCS_ENABLED=false`.
+
+HTTP middleware records request ID, method, route template, status, latency, safe error category, and idempotency replay. It does not log bodies, tokens, account keys, Prolific identifiers, credentials, or database responses.
+
+## 17. Test Results
+
+```text
+python -m pytest -p no:cacheprovider -q tests/test_api_phase4.py
+result: 20 passed
+
+python -m pytest -p no:cacheprovider -q
+result: 102 passed, 6 explicitly skipped real-integration tests
+
+python -m pytest -p no:cacheprovider -q tests/test_domain_simulation.py
+result: 4 passed
+
+python -m pytest -p no:cacheprovider -q tests/test_application_refactor.py::test_all_24_months_match_the_production_golden_journey
+result: 1 passed
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ". .\scripts\load-integration-env.ps1; python -m pytest -p no:cacheprovider -q tests\integration\test_real_supabase_phase3.py"
+result: 6 passed; Prolific credentials excluded and real payment paths disabled
+```
+
+The transport tests cover health/readiness, authentication, ownership, strict DTOs, missing idempotency keys, stale versions, response-loss retry, double clicks, competing calls, persistence failures, all C1-C4 feedback modes, study-session treatment binding, questionnaire validation, attention/comprehension evaluation, architectural dependency direction, and a complete non-Prolific API journey through all questionnaires, all 24 months, final score, finalization, and safe finalization retry.
+
+## 18. Runtime Smoke Results
+
+```text
+python -m uvicorn sim_app.api.app:app --host 127.0.0.1 --port 8765
+GET /health → HTTP 200 {"status":"ok"}
+result: passed; process stopped deliberately after probe
+
+configured TestClient readiness probe
+GET /ready → HTTP 200 {"status":"ready"}
+result: passed
+
+python -m streamlit run app.py --server.headless=true --server.port=8766
+GET /_stcore/health → HTTP 200 ok
+result: passed; process stopped deliberately after probe
+```
+
+## 19. Domain and Persistence Parity
+
+The golden economic digest remains exactly:
+
+```text
+17f8a2632d861e432c2cd81f86495c4b75356deaa7b55911c2eca6a53f75ab43
+```
+
+No scenario, simulation, loan, overdraft, payment-validity, score, final-score, treatment, bonus, questionnaire, repository write, schema, or PostgreSQL RPC semantic changed.
+
+## 20. Remaining Work
+
+- The standalone browser still needs a dedicated Google OIDC/session-cookie/CSRF implementation before participant routes can be publicly enabled. The default API intentionally returns `401` without an installed principal provider.
+- Prolific browser launch/query/cookie adaptation remains Streamlit-owned until the frontend-auth phase.
+- Participant HTML/CSS/JavaScript rendering remains Streamlit-owned.
+- Admin transport/UI remains Streamlit-owned.
+- Docker, Cloud Run, Secret Manager, custom domains, and deployment scaling remain deferred.
+- A FastAPI-to-real-Supabase transport smoke test is optional future integration coverage; Phase 4 re-ran the complete existing six-test real-Supabase persistence/concurrency suite instead.
+
+## 21. Static Architecture Verification
+
+- API routes contain no Supabase imports, `.table(...)`, `.rpc(...)`, or repository implementation construction.
+- Application and domain contain no FastAPI or API-schema imports.
+- Participant responses are explicit safe DTOs, never raw `ParticipantState`.
+- Streamlit continues to use its compatibility provider over the same composition.
+- No Docker, Cloud Run, frontend, secret, or database migration file was added.
+- Phase 4 changes remain uncommitted and unpushed for review.
+
+## 22. Final Pre-Commit Review Corrections
+
+The final Phase 4 security and parity review found and corrected three narrow transport-boundary defects before commit:
+
+- Session creation now requires the explicit optimistic-concurrency sentinel `expected_version: 0`, so every state-changing HTTP request carries a version and an `Idempotency-Key`.
+- Durable ownership is verified before the full participant state is loaded. Unowned and unknown session UUIDs are security-normalized through the ownership-denial path; a stale ownership link can still surface the existing `session_not_found` mapping. Finalization response-loss retries verify their durable request ID before loading finalized state.
+- FastAPI passes `Idempotency-Key` to `ExperimentService` without normalization. Session bootstrap now checks the durable creation payload hash so reuse of the same key with a different creation payload returns `409 idempotency_conflict`, while a new logical request still resumes the account's existing session.
+
+These corrections do not change progression, domain behavior, persistence RPC semantics, treatment assignment, or participant-visible research behavior.

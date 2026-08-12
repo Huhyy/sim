@@ -1,5 +1,7 @@
 """Experimental condition helpers for the 2 x 2 study design."""
 
+import hashlib
+
 DEFAULT_EXPERIMENTAL_CONDITION = "C1"
 DEFAULT_PAYMENT_STATUS = "unpaid"
 MAX_PERFORMANCE_BONUS_GBP = 3
@@ -83,6 +85,13 @@ def condition_options():
     return list(CONDITIONS.keys())
 
 
+def assign_prolific_condition(prolific_pid, study_id):
+    """Preserve the deterministic production Prolific assignment algorithm."""
+    key = f"{prolific_pid}-{study_id}"
+    value = int(hashlib.sha256(key.encode("utf-8")).hexdigest(), 16)
+    return condition_config(condition_options()[value % len(condition_options())])
+
+
 __all__ = [
     "CONDITIONS",
     "DEFAULT_EXPERIMENTAL_CONDITION",
@@ -90,6 +99,7 @@ __all__ = [
     "MAX_PERFORMANCE_BONUS_GBP",
     "PROLIFIC_BASE_REWARD_GBP",
     "condition_config",
+    "assign_prolific_condition",
     "condition_from_record",
     "condition_options",
     "monthly_score_is_displayed",

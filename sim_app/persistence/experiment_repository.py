@@ -41,6 +41,77 @@ class SupabaseExperimentRepository:
     def load(self, session_id):
         return self._load(session_id, allow_legacy_backfill=True)
 
+    def find_session_id_for_account(self, account_key):
+        try:
+            with self.metrics.measure("find_session_for_account", layer="database"):
+                self.metrics.increment("database_request_count")
+                response = (
+                    self.client.table("resume_links")
+                    .select("session_id")
+                    .eq("account_key", account_key)
+                    .limit(1)
+                    .execute()
+                )
+            rows = getattr(response, "data", None) or []
+            return str(rows[0]["session_id"]) if rows else None
+        except Exception as exc:
+            raise PersistenceReadError("Could not resolve participant session ownership") from exc
+
+    def account_owns_session(self, account_key, session_id):
+        linked = self.find_session_id_for_account(account_key)
+        return linked == str(session_id)
+
+    def creation_request_payload_hash(self, session_id, request_id):
+        try:
+            with self.metrics.measure("verify_creation_request", layer="database"):
+                self.metrics.increment("database_request_count")
+                response = (
+                    self.client.table("experiment_idempotency")
+                    .select("payload_hash")
+                    .eq("session_id", session_id)
+                    .eq("operation", "create_session")
+                    .eq("request_id", request_id)
+                    .limit(1)
+                    .execute()
+                )
+            rows = getattr(response, "data", None) or []
+            return str(rows[0]["payload_hash"]) if rows else None
+        except Exception as exc:
+            raise PersistenceReadError("Could not verify the session creation retry") from exc
+
+    def finalization_request_matches(self, session_id, request_id):
+        try:
+            with self.metrics.measure("verify_finalization_request", layer="database"):
+                self.metrics.increment("database_request_count")
+                response = (
+                    self.client.table("participant_sessions")
+                    .select("finalization_request_id")
+                    .eq("id", session_id)
+                    .eq("finalization_request_id", request_id)
+                    .limit(1)
+                    .execute()
+                )
+            return bool(getattr(response, "data", None) or [])
+        except Exception as exc:
+            raise PersistenceReadError("Could not verify the finalization retry") from exc
+
+    def load_study_session_by_code(self, session_code):
+        try:
+            with self.metrics.measure("load_study_session_by_code", layer="database"):
+                self.metrics.increment("database_request_count")
+                response = (
+                    self.client.table("admin_study_sessions")
+                    .select("*")
+                    .eq("session_code", str(session_code).strip())
+                    .eq("status", "active")
+                    .limit(1)
+                    .execute()
+                )
+            rows = getattr(response, "data", None) or []
+            return dict(rows[0]) if rows else None
+        except Exception as exc:
+            raise PersistenceReadError("Could not resolve the study session code") from exc
+
     def _load(self, session_id, *, allow_legacy_backfill):
         try:
             with self.metrics.measure("load_participant", layer="database"):

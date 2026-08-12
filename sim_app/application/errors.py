@@ -35,13 +35,33 @@ class InvalidTransition(ExperimentError):
     pass
 
 
+class AuthenticationRequired(ExperimentError):
+    pass
+
+
+class SessionAccessDenied(ExperimentError):
+    pass
+
+
+class InputValidationError(ExperimentError):
+    pass
+
+
+class IdempotencyKeyRequired(ExperimentError):
+    pass
+
+
 __all__ = [
     "ConcurrencyConflict",
+    "AuthenticationRequired",
     "ExperimentError",
     "IdempotencyConflict",
+    "IdempotencyKeyRequired",
+    "InputValidationError",
     "InvalidTransition",
     "PersistenceReadError",
     "PersistenceWriteError",
     "SessionNotFound",
+    "SessionAccessDenied",
     "TreatmentConflict",
 ]

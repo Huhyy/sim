@@ -1,12 +1,11 @@
 """Prolific URL identity and deterministic condition assignment."""
 
-import hashlib
 import json
 from urllib.parse import quote_plus, unquote
 
 import streamlit as st
 
-from sim_app.domain.experimental_conditions import condition_config, condition_options
+from sim_app.domain.experimental_conditions import assign_prolific_condition, condition_options
 from sim_app.infra.secrets import _get_secret
 from sim_app.session.query_params import get_query_param
 
@@ -93,13 +92,6 @@ def has_any_prolific_param(params=None):
 def prolific_params_complete(params=None):
     params = params or load_prolific_params()
     return all(params.get(name) for name in PROLIFIC_QUERY_PARAMS)
-
-
-def assign_prolific_condition(prolific_pid, study_id):
-    key = f"{prolific_pid}-{study_id}"
-    value = int(hashlib.sha256(key.encode("utf-8")).hexdigest(), 16)
-    condition = condition_options()[value % len(condition_options())]
-    return condition_config(condition)
 
 
 def completion_redirect_url(completion_code=None):

@@ -50,6 +50,35 @@ class InMemoryExperimentRepository:
                 loaded.pending_month_result = deepcopy(self._ledgers[session_id].get(pending_month))
             return loaded
 
+    def find_session_id_for_account(self, account_key):
+        with self._lock:
+            self._raise_failure("find_session_for_account", "before", read=True)
+            return self._accounts.get(account_key)
+
+    def account_owns_session(self, account_key, session_id):
+        return self.find_session_id_for_account(account_key) == session_id
+
+    def creation_request_payload_hash(self, session_id, request_id):
+        with self._lock:
+            stored = self._idempotency.get((session_id, "create_session", request_id))
+            return stored["payload_hash"] if stored else None
+
+    def finalization_request_matches(self, session_id, request_id):
+        with self._lock:
+            return (session_id, "finalize", request_id) in self._idempotency
+
+    def load_study_session_by_code(self, session_code):
+        with self._lock:
+            records = getattr(self, "_study_sessions", {})
+            record = records.get(str(session_code))
+            return deepcopy(record) if record else None
+
+    def add_study_session(self, record):
+        with self._lock:
+            if not hasattr(self, "_study_sessions"):
+                self._study_sessions = {}
+            self._study_sessions[str(record["session_code"])] = deepcopy(record)
+
     def create_session(self, state, *, account_key, request_id, payload_hash):
         with self._lock:
             hit = self._idempotent(state.session_id, "create_session", request_id, payload_hash)
@@ -92,6 +121,7 @@ class InMemoryExperimentRepository:
                 "prolific_completion_url", "prolific_completion_code",
                 "prolific_redirected", "answers", "comprehension_attempts",
                 "comprehension_passed", "attention_failed_count", "payment_values",
+                "scroll_to_top",
             ):
                 setattr(updated, field, deepcopy(getattr(proposed_state, field)))
             if not current.treatment_bound and proposed_state.treatment_bound:

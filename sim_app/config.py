@@ -2,11 +2,11 @@
 
 import os
 
-import streamlit as st
-
 
 def _feature_flag(name, default):
     try:
+        import streamlit as st
+
         value = st.secrets.get(name, default)
     except Exception:
         value = os.getenv(name, default)

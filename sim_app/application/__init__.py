@@ -4,6 +4,7 @@ from .commands import CommandResult
 from .errors import ConcurrencyConflict, ExperimentError, PersistenceReadError, PersistenceWriteError
 from .services import ExperimentService, ServiceResult
 from .state import ParticipantState
+from .principal import ParticipantPrincipal
 
 __all__ = [
     "CommandResult",
@@ -11,6 +12,7 @@ __all__ = [
     "ExperimentError",
     "ExperimentService",
     "ParticipantState",
+    "ParticipantPrincipal",
     "PersistenceReadError",
     "PersistenceWriteError",
     "ServiceResult",

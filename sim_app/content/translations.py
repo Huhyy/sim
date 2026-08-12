@@ -1,7 +1,5 @@
 from copy import deepcopy
 
-import streamlit as st
-
 from sim_app.content.narratives import get_narrative as get_ro_narrative
 from sim_app.content.i18n_narratives import NARRATIVES_EN
 from sim_app.content.i18n_questionnaire import POST_SECTIONS_EN
@@ -1484,6 +1482,8 @@ CATEGORY_LABELS = {
 
 
 def ensure_language():
+    import streamlit as st
+
     language = st.session_state.get("language", "en")
     if language not in SUPPORTED_LANGUAGES:
         language = "en"
@@ -1496,6 +1496,8 @@ def get_language():
 
 
 def set_language(language):
+    import streamlit as st
+
     st.session_state.language = language if language in SUPPORTED_LANGUAGES else "en"
 
 
