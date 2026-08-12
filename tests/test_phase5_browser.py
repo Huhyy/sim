@@ -45,10 +45,23 @@ def live_app(*, repository=None, admin_repository=None):
     finally: server.should_exit = True; thread.join(timeout=10)
 
 
-def _context(browser, base, manager, principal):
-    context = browser.new_context(viewport={"width": 1280, "height": 900})
+def _context(browser, base, manager, principal, *, viewport=None):
+    context = browser.new_context(viewport=viewport or {"width": 1280, "height": 900})
     context.add_cookies([{"name": SESSION_COOKIE, "value": manager.encode_principal(principal, csrf_token="csrf-e2e"), "url": base, "httpOnly": True, "sameSite": "Lax"}])
     return context
+
+
+def test_mobile_account_bar_stays_compact_and_controls_remain_usable():
+    principal = ParticipantPrincipal("8" * 64, email="participant@example.com", display_name="Nutzu 999", is_admin=True)
+    with live_app() as (base, manager, _service, _repository), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = _context(browser, base, manager, principal, viewport={"width": 390, "height": 844})
+        page = context.new_page(); page.goto(base)
+        account = page.locator("#account-bar"); account.wait_for()
+        assert account.bounding_box()["height"] < 80
+        assert page.locator("#language").bounding_box()["width"] < 100
+        assert page.locator("#logout").is_visible() and page.get_by_role("link", name="Admin").is_visible()
+        context.close(); browser.close()
 
 
 def _answer_questionnaire(page):
@@ -82,6 +95,9 @@ def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
         page.wait_for_selector('[data-view="instructions"]')
         page.locator(".card .actions button").click()  # instructions
         page.wait_for_selector('[data-view="profile"]')
+        profile_text = page.locator(".card").inner_text()
+        assert "|---|" not in profile_text and "**" not in profile_text
+        assert page.locator(".rich-table").count() >= 1
         page.locator(".card .actions button").click()  # profile
         page.wait_for_selector('[data-view="simulation"]')
         for month in range(1, 25):
@@ -90,6 +106,8 @@ def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
                 decision.locator("input[name=payment]").fill("999999" if month == 1 else "0")
             decision.locator('button[type="submit"]').click()
             page.wait_for_selector('[data-view="month_feedback"]')
+            feedback_text = page.locator(".card").inner_text()
+            assert "**" not in feedback_text and "###" not in feedback_text and "{value}" not in feedback_text
             page.locator(".card .actions button").last.click()
             page.wait_for_selector('[data-view="simulation"]' if month < 24 else '[data-view="questionnaire_section"]')
         while page.locator("#quiz").count(): _answer_questionnaire(page)
