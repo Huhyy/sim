@@ -1,0 +1,41 @@
+# The production image is allowlisted: only the runtime requirements and
+# application package enter the build context.
+**
+!requirements.txt
+!sim_app/
+!sim_app/**
+
+# Defense in depth for generated files that may appear below sim_app/.
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.coverage
+**/htmlcov/
+**/*.log
+**/*.tmp
+**/*.swp
+**/.DS_Store
+**/Thumbs.db
+sim_app/persistence/memory.py
+sim_app/persistence/admin_memory.py
+
+# These are already excluded by the allowlist and are named explicitly so the
+# security boundary remains obvious during future edits.
+.git/
+.gitignore
+.env
+.env.*
+.streamlit/
+.codex-remote-attachments/
+.venv/
+venv/
+env/
+tests/
+requirements-test.txt
+playwright-report/
+test-results/
+screenshots/
+.idea/
+.vscode/

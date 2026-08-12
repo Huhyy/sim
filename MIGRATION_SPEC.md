@@ -1437,3 +1437,243 @@ result: /health, /, /admin, and /static/js/app.js returned 200;
 ```
 
 The golden digest remains `17f8a2632d861e432c2cd81f86495c4b75356deaa7b55911c2eca6a53f75ab43`. No real Prolific payment was sent. The reviewed Phase 5B change is published on `master` with commit message `feat: replace Streamlit with standalone FastAPI web app`; the exact immutable commit identifier is recorded by Git history and the release handoff report.
+
+# Phase 6 — Dockerization and Cloud Run Readiness
+
+Status: implemented and verified, including real container destruction/restart
+and simultaneous multi-container operation against the configured integration
+Supabase. Phase 6 remains uncommitted and unpushed for review.
+
+## 1. Architecture
+
+Before:
+
+```text
+host Uvicorn process
+  -> FastAPI + same-origin frontend
+  -> ExperimentService / AdminService
+  -> repository interfaces
+  -> Supabase/Postgres
+```
+
+After:
+
+```text
+disposable non-root Python container
+  -> Uvicorn on 0.0.0.0:$PORT
+  -> FastAPI + packaged read-only frontend
+  -> ExperimentService / AdminService
+  -> per-worker-thread Supabase clients
+  -> authoritative Supabase/Postgres state and atomic RPCs
+```
+
+The image does not contain participant state or durable local storage. Browser
+authentication is portable across replacements because its encryption key is a
+stable required runtime secret. Idempotency, versions, treatments, monthly
+results, finalization, and ownership remain database-backed.
+
+## 2. Dockerfile and Build Context
+
+`Dockerfile` uses the official `python:3.13-slim-bookworm` base to match the
+verified Python 3.13 environment. It installs only `requirements.txt`, copies
+only `sim_app`, runs as UID/GID 10001, disables bytecode/pip caches, defaults
+production cookies to Secure and API docs to disabled, and starts Uvicorn
+directly through an `exec` command. Uvicorn binds `0.0.0.0` and reads Cloud
+Run's runtime `PORT` value (default 8080). There is no reload mode, Gunicorn,
+Nginx, cloud SDK, browser runtime, or test dependency.
+
+`.dockerignore` is an allowlist: the build context admits only
+`requirements.txt` and `sim_app/**`. It explicitly documents exclusions for
+Git data, `.env*`, attachments, virtual environments, tests, Playwright output,
+caches, logs, IDE files, and OS metadata. Consequently SQL migrations,
+integration configuration, local secrets, and tests cannot enter the image.
+The two in-memory repository implementations are also excluded because they are
+test doubles and are never selected by production composition.
+
+## 3. Runtime Configuration and Secrets
+
+`DEPLOYMENT.md` records the full runtime matrix and classifies secrets,
+non-secret configuration, optional features, and integration-only inputs.
+Secrets are supplied only at runtime; no build argument is used for them.
+Canonical server configuration includes Supabase URL/secret key, stable account
+pepper, stable browser-session secret, public origin, Google OIDC values,
+administrator allowlist, and conditional Prolific values.
+
+`SUPABASE_DB_URL`, `RUN_SUPABASE_INTEGRATION`, and the synthetic-write flag are
+test harness inputs and are not container runtime inputs. Live-payment
+acceptance must omit `PROLIFIC_API_TOKEN` and set
+`PROLIFIC_DYNAMIC_PAYMENT_ENABLED=false`.
+
+`/health` remains an inexpensive liveness endpoint. `/ready` validates required
+configuration and composition without querying Supabase; missing configuration
+returns 503 rather than fabricating application readiness.
+
+## 4. Process-Local State Audit
+
+Safe process-local state:
+
+- composed service objects, which contain no participant authority;
+- credential-keyed, per-executing-thread synchronous Supabase clients;
+- immutable/static content loaded from packaged files;
+- OIDC HTTP client resources;
+- in-memory request/operation counters used only for observability.
+
+No active runtime writes participant state to local files. Losing any safe
+cache/resource changes neither behavior nor durable authority. Memory repository
+implementations remain test-only and are not selected by production composition.
+
+The browser-session regression constructs two independent managers to represent
+separate containers. A cookie issued by the first is decoded by the second when
+both receive the same external secret; a different secret fails closed. The
+test shares no object or filesystem state.
+
+## 5. Cloud Run Preparation
+
+The container command is compatible with Cloud Run's injected `PORT`, uses no
+persistent filesystem, and preserves database-backed concurrency/idempotency.
+Static assets are packaged under `sim_app/frontend` and resolved relative to the
+installed package rather than the working directory. Proxy trust is explicit
+through `FORWARDED_ALLOW_IPS`, defaulting narrowly to localhost until the actual
+Cloud Run ingress boundary is verified.
+
+Google callback/base URLs remain runtime configuration. The local callback is
+`http://localhost:8000/auth/google/callback`; future values are
+`https://<cloud-run-host>/auth/google/callback` and, if applicable,
+`https://<domain>/auth/google/callback`. No deployment hostname is hardcoded.
+
+`DEPLOYMENT.md` describes the later project/API, Secret Manager, Artifact
+Registry, Cloud Run, OAuth callback, participant/admin/Prolific acceptance, and
+custom-domain sequence. None of those deployment operations occurred in Phase
+6, and the former hosting secrets were not read, modified, or deleted.
+
+## 6. Verification to Date
+
+```text
+python -m pytest -p no:cacheprovider -q
+result: 123 passed, 6 skipped
+
+python -m pytest -p no:cacheprovider -q tests/test_api_phase4.py
+result: 20 passed
+
+Phase 5 contract/auth/static + Phase 6 container-contract suites
+result: 25 passed
+
+python -m pytest -p no:cacheprovider -q tests/test_phase5_browser.py
+result: 10 passed
+
+domain/golden selection
+result: 15 passed, 9 deselected
+
+configured real-Supabase Phase 3.5 suite
+result: 6 passed; Prolific credentials excluded and live payment disabled
+
+host Uvicorn full-app smoke
+result: /health, /ready, /, /admin, and /static/js/app.js returned 200;
+        unauthenticated participant state returned 401;
+        log secret scan clean
+
+python -m compileall -q sim_app tests scripts
+result: passed
+
+git diff --check
+result: passed
+```
+
+The economic golden digest remains:
+
+```text
+17f8a2632d861e432c2cd81f86495c4b75356deaa7b55911c2eca6a53f75ab43
+```
+
+No real Prolific payment was sent. No schema or PostgreSQL RPC was changed.
+
+## 7. Container Build and Inspection
+
+The host initially had no Docker/Podman engine or WSL distribution. Docker
+Desktop 29.7.2 and Microsoft's WSL 2.7.11 runtime were installed outside the
+repository, and the user rebooted Windows. After reboot, `wsl --version`
+succeeded, but Docker's WSL distribution creation failed with
+`HCS_E_HYPERV_NOT_INSTALLED`. Windows `systeminfo` reported VM monitor-mode
+extensions available and `Virtualization Enabled In Firmware: No`. The host's
+AMD SVM setting was then enabled by the user. Codex did not alter firmware
+settings or reboot the machine.
+
+The production image built successfully:
+
+```text
+command: docker build --pull --tag behavioral-credit-simulator:phase6 .
+base: python:3.13-slim-bookworm
+resolved base digest: sha256:00faa2debb87529f9f0764e9491d8ba400a3678976616c3bd7cb193745ac20d1
+image ID: sha256:8682d4b6573433b0f9e2012898d0b81e3ef67f75c75e456d0f03fbc847858583
+size: 73,057,455 bytes
+Python: 3.13.15
+runtime user: uid=10001(simulator), gid=10001(simulator)
+build context transferred: 467.41 kB
+```
+
+Runtime imports reported FastAPI 0.141.1, Uvicorn 0.52.1, Pydantic 2.13.4,
+and Supabase 2.30.0. Streamlit, pytest, and Playwright were absent. File and
+history inspection found only runtime requirements, application modules,
+content, and frontend assets; `.env`, Git data, SQL, tests, in-memory test
+repositories, attachments, and browser artifacts were absent. The image
+environment contained only official Python metadata and non-secret runtime
+defaults. Application source was root-owned and non-writable to UID 10001;
+`/tmp` remained writable.
+
+## 8. Container Runtime Verification
+
+Configured container smoke results:
+
+```text
+internal PORT override: 9090
+/health: 200
+/ready: 200
+/: 200
+/admin: 200
+/static/js/app.js: 200
+/docs: 404 (production default disabled)
+unauthenticated participant API: 401
+runtime log secret scan: clean
+SIGTERM: clean Uvicorn shutdown, exit code 0
+```
+
+An unconfigured container still started and returned `/health` 200 while
+`/ready` failed closed with 503. Both smoke containers were removed after the
+checks.
+
+## 9. Destroy/Recreate and Multi-Container Verification
+
+`scripts/verify_container_statelessness.py` is an explicitly guarded
+integration harness. It requires both synthetic-write flags, inherits Supabase
+credentials by environment-variable name (never command value), forces
+Prolific mode and dynamic payment off, creates unique resources, and cleans up
+the exact containers and database rows it creates.
+
+The verified sequence used the real API and configured integration Supabase:
+
+1. Container A created an owned synthetic ordinary-participant session,
+   progressed through consent, demographics, all 22 pre-study questionnaire
+   sections, instructions, and profile, then committed month 1.
+2. The month immediately existed as exactly one structured `month_results` row.
+3. Container A was stopped and removed; no filesystem was copied.
+4. Container B, using the same image/external configuration and existing
+   encrypted browser cookie, recovered the exact committed version, stage,
+   month, participant-safe feedback, and visible financial values.
+5. B acknowledged feedback and advanced exactly once to month 2.
+6. A fresh A and B then ran simultaneously. Both read the same durable version.
+7. A committed month 2; B immediately read that committed state.
+8. B's retry with the same key/payload returned the original committed result
+   with `Idempotency-Replayed: true`.
+9. Reusing the key with a changed payment returned `409 idempotency_conflict`.
+10. A new request with the stale expected version returned
+    `409 concurrency_conflict` rather than overwriting state.
+11. The durable ledger contained exactly months 1 and 2. Both containers and
+    every synthetic database row were removed.
+
+Every participant response was recursively checked for raw account, checkpoint,
+treatment/configuration, Prolific identity, raw history, and hidden internal
+state keys. No finalization or Prolific payment operation was invoked.
+
+This falsification attempt found no application correctness dependency on a
+container's memory or filesystem. Container replacement loses only disposable
+clients, composition objects, and observability counters.

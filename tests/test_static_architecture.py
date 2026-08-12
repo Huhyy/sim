@@ -46,6 +46,8 @@ def test_browser_assets_contain_no_authoritative_or_sensitive_state_names():
         assert forbidden not in combined
 
 
-def test_no_deployment_or_node_build_files_were_added():
-    forbidden = ("Dockerfile", "package.json", "vite.config.js", "cloudbuild.yaml")
+def test_no_node_build_or_cloud_deployment_files_were_added():
+    # Phase 6 deliberately adds the production Dockerfile. Frontend build
+    # tooling and provider-specific deployment configuration remain deferred.
+    forbidden = ("package.json", "vite.config.js", "cloudbuild.yaml")
     assert not [name for name in forbidden if (ROOT / name).exists()]
