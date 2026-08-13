@@ -16,7 +16,8 @@ from sim_app.auth.identity import derive_account_key, derive_prolific_account_ke
 from sim_app.auth.oidc import GoogleOidcClient
 from sim_app.config import PROLIFIC_MODE_ENABLED
 from sim_app.content.translations import get_ui_section
-from sim_app.prolific.identity import normalize_prolific_params, prolific_params_complete, prolific_study_allowed
+from sim_app.prolific.identity import normalize_prolific_params, prolific_params_complete
+from sim_app.prolific.submissions import verify_prolific_submission
 
 
 router = APIRouter()
@@ -117,8 +118,14 @@ def prolific_launch(
             "missing_params",
             "A complete Prolific launch parameter set is required",
         )
-    if not prolific_study_allowed(params["STUDY_ID"]):
-        return _prolific_launch_failure(request, "invalid_study", "This Prolific study is not enabled")
+    try:
+        verify_prolific_submission(
+            submission_id=params["SESSION_ID"],
+            participant_id=params["PROLIFIC_PID"],
+            study_id=params["STUDY_ID"],
+        )
+    except ProlificLaunchError as exc:
+        return _prolific_launch_failure(request, "invalid_study", str(exc))
     principal = ParticipantPrincipal(
         account_key=derive_prolific_account_key(
             prolific_pid=params["PROLIFIC_PID"],

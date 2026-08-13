@@ -386,8 +386,8 @@ def test_real_fake_prolific_lifecycle(production, monkeypatch):
         monkeypatch.setattr(bonuses, "_get_secret", lambda name: "synthetic-local-value")
         monkeypatch.setattr(
             bonuses,
-            "complete_with_dynamic_payment",
-            lambda *args: external_calls.append(args) or {"status": "AWAITING APPROVAL"},
+            "create_bonus_payment",
+            lambda *args: external_calls.append(args) or {"id": "synthetic-bonus-payment"},
         )
         bonuses.process_prolific_bonus(client, state.session_id, summary)
         summary = client.table("session_summaries").select("*").eq("session_id", state.session_id).single().execute().data

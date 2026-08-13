@@ -1677,3 +1677,39 @@ state keys. No finalization or Prolific payment operation was invoked.
 This falsification attempt found no application correctness dependency on a
 container's memory or filesystem. Container replacement loses only disposable
 clients, composition objects, and observability counters.
+
+---
+
+# Post-deployment Prolific Integration Correction
+
+The static `PROLIFIC_ALLOWED_STUDY_IDS` allowlist and the
+`PROLIFIC_DYNAMIC_PAYMENT_ENABLED` mechanism were removed after comparison
+with the intended Prolific workflow.
+
+Launch authentication now treats all three browser query values as untrusted.
+The server uses the server-only `PROLIFIC_API_TOKEN` to retrieve the record at
+Prolific's submission endpoint using the generated `SESSION_ID`, then requires
+exact matches for the returned submission ID, participant ID, and study ID.
+The authoritative study record must also target the configured `PUBLIC_ORIGIN`,
+so a valid submission belonging to another study cannot be reused here.
+Missing credentials, provider read failure, malformed responses, and any tuple
+mismatch fail closed without creating a browser principal. The static study
+allowlist is therefore unnecessary.
+
+Completion remains browser-driven through the configured completion URL and
+completion code. Finalization may use the same server-only token to create the
+calculated bonus batch for manual review. The active implementation contains
+no bonus `/pay/` call and no dynamic API submission-completion transition.
+Durable claim and manual-review recovery semantics remain unchanged, so an
+ambiguous provider response cannot cause the external request to be repeated.
+
+Verification after the correction:
+
+```text
+focused Prolific/auth/persistence: 46 passed
+complete suite: 134 passed, 6 skipped
+real Supabase suite: 6 passed (provider call faked; token removed)
+golden digest: 17f8a2632d861e432c2cd81f86495c4b75356deaa7b55911c2eca6a53f75ab43
+```
+
+No live Prolific request or payment was sent during verification.

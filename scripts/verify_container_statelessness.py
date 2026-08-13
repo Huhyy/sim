@@ -46,7 +46,6 @@ CONTAINER_ENV = (
     "ALLOW_REPEAT_PARTICIPATION",
     "PROLIFIC_MODE_ENABLED",
     "PROLIFIC_API_TOKEN",
-    "PROLIFIC_DYNAMIC_PAYMENT_ENABLED",
 )
 FORBIDDEN_PARTICIPANT_KEYS = {
     "account_key",
@@ -283,7 +282,6 @@ def main() -> None:
             "ALLOW_REPEAT_PARTICIPATION": "false",
             "PROLIFIC_MODE_ENABLED": "false",
             "PROLIFIC_API_TOKEN": "",
-            "PROLIFIC_DYNAMIC_PAYMENT_ENABLED": "false",
         }
     )
 

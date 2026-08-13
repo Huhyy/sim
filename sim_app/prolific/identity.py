@@ -41,18 +41,6 @@ def configured_completion_code():
     return _get_secret("PROLIFIC_COMPLETION_CODE")
 
 
-def prolific_study_allowed(study_id):
-    raw = _get_secret("PROLIFIC_ALLOWED_STUDY_IDS")
-    if not raw:
-        return False
-    allowed = {
-        item.strip()
-        for item in str(raw).replace(";", ",").split(",")
-        if item.strip()
-    }
-    return str(study_id or "").strip() in allowed
-
-
 def _clean(value):
     value = str(value or "").strip()
     return value or None
@@ -67,5 +55,4 @@ __all__ = [
     "has_any_prolific_param",
     "normalize_prolific_params",
     "prolific_params_complete",
-    "prolific_study_allowed",
 ]

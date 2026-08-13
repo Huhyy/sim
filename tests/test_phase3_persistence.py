@@ -585,15 +585,15 @@ def test_prolific_side_effect_is_never_repeated_after_ambiguous_or_successful_ca
         "performance_bonus_gbp": 2,
     }
     external_calls = []
-    monkeypatch.setattr(bonuses, "dynamic_payment_configured", lambda: True)
+    monkeypatch.setattr(bonuses, "bonus_creation_configured", lambda: True)
 
     def external(*_args, **_kwargs):
         external_calls.append("called")
         if outcome == "timeout":
             raise URLError("response lost")
-        return {"status": "AWAITING REVIEW"}
+        return {"id": "bonus-payment"}
 
-    monkeypatch.setattr(bonuses, "complete_with_dynamic_payment", external)
+    monkeypatch.setattr(bonuses, "create_bonus_payment", external)
     bonuses.process_prolific_bonus(client, "session", summary)
     bonuses.process_prolific_bonus(client, "session", summary)
 
@@ -618,8 +618,8 @@ def test_recovered_in_flight_prolific_payment_goes_to_manual_review_without_retr
         "performance_bonus_gbp": 2,
     }
     external_calls = []
-    monkeypatch.setattr(bonuses, "dynamic_payment_configured", lambda: True)
-    monkeypatch.setattr(bonuses, "complete_with_dynamic_payment", lambda *_args, **_kwargs: external_calls.append("called"))
+    monkeypatch.setattr(bonuses, "bonus_creation_configured", lambda: True)
+    monkeypatch.setattr(bonuses, "create_bonus_payment", lambda *_args, **_kwargs: external_calls.append("called"))
 
     bonuses.process_prolific_bonus(client, "session", summary)
 

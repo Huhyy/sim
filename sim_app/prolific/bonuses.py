@@ -12,36 +12,23 @@ PROLIFIC_API_BASE = "https://api.prolific.com/api/v1"
 PROLIFIC_USER_AGENT = "ScenariuCredit/1.0 (Prolific API integration)"
 
 
-def dynamic_payment_configured():
-    token = _get_secret("PROLIFIC_API_TOKEN")
-    enabled = str(_get_secret("PROLIFIC_DYNAMIC_PAYMENT_ENABLED") or "true").lower()
-    return bool(token) and enabled not in {"0", "false", "no", "off"}
+def bonus_creation_configured():
+    return bool(_get_secret("PROLIFIC_API_TOKEN"))
 
 
-def dynamic_reward_percentage(base_reward_gbp, performance_bonus_gbp):
-    base_reward = float(base_reward_gbp or 0)
-    if base_reward <= 0:
-        raise ValueError("Prolific base reward must be greater than zero")
-    total_reward = base_reward + float(performance_bonus_gbp or 0)
-    return round(total_reward / base_reward * 100, 2)
-
-
-def complete_with_dynamic_payment(submission_id, completion_code, percentage_of_reward, message):
+def create_bonus_payment(study_id, submission_id, amount_gbp):
     payload = {
-        "action": "COMPLETE",
-        "completion_code": str(completion_code),
-        "completion_code_data": {
-            "percentage_of_reward": float(percentage_of_reward),
-            "message_to_participant": str(message),
-        },
+        "study_id": str(study_id),
+        "csv_bonuses": f"{submission_id},{float(amount_gbp):.2f}\n",
     }
-    return _request("POST", f"/submissions/{submission_id}/transition/", payload)
+    return _request("POST", "/submissions/bonus-payments/", payload)
 
 
 def process_prolific_bonus(client, session_id, summary, *, metrics=None):
-    """Complete a Prolific submission after an atomic durable payment claim.
+    """Create a reviewable Prolific bonus after an atomic durable claim.
 
-    A retry never repeats the external transition.  An observed ``processing``
+    This never pays or completes a submission through the API. A retry never
+    repeats bonus creation. An observed ``processing``
     claim means a previous worker may already have contacted Prolific, so the
     session is moved to manual review for safe reconciliation.
     """
@@ -50,14 +37,14 @@ def process_prolific_bonus(client, session_id, summary, *, metrics=None):
     payment_request_id = summary.get("payment_idempotency_key")
     if not payment_request_id:
         raise RuntimeError("Finalization did not create a durable payment idempotency key")
-    if not dynamic_payment_configured():
+    if not bonus_creation_configured():
         _finish_payment(
             client,
             session_id,
             payment_request_id,
             attempt_status="not_configured",
             bonus_status="not_configured",
-            error="Prolific dynamic payment is not configured",
+            error="Prolific bonus creation is not configured",
             metrics=metrics,
         )
         return {"prolific_bonus_status": "not_configured"}
@@ -81,31 +68,16 @@ def process_prolific_bonus(client, session_id, summary, *, metrics=None):
             )
         return {}
 
-    completion_code = summary.get("completion_code") or _get_secret("PROLIFIC_COMPLETION_CODE")
-    if not completion_code:
-        error = "PROLIFIC_COMPLETION_CODE is not configured"
-        _finish_payment(
-            client,
-            session_id,
-            payment_request_id,
-            attempt_status="manual_review",
-            bonus_status="manual_review",
-            error=error,
-            metrics=metrics,
-        )
-        return {"prolific_bonus_status": "manual_review", "prolific_bonus_error": error}
-
-    base_reward = float(summary.get("prolific_base_reward_gbp") or 5)
     bonus = float(summary.get("performance_bonus_gbp") or 0)
-    percentage = dynamic_reward_percentage(base_reward, bonus)
-    message = f"Performance reward: {base_reward:g} GBP base payment plus {bonus:g} GBP performance bonus."
     try:
-        completed = complete_with_dynamic_payment(
+        created = create_bonus_payment(
+            summary["prolific_study_id"],
             summary["prolific_session_id"],
-            completion_code,
-            percentage,
-            message,
+            bonus,
         )
+        payment_id = created.get("id")
+        if not payment_id:
+            raise RuntimeError("Prolific did not return a bonus payment ID")
     except (HTTPError, URLError, RuntimeError, ValueError) as exc:
         error = _error_detail(exc)
         _finish_payment(
@@ -120,21 +92,20 @@ def process_prolific_bonus(client, session_id, summary, *, metrics=None):
         return {"prolific_bonus_status": "manual_review", "prolific_bonus_error": error}
 
     created_at = _utcnow()
-    prolific_status = str(completed.get("status") or "").upper()
     _finish_payment(
         client,
         session_id,
         payment_request_id,
         attempt_status="succeeded",
         bonus_status="awaiting_approval",
-        response=completed,
+        response=created,
         created_at=created_at,
         metrics=metrics,
     )
     return {
         "prolific_bonus_status": "awaiting_approval",
         "prolific_bonus_created_at": created_at,
-        "prolific_submission_status": prolific_status,
+        "prolific_bonus_payment_id": payment_id,
     }
 
 
@@ -212,8 +183,7 @@ def _request(method, path, payload):
 
 
 __all__ = [
-    "complete_with_dynamic_payment",
-    "dynamic_payment_configured",
-    "dynamic_reward_percentage",
+    "bonus_creation_configured",
+    "create_bonus_payment",
     "process_prolific_bonus",
 ]

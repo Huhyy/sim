@@ -30,8 +30,8 @@ process manager is used.
 
 Do not pass secrets as build arguments. Do not copy `.env` into the image. For
 local verification, create an ignored `.env.container` containing only the
-runtime values below. Keep `PROLIFIC_DYNAMIC_PAYMENT_ENABLED=false` and omit
-`PROLIFIC_API_TOKEN` during non-payment acceptance testing.
+runtime values below. Keep `PROLIFIC_MODE_ENABLED=false` and omit
+`PROLIFIC_API_TOKEN` during non-Prolific acceptance testing.
 
 ## Runtime configuration contract
 
@@ -47,13 +47,11 @@ runtime values below. Keep `PROLIFIC_DYNAMIC_PAYMENT_ENABLED=false` and omit
 | `GOOGLE_REDIRECT_URI` | Required non-secret | Exact OIDC callback URI | Yes | ignored local env | Cloud Run environment | Yes |
 | `COOKIE_SECURE` | Required security config | Require HTTPS-only auth cookie | Image defaults `true` | local override may be `false` | Cloud Run environment: `true` | No need to expose |
 | `ADMIN_EMAILS` | Optional feature config | Server-derived admin allowlist | Needed for admin access | ignored local env | Cloud Run environment or secret reference | No |
-| `PROLIFIC_MODE_ENABLED` | Optional feature config | Enable validated Prolific launches | Explicitly configure | ignored local env | Cloud Run environment | No need to expose |
-| `PROLIFIC_ALLOWED_STUDY_IDS` | Required when Prolific is enabled | Fail-closed launch allowlist | Conditional; readiness checks it | ignored local env | Cloud Run environment | No |
+| `PROLIFIC_MODE_ENABLED` | Optional feature config | Enable API-validated Prolific launches | Explicitly configure | ignored local env | Cloud Run environment | No need to expose |
 | `PROLIFIC_COMPLETION_CODE` | Optional/conditional config | Existing completion/payment lifecycle | Needed for configured completion | ignored local env | Secret Manager reference if treated as sensitive | No |
 | `PROLIFIC_COMPLETION_URL` | Optional/conditional config | Safe participant completion destination template | Conditional | ignored local env | Cloud Run environment | Only the resolved safe URL may be projected |
 | `PROLIFIC_INTEGRATION_URL` | Optional non-secret | Prolific request referer | Conditional | ignored local env | Cloud Run environment | No need to expose |
-| `PROLIFIC_API_TOKEN` | Optional secret | Live Prolific transition credential | Only for live payment | ignored local env | Secret Manager reference | No |
-| `PROLIFIC_DYNAMIC_PAYMENT_ENABLED` | Optional safety flag | Enables the existing live payment adapter when a token exists | No; keep `false` in acceptance tests | ignored local env | Cloud Run environment | No |
+| `PROLIFIC_API_TOKEN` | Conditional secret | Verify launch submissions and create reviewable bonus batches | Required when Prolific mode is enabled | ignored local env | Secret Manager reference | No |
 | `ALLOW_REPEAT_PARTICIPATION` | Development/controlled feature flag | Existing explicit repeat-participation override | No; defaults `false` | ignored local env | Cloud Run environment: normally `false` | No |
 | `API_DOCS_ENABLED` | Optional operational config | FastAPI docs/OpenAPI exposure | No; image defaults `false` | local override | Cloud Run environment | N/A |
 | `PORT` | Required container non-secret | HTTP listen port injected by Cloud Run | Container default `8080` | Docker runtime | Cloud Run injected | N/A |
@@ -71,6 +69,10 @@ container.
 Missing core configuration does not crash the process: `/health` remains a
 cheap liveness response while `/ready` returns `503`. `/ready` validates
 configuration/composition without issuing a Supabase query.
+
+Prolific completion uses the configured completion URL/code. Bonus automation
+only creates a bonus batch for manual review; the application has no active
+bonus `/pay/` request and no dynamic submission-completion transition.
 
 ## Health and smoke checks
 
@@ -179,7 +181,7 @@ is hardcoded in the image.
 9. Test Google login/logout and cookie/CSRF behavior.
 10. Test Supabase readiness and a controlled participant journey.
 11. Test the admin view with a server-authorized account.
-12. Test an allowed Prolific launch with live payment disabled.
+12. Test an API-validated Prolific launch and manual-review bonus creation with fakes before any live acceptance run.
 13. Optionally attach and validate a custom domain.
 14. Only after full acceptance, decide when to retire the old hosting deployment
     and its still-untouched secrets.

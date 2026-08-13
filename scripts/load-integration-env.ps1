@@ -72,8 +72,6 @@ if ($env:SUPABASE_INTEGRATION_ALLOW_SYNTHETIC_WRITES -ne "1") {
     throw "SUPABASE_INTEGRATION_ALLOW_SYNTHETIC_WRITES must equal 1."
 }
 [Environment]::SetEnvironmentVariable("PROLIFIC_API_TOKEN", "", "Process")
-[Environment]::SetEnvironmentVariable("PROLIFIC_DYNAMIC_PAYMENT_ENABLED", "false", "Process")
-[Environment]::SetEnvironmentVariable("PROLIFIC_BONUS_AUTOPAY_ENABLED", "false", "Process")
 
 Write-Output "Integration environment loaded for this PowerShell process."
 Write-Output "Configured: SUPABASE_URL and one server credential."

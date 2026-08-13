@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from sim_app.api.app import create_app
 from sim_app.application.admin_services import AdminService
+from sim_app.application.errors import ProlificLaunchError
 from sim_app.application.principal import ParticipantPrincipal
 from sim_app.application.services import ExperimentService
 from sim_app.auth.browser_session import BrowserSessionManager, OIDC_COOKIE, SESSION_COOKIE
@@ -131,7 +132,7 @@ def test_frontend_shell_and_assets_are_same_origin():
     assert "default-src 'self'" in shell.headers["content-security-policy"]
     assert shell.headers["x-content-type-options"] == "nosniff"
     assert "/static/css/app.css?v=20260813-ui1" in shell.text
-    assert "/static/js/app.js?v=20260813-ui1" in shell.text
+    assert "/static/js/app.js?v=20260813-questionnaire1" in shell.text
     assert client.get("/admin").status_code == 200
     script = client.get("/static/js/app.js")
     assert script.status_code == 200
@@ -235,9 +236,16 @@ def test_google_callback_without_transaction_returns_to_login_safely():
         assert client.get("/api/v1/auth/session").status_code == 401
 
 
-def test_prolific_launch_requires_complete_allowed_trusted_parameters(monkeypatch):
+def test_prolific_launch_requires_complete_api_verified_parameters(monkeypatch):
     monkeypatch.setenv("ACCOUNT_KEY_PEPPER", "pepper")
-    monkeypatch.setenv("PROLIFIC_ALLOWED_STUDY_IDS", "study")
+    verified = []
+
+    def verify(**params):
+        verified.append(params)
+        if params != {"submission_id": "s", "participant_id": "p", "study_id": "study"}:
+            raise ProlificLaunchError("The Prolific launch identity did not match its submission")
+
+    monkeypatch.setattr(auth_routes_module, "verify_prolific_submission", verify)
     client, *_ = _browser_app()
     assert client.get("/auth/prolific/launch?PROLIFIC_PID=p&STUDY_ID=study").status_code == 400
     denied = client.get("/auth/prolific/launch?PROLIFIC_PID=p&STUDY_ID=other&SESSION_ID=s")
@@ -247,20 +255,20 @@ def test_prolific_launch_requires_complete_allowed_trusted_parameters(monkeypatc
     assert "PROLIFIC_PID" not in accepted.headers["location"]
     cookie = accepted.headers["set-cookie"]
     assert SESSION_COOKIE in cookie and "HttpOnly" in cookie
+    assert verified[-1] == {"submission_id": "s", "participant_id": "p", "study_id": "study"}
 
     monkeypatch.setattr(auth_routes_module, "PROLIFIC_MODE_ENABLED", False)
     disabled = client.get("/auth/prolific/launch?PROLIFIC_PID=p&STUDY_ID=study&SESSION_ID=s")
     assert disabled.status_code == 400
 
-    monkeypatch.setattr(auth_routes_module, "PROLIFIC_MODE_ENABLED", True)
-    monkeypatch.delenv("PROLIFIC_ALLOWED_STUDY_IDS")
-    missing_allowlist = client.get("/auth/prolific/launch?PROLIFIC_PID=p&STUDY_ID=study&SESSION_ID=s")
-    assert missing_allowlist.status_code == 400
-
 
 def test_browser_prolific_launch_errors_redirect_without_identity_parameters(monkeypatch):
     monkeypatch.setenv("ACCOUNT_KEY_PEPPER", "pepper")
-    monkeypatch.setenv("PROLIFIC_ALLOWED_STUDY_IDS", "allowed")
+    monkeypatch.setattr(
+        auth_routes_module,
+        "verify_prolific_submission",
+        lambda **_params: (_ for _ in ()).throw(ProlificLaunchError("Launch rejected")),
+    )
     client, *_ = _browser_app()
     response = client.get(
         "/auth/prolific/launch?PROLIFIC_PID=participant&STUDY_ID=blocked&SESSION_ID=attempt",

@@ -36,20 +36,20 @@ Do not rotate `ACCOUNT_KEY_PEPPER` during data collection: doing so prevents exi
 
 ## Prolific launches
 
-Prolific should launch the same-origin application with the complete `PROLIFIC_PID`, `STUDY_ID`, and `SESSION_ID` query set. Browser code immediately sends that set to `/auth/prolific/launch`; the server validates the configured study, creates an HttpOnly authenticated session, and redirects to `/` so identifiers disappear from the visible URL.
+Prolific should launch the same-origin application with the complete `PROLIFIC_PID`, `STUDY_ID`, and `SESSION_ID` query set. Browser code immediately sends that set to `/auth/prolific/launch`; the server uses `SESSION_ID` and the server-only Prolific API token to load the authoritative submission and compare all three identifiers. It also verifies that the authoritative study's external URL targets `PUBLIC_ORIGIN`, preventing a valid tuple from an unrelated study on the same researcher account from being reused. Only a matching tuple creates an HttpOnly authenticated session. The route then redirects to `/` so identifiers disappear from the visible URL.
 
 Configure:
 
 ```text
-PROLIFIC_ALLOWED_STUDY_IDS=...
+PROLIFIC_API_TOKEN=...
 PROLIFIC_COMPLETION_CODE=...
 PROLIFIC_COMPLETION_URL=...
 PROLIFIC_INTEGRATION_URL=https://<your-app-domain>/
 ```
 
-`PROLIFIC_ALLOWED_STUDY_IDS` is fail-closed: when Prolific mode is enabled, an empty allowlist makes readiness fail and all launch attempts are rejected.
+When Prolific mode is enabled, a missing API token makes readiness and launch verification fail closed. The participant-provided identifiers are never trusted without the authoritative Prolific submission lookup.
 
-Payment secrets remain server-only. Automated tests use memory repositories and fake/no payment processors and never invoke a live payment.
+At finalization the same token may create a calculated bonus batch for manual review. Active code never invokes the Prolific bonus `/pay/` operation and never completes a submission through a dynamic API transition. The completion URL/code handles the participant return. Automated tests use memory repositories and fakes and never invoke a live payment.
 
 ## Privacy and durable recovery
 

@@ -29,7 +29,7 @@ def get_ready_service(request: Request):
     browser_secret = _first_secret("BROWSER_SESSION_SECRET")
     account_pepper = _first_secret("ACCOUNT_KEY_PEPPER")
     public_origin = _first_secret("PUBLIC_ORIGIN")
-    prolific_allowlist = _first_secret("PROLIFIC_ALLOWED_STUDY_IDS")
+    prolific_api_token = _first_secret("PROLIFIC_API_TOKEN")
     google_config = all(_first_secret(name) for name in ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI"))
     if (
         not url
@@ -39,7 +39,7 @@ def get_ready_service(request: Request):
         or not account_pepper
         or not public_origin
         or not google_config
-        or (PROLIFIC_MODE_ENABLED and not prolific_allowlist)
+        or (PROLIFIC_MODE_ENABLED and not prolific_api_token)
     ):
         from sim_app.application.errors import PersistenceReadError
 
