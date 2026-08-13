@@ -48,6 +48,7 @@ class ExperimentRepository(Protocol):
         expected_version: int,
         request_id: str,
         payload_hash: str,
+        psychometric_phase: str | None = None,
     ) -> RepositoryCommit: ...
 
     def commit_month_decision(
@@ -69,6 +70,7 @@ class ExperimentRepository(Protocol):
         expected_version: int,
         request_id: str,
         payload_hash: str,
+        psychometric_phase: str | None = None,
     ) -> RepositoryCommit: ...
 
     def acknowledge_month_feedback(

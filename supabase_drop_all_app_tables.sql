@@ -9,6 +9,9 @@
 BEGIN;
 
 -- Remove application RPCs explicitly before their table row types disappear.
+DROP FUNCTION IF EXISTS public.commit_quality_transition_v4(UUID, BIGINT, TEXT, TEXT, JSONB, JSONB, JSONB, JSONB);
+DROP FUNCTION IF EXISTS public.commit_stage_transition_v4(UUID, BIGINT, TEXT, TEXT, JSONB, JSONB, JSONB);
+DROP FUNCTION IF EXISTS public.persist_psychometric_answers_v4(UUID, JSONB, JSONB);
 DROP FUNCTION IF EXISTS public.finish_prolific_payment_v3(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TIMESTAMPTZ);
 DROP FUNCTION IF EXISTS public.claim_prolific_payment_v3(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.finalize_experiment_v3(UUID, BIGINT, TEXT, TEXT, TEXT, JSONB, JSONB, JSONB, JSONB, JSONB, TEXT);

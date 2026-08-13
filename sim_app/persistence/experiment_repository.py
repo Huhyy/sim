@@ -14,6 +14,7 @@ from sim_app.application.instrumentation import DEFAULT_METRICS
 from sim_app.application.repositories import RepositoryCommit
 from sim_app.application.state import ParticipantState
 from sim_app.config import SCENARIO_VERSION
+from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS
 from sim_app.domain.scoring import get_bonus_max_session
 from sim_app.infra.supabase import _require_client
 from sim_app.persistence.mappers import (
@@ -212,16 +213,32 @@ class SupabaseExperimentRepository:
         session_id = data.get("session_id") or state.session_id
         return self._committed(session_id, data)
 
-    def save_stage(self, proposed_state, *, expected_version, request_id, payload_hash):
+    def save_stage(
+        self,
+        proposed_state,
+        *,
+        expected_version,
+        request_id,
+        payload_hash,
+        psychometric_phase=None,
+    ):
+        params = {
+            "p_session_id": proposed_state.session_id,
+            "p_expected_version": expected_version,
+            "p_request_id": request_id,
+            "p_payload_hash": payload_hash,
+            "p_state": _state_payload(proposed_state),
+        }
+        rpc_name = "commit_stage_transition_v3"
+        if psychometric_phase:
+            rpc_name = "commit_stage_transition_v4"
+            params.update({
+                "p_pre_answers": _psychometric_rows_for_phase(proposed_state, psychometric_phase, "pre"),
+                "p_post_answers": _psychometric_rows_for_phase(proposed_state, psychometric_phase, "post"),
+            })
         data = self._rpc(
-            "commit_stage_transition_v3",
-            {
-                "p_session_id": proposed_state.session_id,
-                "p_expected_version": expected_version,
-                "p_request_id": request_id,
-                "p_payload_hash": payload_hash,
-                "p_state": _state_payload(proposed_state),
-            },
+            rpc_name,
+            params,
         )
         return self._committed(proposed_state.session_id, data)
 
@@ -269,17 +286,26 @@ class SupabaseExperimentRepository:
         expected_version,
         request_id,
         payload_hash,
+        psychometric_phase=None,
     ):
+        params = {
+            "p_session_id": proposed_state.session_id,
+            "p_expected_version": expected_version,
+            "p_request_id": request_id,
+            "p_payload_hash": payload_hash,
+            "p_state": _state_payload(proposed_state),
+            "p_events": quality_events,
+        }
+        rpc_name = "commit_quality_transition_v3"
+        if psychometric_phase:
+            rpc_name = "commit_quality_transition_v4"
+            params.update({
+                "p_pre_answers": _psychometric_rows_for_phase(proposed_state, psychometric_phase, "pre"),
+                "p_post_answers": _psychometric_rows_for_phase(proposed_state, psychometric_phase, "post"),
+            })
         data = self._rpc(
-            "commit_quality_transition_v3",
-            {
-                "p_session_id": proposed_state.session_id,
-                "p_expected_version": expected_version,
-                "p_request_id": request_id,
-                "p_payload_hash": payload_hash,
-                "p_state": _state_payload(proposed_state),
-                "p_events": quality_events,
-            },
+            rpc_name,
+            params,
         )
         return self._committed(proposed_state.session_id, data)
 
@@ -431,6 +457,18 @@ def _state_payload(state):
         "completion_status": state.completion_status,
         "resume_projection": state.to_resume_projection(),
     }
+
+
+def _psychometric_rows_for_phase(state, requested_phase, phase):
+    if requested_phase not in {phase, "all"}:
+        return []
+    metadata = {
+        "study_session_id": state.study_session_id,
+        "study_session_code": state.study_session_code,
+        "participant_code": state.participant_code,
+    }
+    sections = PRE_SECTIONS if phase == "pre" else POST_SECTIONS
+    return _psychometric_rows(state.session_id, state.answers, sections, metadata=metadata)
 
 
 def _state_from_rows(row, checkpoint, month_rows, summary):

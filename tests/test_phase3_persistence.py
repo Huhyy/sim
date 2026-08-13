@@ -698,3 +698,119 @@ def test_supabase_repository_uses_one_month_commit_rpc(monkeypatch):
     )
 
     assert [name for name, _params in client.calls] == ["commit_month_decision_v3"]
+
+
+def test_questionnaire_phase_completion_uses_atomic_structured_answer_rpc(monkeypatch):
+    from sim_app.application.repositories import RepositoryCommit
+    from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS
+    from sim_app.persistence.experiment_repository import SupabaseExperimentRepository
+
+    class Rpc:
+        def __init__(self, calls, name, params):
+            self.calls = calls
+            self.name = name
+            self.params = params
+
+        def execute(self):
+            self.calls.append((self.name, self.params))
+            return SimpleNamespace(data={"state_version": 1})
+
+    class Client:
+        def __init__(self):
+            self.calls = []
+
+        def rpc(self, name, params):
+            return Rpc(self.calls, name, params)
+
+    client = Client()
+    repository = SupabaseExperimentRepository(client)
+    state = _service_state()
+    pre_key = f"{PRE_SECTIONS[0]['key_prefix']}_0"
+    post_key = f"{POST_SECTIONS[0]['key_prefix']}_0"
+    state.answers[pre_key] = PRE_SECTIONS[0]["scale"][0]
+    state.answers[post_key] = POST_SECTIONS[0]["scale"][0]
+    monkeypatch.setattr(
+        repository,
+        "_committed",
+        lambda session_id, data, result=None: RepositoryCommit(state, result=result),
+    )
+
+    repository.save_stage(
+        state,
+        expected_version=0,
+        request_id="finish-post",
+        payload_hash="a" * 64,
+        psychometric_phase="all",
+    )
+
+    name, params = client.calls[0]
+    assert name == "commit_stage_transition_v4"
+    assert [row["question_key"] for row in params["p_pre_answers"]] == [pre_key]
+    assert [row["question_key"] for row in params["p_post_answers"]] == [post_key]
+
+    client.calls.clear()
+    repository.save_quality_transition(
+        state,
+        [{"check_type": "attention", "passed": True}],
+        expected_version=0,
+        request_id="finish-post-prolific",
+        payload_hash="b" * 64,
+        psychometric_phase="all",
+    )
+    name, params = client.calls[0]
+    assert name == "commit_quality_transition_v4"
+    assert [row["question_key"] for row in params["p_pre_answers"]] == [pre_key]
+    assert [row["question_key"] for row in params["p_post_answers"]] == [post_key]
+
+
+def test_psychometric_completion_migration_wraps_transition_atomically():
+    from pathlib import Path
+
+    sql = Path("migration_psychometric_completion_persistence.sql").read_text(encoding="utf-8")
+    assert "commit_stage_transition_v4" in sql
+    assert "commit_quality_transition_v4" in sql
+    assert "commit_stage_transition_v3" in sql
+    assert "commit_quality_transition_v3" in sql
+    assert "persist_psychometric_answers_v4" in sql
+    assert "ON CONFLICT(session_id, question_key) DO UPDATE" in sql
+
+
+def test_service_requests_structured_write_only_at_questionnaire_phase_end():
+    from sim_app.content.translations import get_display_pre_sections
+
+    class RecordingRepository(InMemoryExperimentRepository):
+        def __init__(self):
+            super().__init__()
+            self.psychometric_phases = []
+
+        def save_stage(self, proposed_state, **kwargs):
+            self.psychometric_phases.append(kwargs.get("psychometric_phase"))
+            return super().save_stage(proposed_state, **kwargs)
+
+    repository = RecordingRepository()
+    service = ExperimentService(repository)
+    state = ParticipantState.initial(SCENARIO_VERSION)
+    state.session_id = "00000000-0000-0000-0000-000000000099"
+    principal = ParticipantPrincipal("b" * 64)
+    service.create_session(state, account_key=principal.account_key, request_id="create-questionnaire")
+    sections = get_display_pre_sections("en")
+
+    for section_index in (0, len(sections) - 1):
+        current = repository._sessions[state.session_id]
+        current.page = f"pre_question_{section_index}"
+        section = sections[section_index]
+        answers = {
+            f"{section['key_prefix']}_{index}": section["scale"][0]
+            for index in range(len(section["questions"]))
+        }
+        service.submit_questionnaire_section(
+            state.session_id,
+            principal,
+            phase="pre",
+            section_index=section_index,
+            expected_version=current.state_version,
+            request_id=f"pre-{section_index}",
+            answers=answers,
+        )
+
+    assert repository.psychometric_phases == [None, "pre"]

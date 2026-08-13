@@ -20,6 +20,7 @@ from sim_app.application.instrumentation import OperationMetrics
 from sim_app.application.state import ParticipantState
 from sim_app.application.services import ExperimentService
 from sim_app.config import SCENARIO_VERSION
+from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS
 from sim_app.content.tables import get_month
 from sim_app.domain.experimental_conditions import condition_config
 from sim_app.domain.loan import Loan
@@ -46,6 +47,8 @@ RPC_NAMES = (
     "claim_participant_session_v3",
     "commit_stage_transition_v3",
     "commit_quality_transition_v3",
+    "commit_stage_transition_v4",
+    "commit_quality_transition_v4",
     "commit_month_decision_v3",
     "acknowledge_month_feedback_v3",
     "backfill_legacy_session_v3",
@@ -106,6 +109,53 @@ def _create(service, label, *, condition="C1", page="simulation"):
         request_id=f"phase35:{label}:create:{session_id}",
     )
     return result.state, account_key
+
+
+def test_real_questionnaire_phase_completion_persists_structured_rows(production):
+    service, client = production
+    state, account_key = _create(service, "psychometric-phase", page="pre_question_21")
+    try:
+        proposed = state.copy()
+        for section in PRE_SECTIONS:
+            for index in range(len(section["questions"])):
+                proposed.answers[f"{section['key_prefix']}_{index}"] = section["scale"][0]
+        proposed.page = "instructions"
+        pre_commit = service.save_stage(
+            proposed,
+            expected_version=state.state_version,
+            request_id=f"phase35:psychometric-pre:{state.session_id}",
+            psychometric_phase="pre",
+        )
+        pre_rows = (
+            client.table("psychometric_pre_answers")
+            .select("question_key")
+            .eq("session_id", state.session_id)
+            .execute()
+            .data
+        )
+        assert len(pre_rows) == sum(len(section["questions"]) for section in PRE_SECTIONS)
+
+        proposed = pre_commit.state.copy()
+        for section in POST_SECTIONS:
+            for index in range(len(section["questions"])):
+                proposed.answers[f"{section['key_prefix']}_{index}"] = section["scale"][0]
+        proposed.page = "final_score"
+        service.save_stage(
+            proposed,
+            expected_version=pre_commit.state.state_version,
+            request_id=f"phase35:psychometric-post:{state.session_id}",
+            psychometric_phase="all",
+        )
+        post_rows = (
+            client.table("psychometric_post_answers")
+            .select("question_key")
+            .eq("session_id", state.session_id)
+            .execute()
+            .data
+        )
+        assert len(post_rows) == sum(len(section["questions"]) for section in POST_SECTIONS)
+    finally:
+        _cleanup(client, state.session_id, account_key)
 
 
 def test_real_schema_rpc_visibility_not_found_and_instrumentation(production):

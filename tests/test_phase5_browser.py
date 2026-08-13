@@ -88,6 +88,8 @@ def test_consent_restores_blue_treatment_framing_notice(condition, expected_text
         assert notice.count() == 1 and expected_text in notice.inner_text()
         assert page.locator(".notice.success").count() == 0
         assert "rgb(220, 234, 243)" == notice.evaluate("node => getComputedStyle(node).backgroundColor")
+        assert notice.evaluate("node => node.nextElementSibling?.classList.contains('consent-content')") is True
+        assert notice.bounding_box()["y"] < page.locator(".consent-content").bounding_box()["y"]
         context.close(); browser.close()
 
 

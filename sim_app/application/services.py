@@ -464,8 +464,18 @@ class ExperimentService:
                 [quality_event],
                 expected_version=expected_version,
                 request_id=request_id,
+                psychometric_phase=("all" if phase == "post" else phase)
+                if section_index + 1 == len(sections)
+                else None,
             )
-        return self.save_stage(proposed, expected_version=expected_version, request_id=request_id)
+        return self.save_stage(
+            proposed,
+            expected_version=expected_version,
+            request_id=request_id,
+            psychometric_phase=("all" if phase == "post" else phase)
+            if section_index + 1 == len(sections)
+            else None,
+        )
 
     def acknowledge_instructions(self, session_id, principal, *, expected_version, request_id):
         return self._stage_command(
@@ -627,7 +637,14 @@ class ExperimentService:
         self._record_commit(committed)
         return ServiceResult(committed.state, committed.result, committed.idempotency_hit)
 
-    def save_stage(self, proposed_state, *, expected_version, request_id):
+    def save_stage(
+        self,
+        proposed_state,
+        *,
+        expected_version,
+        request_id,
+        psychometric_phase=None,
+    ):
         projection_json = json.dumps(
             proposed_state.to_resume_projection(),
             sort_keys=True,
@@ -647,6 +664,7 @@ class ExperimentService:
                     expected_version=expected_version,
                     request_id=request_id,
                     payload_hash=payload_hash,
+                    psychometric_phase=psychometric_phase,
                 )
         except ConcurrencyConflict:
             self.metrics.increment("conflict_count")
@@ -716,6 +734,7 @@ class ExperimentService:
         *,
         expected_version,
         request_id,
+        psychometric_phase=None,
     ):
         payload_hash = _payload_hash({
             "projection": proposed_state.to_resume_projection(),
@@ -729,6 +748,7 @@ class ExperimentService:
                     expected_version=expected_version,
                     request_id=request_id,
                     payload_hash=payload_hash,
+                    psychometric_phase=psychometric_phase,
                 )
         except ConcurrencyConflict:
             self.metrics.increment("conflict_count")

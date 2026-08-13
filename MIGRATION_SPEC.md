@@ -1713,3 +1713,32 @@ golden digest: 17f8a2632d861e432c2cd81f86495c4b75356deaa7b55911c2eca6a53f75ab43
 ```
 
 No live Prolific request or payment was sent during verification.
+
+---
+
+# Structured Psychometric Persistence at Phase Completion
+
+Psychometric responses continue to be checkpointed after every questionnaire
+chapter for resume safety. In addition, the complete structured response set is
+now atomically upserted into `psychometric_pre_answers` when the final pre-study
+chapter is submitted, and into `psychometric_post_answers` when the final
+post-study chapter is submitted.
+
+The post-study completion transition also re-upserts the pre-study set. This
+backfills participants who passed the pre-study questionnaire before this
+change was deployed. The existing finalization upsert remains unchanged as a
+retry-safe final fallback.
+
+The additive `commit_stage_transition_v4` and
+`commit_quality_transition_v4` RPCs wrap the existing v3 transition RPCs and
+the structured answer upsert in the same PostgreSQL transaction. Existing v3
+RPCs remain available for compatibility. Version checks, idempotency keys,
+checkpoint timing, progression, attention checks, and questionnaire semantics
+are unchanged.
+
+Verification:
+
+```text
+complete suite: 141 passed, 7 skipped
+real Supabase suite: 7 passed
+```

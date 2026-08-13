@@ -118,7 +118,15 @@ class InMemoryExperimentRepository:
             self._accounts[account_key] = state.session_id
             return self._remember(state.session_id, "create_session", request_id, payload_hash, created)
 
-    def save_stage(self, proposed_state, *, expected_version, request_id, payload_hash):
+    def save_stage(
+        self,
+        proposed_state,
+        *,
+        expected_version,
+        request_id,
+        payload_hash,
+        psychometric_phase=None,
+    ):
         with self._lock:
             session_id = proposed_state.session_id
             hit = self._idempotent(session_id, "save_stage", request_id, payload_hash)
@@ -159,6 +167,7 @@ class InMemoryExperimentRepository:
         expected_version,
         request_id,
         payload_hash,
+        psychometric_phase=None,
     ):
         with self._lock:
             session_id = proposed_state.session_id
