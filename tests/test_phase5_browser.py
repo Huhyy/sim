@@ -64,6 +64,33 @@ def test_mobile_account_bar_stays_compact_and_controls_remain_usable():
         context.close(); browser.close()
 
 
+@pytest.mark.parametrize(
+    ("condition", "expected_text"),
+    [
+        ("C1", "performance bonus starts from 0 GBP"),
+        ("C2", "performance bonus starts from 0 GBP"),
+        ("C3", "provisional performance bonus starts from 3 GBP"),
+        ("C4", "provisional performance bonus starts from 3 GBP"),
+    ],
+)
+def test_consent_restores_blue_treatment_framing_notice(condition, expected_text):
+    principal = ParticipantPrincipal((condition.lower() * 32)[:64])
+    repository = InMemoryExperimentRepository(); service = ExperimentService(repository)
+    state = ParticipantState.initial(SCENARIO_VERSION); state.session_id = str(uuid.uuid4()); state.page = "consent"
+    for key, value in condition_config(condition).items(): setattr(state, key, value)
+    state.treatment_bound = True
+    service.create_session(state, account_key=principal.account_key, request_id="seed-framing")
+    principal = ParticipantPrincipal(principal.account_key, bound_session_id=state.session_id)
+    with live_app(repository=repository) as (base, manager, _service, _repo), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True); context = _context(browser, base, manager, principal)
+        page = context.new_page(); page.goto(base); page.wait_for_selector('[data-view="consent"]')
+        notice = page.locator(".notice.info")
+        assert notice.count() == 1 and expected_text in notice.inner_text()
+        assert page.locator(".notice.success").count() == 0
+        assert "rgb(220, 234, 243)" == notice.evaluate("node => getComputedStyle(node).backgroundColor")
+        context.close(); browser.close()
+
+
 def _answer_questionnaire(page, *, chapter, first_question):
     form = page.locator("#quiz")
     assert page.locator(".chapter-heading").inner_text() == f"Chapter {chapter}"
