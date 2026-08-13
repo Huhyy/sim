@@ -101,6 +101,12 @@ def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
         page.locator(".card .actions button").click()  # profile
         page.wait_for_selector('[data-view="simulation"]')
         for month in range(1, 25):
+            assert page.locator(".available-before-payment").count() == 1
+            assert "Money available before loan payment" in page.locator(".available-before-payment").inner_text()
+            assert "initial available balance + total income - current expenses - loan interest - overdraft interest" in page.locator(".decision-row.formula").inner_text()
+            assert page.locator(".opening-balance").count() == (1 if month == 1 else 0)
+            if month == 1:
+                assert "150.00" in page.locator(".opening-balance").inner_text()
             decision = page.locator("#decision")
             if decision.locator("input[name=payment]").count():
                 decision.locator("input[name=payment]").fill("999999" if month == 1 else "0")
