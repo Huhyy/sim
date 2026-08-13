@@ -205,11 +205,17 @@ def _questionnaire_view(state, phase, stage, language):
     if index < 0 or index >= len(sections):
         return {"type": "questionnaire_unavailable", "phase": phase}
     section = sections[index]
+    question_offset = sum(len(previous["questions"]) for previous in sections[:index])
     questions = []
     values = {}
     for question_index, prompt in enumerate(section["questions"]):
         key = f"{section['key_prefix']}_{question_index}"
-        questions.append({"key": key, "prompt": prompt, "options": list(section["scale"])})
+        questions.append({
+            "key": key,
+            "number": question_offset + question_index + 1,
+            "prompt": prompt,
+            "options": list(section["scale"]),
+        })
         if state.answers.get(key) is not None:
             values[key] = state.answers[key]
     attention_required = state.prolific_mode and (
@@ -221,7 +227,6 @@ def _questionnaire_view(state, phase, stage, language):
         "phase": phase,
         "section_index": index,
         "section_count": len(sections),
-        "title": section.get("title"),
         "instruction": section.get("instruction"),
         "questions": questions,
         "values": values,

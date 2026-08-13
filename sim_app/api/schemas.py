@@ -143,6 +143,7 @@ class DemographicsView(StrictModel):
 
 class QuestionnaireQuestion(StrictModel):
     key: str
+    number: int = Field(ge=1)
     prompt: str
     options: list[str]
 

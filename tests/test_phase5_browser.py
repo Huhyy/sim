@@ -64,8 +64,13 @@ def test_mobile_account_bar_stays_compact_and_controls_remain_usable():
         context.close(); browser.close()
 
 
-def _answer_questionnaire(page):
+def _answer_questionnaire(page, *, chapter, first_question):
     form = page.locator("#quiz")
+    assert page.locator(".chapter-heading").inner_text() == f"Chapter {chapter}"
+    prompts = page.locator("#quiz fieldset.question legend").all_inner_texts()
+    assert prompts and prompts[0].startswith(f"{first_question}. ")
+    for offset, prompt in enumerate(prompts):
+        assert prompt.startswith(f"{first_question + offset}. ")
     version = page.locator("#app").get_attribute("data-version")
     names = form.locator('input[type="radio"]').evaluate_all("els => [...new Set(els.map(e => e.name))]")
     for name in names:
@@ -74,6 +79,7 @@ def _answer_questionnaire(page):
     for area in form.locator("textarea").all(): area.fill("Browser parity feedback")
     form.locator('button[type="submit"]').click()
     page.wait_for_function("version => document.querySelector('#app')?.dataset.version !== version", arg=version)
+    return len(prompts)
 
 
 def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
@@ -91,7 +97,11 @@ def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
         for select in page.locator("#demo select").all(): select.select_option(index=1)
         page.locator('#demo button[type="submit"]').click()
         page.wait_for_selector('[data-view="questionnaire_section"]')
-        while page.locator("#quiz").count(): _answer_questionnaire(page)
+        pre_chapter, pre_question = 1, 1
+        while page.locator("#quiz").count():
+            pre_question += _answer_questionnaire(page, chapter=pre_chapter, first_question=pre_question)
+            pre_chapter += 1
+        assert (pre_chapter, pre_question) == (23, 157)
         page.wait_for_selector('[data-view="instructions"]')
         page.locator(".card .actions button").click()  # instructions
         page.wait_for_selector('[data-view="profile"]')
@@ -116,7 +126,11 @@ def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
             assert "**" not in feedback_text and "###" not in feedback_text and "{value}" not in feedback_text
             page.locator(".card .actions button").last.click()
             page.wait_for_selector('[data-view="simulation"]' if month < 24 else '[data-view="questionnaire_section"]')
-        while page.locator("#quiz").count(): _answer_questionnaire(page)
+        post_chapter, post_question = 1, 1
+        while page.locator("#quiz").count():
+            post_question += _answer_questionnaire(page, chapter=post_chapter, first_question=post_question)
+            post_chapter += 1
+        assert (post_chapter, post_question) == (3, 36)
         page.wait_for_selector('[data-view="final_score"]')
         page.locator(".card .actions button").click()  # final score acknowledgement
         page.wait_for_selector('[data-view="completion"]')

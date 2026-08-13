@@ -7,6 +7,7 @@ from sim_app.application.errors import ParticipationCompleted, ProlificLaunchErr
 from sim_app.application.principal import ParticipantPrincipal
 from sim_app.application.services import ExperimentService
 from sim_app.application.state import ParticipantState
+from sim_app.application.participant_views import participant_session_view
 from sim_app.content.i18n_questionnaire import POST_SECTIONS_EN, PRE_SECTIONS_EN
 from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS
 from sim_app.persistence.memory import InMemoryExperimentRepository
@@ -29,6 +30,28 @@ def test_questionnaire_structure_and_localized_order_are_unchanged():
         assert romanian["key_prefix"] == english["key_prefix"]
         assert len(romanian["questions"]) == len(english["questions"])
         assert len(romanian["scale"]) == len(english["scale"])
+
+
+@pytest.mark.parametrize(
+    ("page", "expected_first", "expected_last"),
+    [
+        ("pre_question_0", 1, 7),
+        ("pre_question_4", 29, 58),
+        ("post_question_0", 1, 25),
+        ("post_question_1", 26, 35),
+    ],
+)
+def test_questionnaire_safe_view_preserves_global_numbering_without_scale_titles(
+    page, expected_first, expected_last
+):
+    state = ParticipantState.initial("questionnaire-numbering-test")
+    state.page = page
+    state.language = "en"
+    view = participant_session_view(state)["view"]
+
+    assert "title" not in view
+    assert view["questions"][0]["number"] == expected_first
+    assert view["questions"][-1]["number"] == expected_last
 
 
 def test_language_change_is_versioned_idempotent_and_authoritative():
