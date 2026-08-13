@@ -64,15 +64,24 @@ def google_login(request: Request):
 
 
 @router.get("/auth/google/callback")
-def google_callback(request: Request, code: str = Query(min_length=1), state: str = Query(min_length=1)):
+def google_callback(request: Request, code: str | None = Query(None), state: str | None = Query(None)):
     manager = get_browser_session_manager(request)
-    transaction = manager.decode_oidc_transaction(request.cookies.get(OIDC_COOKIE))
     try:
+        if not code or not state:
+            raise AuthenticationRequired("The Google authentication response is incomplete")
+        transaction = manager.decode_oidc_transaction(request.cookies.get(OIDC_COOKIE))
         claims = _oidc_client(request).complete(code=code, state=state, transaction=transaction)
-    except Exception as exc:
-        raise AuthenticationRequired("Google authentication could not be verified") from exc
-    if claims.get("email_verified") is not True:
-        raise AuthenticationRequired("Google did not verify the account email address")
+        if claims.get("email_verified") is not True:
+            raise AuthenticationRequired("Google did not verify the account email address")
+    except Exception:
+        # The authorization callback is single-use. Browser Back can revisit it
+        # after its transaction cookie/code has already been consumed. Continue
+        # to reject that replay, but return to the clean application URL instead
+        # of exposing the API error envelope as a browser page. An existing
+        # authenticated session is preserved; no new session is created here.
+        response = RedirectResponse("/", status_code=303)
+        response.delete_cookie(OIDC_COOKIE, path="/auth/google/callback", httponly=True, secure=manager.secure, samesite="lax")
+        return response
     email = str(claims["email"]).strip().lower()
     principal = ParticipantPrincipal(
         account_key=derive_account_key(issuer=str(claims["iss"]), subject=str(claims["sub"])),

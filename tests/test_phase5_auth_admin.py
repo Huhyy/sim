@@ -212,6 +212,28 @@ def test_google_browser_login_callback_sets_only_server_session(monkeypatch):
         assert session.status_code == 200 and session.json()["email"] == "person@example.com"
         assert "stable-pepper" not in session.text and "account_key" not in session.text
 
+        # Browser Back can revisit the now-consumed one-time callback. It must
+        # fail closed without replacing the principal or showing raw API JSON.
+        replay = client.get("/auth/google/callback?code=code&state=state", follow_redirects=False)
+        assert replay.status_code == 303 and replay.headers["location"] == "/"
+        assert "authentication_required" not in replay.text
+        resumed = client.get("/api/v1/auth/session")
+        assert resumed.status_code == 200 and resumed.json()["email"] == "person@example.com"
+
+
+def test_google_callback_without_transaction_returns_to_login_safely():
+    manager = BrowserSessionManager("test-browser-secret", secure=False)
+    app = create_app(
+        service=ExperimentService(InMemoryExperimentRepository()),
+        browser_session_manager=manager,
+        docs_enabled=False,
+    )
+    with TestClient(app) as client:
+        callback = client.get("/auth/google/callback?code=expired&state=expired", follow_redirects=False)
+        assert callback.status_code == 303 and callback.headers["location"] == "/"
+        assert "authentication_required" not in callback.text
+        assert client.get("/api/v1/auth/session").status_code == 401
+
 
 def test_prolific_launch_requires_complete_allowed_trusted_parameters(monkeypatch):
     monkeypatch.setenv("ACCOUNT_KEY_PEPPER", "pepper")
