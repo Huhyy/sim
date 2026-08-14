@@ -163,7 +163,6 @@ def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
         page.wait_for_selector('[data-view="final_score"]')
         page.locator(".card .actions button").click()  # final score acknowledgement
         page.wait_for_selector('[data-view="completion"]')
-        page.locator("#finalize").click()
         page.wait_for_selector("#finalize", state="detached")
         assert "Thank" in page.locator("h1").inner_text()
         assert len(repository.month_results(next(iter(repository._sessions)))) == 24
