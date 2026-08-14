@@ -325,11 +325,8 @@ def _feedback_view(state, language):
             "repayment": result.get("score_repayment"),
             "liquidity": result.get("score_liquidity"),
             "overdraft": result.get("score_overdraft"),
+            "monthly_score": result.get("monthly_score"),
         }
-        if state.score_frame == "loss_frame":
-            score["monthly_loss"] = max(0.0, 100.0 - float(result.get("monthly_score") or 0))
-        else:
-            score["monthly_score"] = result.get("monthly_score")
         view["score"] = score
     return view
 

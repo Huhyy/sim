@@ -188,6 +188,9 @@ def test_browser_feedback_respects_all_treatment_blindness(condition, score_visi
         page.locator("#decision input[name=payment]").fill("0"); page.locator('#decision button[type="submit"]').click()
         page.wait_for_selector('[data-view="month_feedback"]')
         assert (page.locator(".score-card").count() == 1) is score_visible
+        if score_visible:
+            assert "Monthly score" in page.locator(".score-total").inner_text()
+            assert "points lost" not in page.locator(".score-total").inner_text().lower()
         html = page.locator(".card").inner_html()
         assert condition not in html and "experimental_condition" not in html
         context.close(); browser.close()

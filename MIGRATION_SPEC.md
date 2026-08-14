@@ -1742,3 +1742,13 @@ Verification:
 complete suite: 141 passed, 7 skipped
 real Supabase suite: 7 passed
 ```
+
+---
+
+# Monthly Feedback Raw-Score Presentation
+
+Following researcher direction, every displayed-feedback condition now shows
+the raw monthly score. C1 and C3 both present `monthly_score / 100`; C2 and C4
+continue to omit the score response entirely. This changes presentation only:
+monthly scoring, durable score values, final scoring, feedback visibility, and
+final bonus gain/loss framing are unchanged.

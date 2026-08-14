@@ -318,6 +318,9 @@ def test_feedback_experimental_blindness(harness, condition, score_visible):
     }
     assert forbidden.isdisjoint(set(_all_keys(body)))
     assert ACCOUNT_KEY not in json.dumps(body)
+    if score_visible:
+        assert body["view"]["score"]["monthly_score"] >= 0
+        assert "monthly_loss" not in body["view"]["score"]
     if not score_visible:
         keys = set(_all_keys(body))
         assert not {key for key in keys if key.startswith("score_") or key.startswith("monthly_score")}
