@@ -405,6 +405,56 @@ def test_real_24_month_journey_and_finalization(production):
     finally:
         _cleanup(client, state.session_id, account_key)
 
+
+def test_real_finalization_matches_python_at_half_cent_rounding_boundary(production):
+    service, client = production
+    state, account_key = _create(service, "rounding-boundary", page="done")
+    scores = [80.0] * 23 + [72.2]
+    try:
+        client.table("month_results").insert([
+            {
+                "session_id": state.session_id,
+                "month_number": month,
+                "monthly_score": score,
+                "accepted_payment": 0.0,
+                "credit_interest": 0.0,
+                "overdraft_interest": 0.0,
+                "score_model": "behavioral_v1",
+                "result_json": {
+                    "month": month,
+                    "monthly_score": score,
+                    "accepted_payment": 0.0,
+                    "credit_interest": 0.0,
+                    "overdraft_interest": 0.0,
+                    "score_model": "behavioral_v1",
+                },
+            }
+            for month, score in enumerate(scores, start=1)
+        ]).execute()
+        state = service.load_session(state.session_id)
+
+        finalized = service.finalize(
+            session_id=state.session_id,
+            expected_version=state.state_version,
+            request_id=f"phase35:rounding-boundary:finalize:{state.session_id}",
+            account_key=account_key,
+            pre_sections=[],
+            post_sections=[],
+        )
+
+        summary = (
+            client.table("session_summaries")
+            .select("final_score")
+            .eq("session_id", state.session_id)
+            .single()
+            .execute()
+            .data
+        )
+        assert finalized.state.final_score == 79.67
+        assert float(summary["final_score"]) == 79.67
+    finally:
+        _cleanup(client, state.session_id, account_key)
+
 def test_real_fake_prolific_lifecycle(production, monkeypatch):
     service, client = production
     # Exercise the real payment RPC lifecycle with a fake external processor.

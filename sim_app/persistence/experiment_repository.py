@@ -520,6 +520,8 @@ def _raise_mapped_write_error(exc):
         raise IdempotencyConflict("Idempotency key was reused with a different payload") from exc
     if "SIM_TREATMENT_CONFLICT" in message:
         raise TreatmentConflict("Treatment is immutable after binding") from exc
+    if "final score does not match durable ledger" in message:
+        raise PersistenceWriteError("Final score could not be validated against durable monthly results") from exc
     if "SIM_CONFLICT" in message or "SIM_MONTH_CONFLICT" in message:
         raise ConcurrencyConflict(message) from exc
     if "SIM_NOT_FOUND" in message:

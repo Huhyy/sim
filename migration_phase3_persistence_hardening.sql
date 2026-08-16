@@ -590,6 +590,7 @@ DECLARE
   v_answer JSONB;
   v_months INTEGER;
   v_score NUMERIC;
+  v_reported_score NUMERIC;
   v_response JSONB;
   v_prolific BOOLEAN;
 BEGIN
@@ -619,12 +620,17 @@ BEGIN
     );
   END IF;
   IF v_row.state_version<>p_expected_version THEN RAISE EXCEPTION 'SIM_CONFLICT: stale finalization version'; END IF;
-  SELECT COUNT(*), ROUND(LEAST(100,GREATEST(0,COALESCE(SUM(monthly_score),0)/24.0)),2)
+  SELECT COUNT(*), LEAST(100,GREATEST(0,COALESCE(SUM(monthly_score),0)/24.0))
     INTO v_months,v_score FROM public.month_results WHERE session_id=p_session_id;
   IF v_months<>24 THEN RAISE EXCEPTION 'SIM_CONFLICT: finalization requires 24 months'; END IF;
-  IF v_score IS DISTINCT FROM ROUND((p_summary->>'final_score')::NUMERIC,2) THEN
+  v_reported_score := ROUND((p_summary->>'final_score')::NUMERIC,2);
+  -- Python is the authoritative scoring implementation. Its binary-float
+  -- rounding can differ from PostgreSQL NUMERIC rounding at exact half-cent
+  -- boundaries (for example 79.675 -> 79.67 in Python, 79.68 in Postgres).
+  IF v_reported_score IS NULL OR ABS(v_score-v_reported_score)>0.005 THEN
     RAISE EXCEPTION 'SIM_CONFLICT: final score does not match durable ledger';
   END IF;
+  v_score := v_reported_score;
 
   FOR v_answer IN SELECT value FROM jsonb_array_elements(COALESCE(p_pre_answers,'[]'::JSONB)) LOOP
     INSERT INTO public.psychometric_pre_answers(session_id,study_session_id,study_session_code,participant_code,section_number,question_number,question_key,question_text,answer_value,updated_at)

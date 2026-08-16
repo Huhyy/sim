@@ -652,6 +652,16 @@ def test_phase3_migration_declares_atomic_rpc_and_database_invariants():
     assert "DROP TABLE" not in sql.upper()
 
 
+def test_final_score_rounding_migration_preserves_python_authority():
+    from pathlib import Path
+
+    sql = Path("migration_final_score_rounding_parity.sql").read_text(encoding="utf-8")
+    assert "ABS(v_score-v_reported_score)>0.005" in sql
+    assert "v_score := v_reported_score" in sql
+    assert "79.675 -> 79.67 in Python, 79.68 in Postgres" in sql
+    assert "DROP TABLE" not in sql.upper()
+
+
 def test_supabase_repository_uses_one_month_commit_rpc(monkeypatch):
     from sim_app.application.repositories import RepositoryCommit
     from sim_app.persistence.experiment_repository import SupabaseExperimentRepository

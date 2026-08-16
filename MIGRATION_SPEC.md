@@ -1712,6 +1712,27 @@ real Supabase suite: 6 passed (provider call faked; token removed)
 golden digest: 17f8a2632d861e432c2cd81f86495c4b75356deaa7b55911c2eca6a53f75ab43
 ```
 
+## Numeric/Rounding Pipeline Audit
+
+The full pipeline was cross-checked against PostgreSQL numeric behavior:
+
+| Area | Python behavior | PostgreSQL behavior | Result |
+|---|---|---|---|
+| Loan, overdraft, simulation money | `round(float(value), 2)` before persistence | `NUMERIC(...,2)` column coercion | No mismatch on the 24-month golden journey; values are already two-decimal inputs. |
+| Monthly score/components | Rounded to two decimals in the domain | `NUMERIC(6,2)` storage | No mismatch; persisted scores are already normalized. |
+| Monthly result monetary fields | Domain-normalized before RPC | `NUMERIC(12,2)` coercion | No mismatch across all numeric fields in the golden journey. |
+| `bonus_lunar` ledger column | Mapper derives the per-month value at four-decimal precision | `NUMERIC(12,4)` | Intentional persistence precision; it is not used to recompute participant scoring or payment. |
+| Monthly score sum/final score | Python float sum followed by Python two-decimal rounding | PostgreSQL exact `NUMERIC` aggregation | One exact-half-cent mismatch found (`79.675`: Python `79.67`, PostgreSQL `79.68`); corrected by the rounding-parity migration. |
+| Final/payment totals | Python computes and rounds the server-side summary before RPC | PostgreSQL stores the supplied summary in two-decimal columns | No independent SQL recomputation; values remain Python-authoritative. |
+| Prolific bonus amount | Performance bonus is an integer GBP tier; request formats to two decimals | No SQL arithmetic | No rounding risk. |
+| Admin progress bars / telemetry | `int()` and three-decimal latency formatting | Not persisted research data | Display/observability only; no semantic effect. |
+
+Edge probes confirmed that PostgreSQL `NUMERIC` half-away-from-zero rounding
+differs from Python binary-float rounding for values such as `79.675`, `0.015`,
+and `317.715`. Those values do not reach numeric storage unnormalized in the
+simulation path. The only aggregate that independently recomputed such a value
+was finalization, and that RPC is now covered by the `79.675 → 79.67` regression.
+
 No live Prolific request or payment was sent during verification.
 
 ---
@@ -1752,3 +1773,36 @@ the raw monthly score. C1 and C3 both present `monthly_score / 100`; C2 and C4
 continue to omit the score response entirely. This changes presentation only:
 monthly scoring, durable score values, final scoring, feedback visibility, and
 final bonus gain/loss framing are unchanged.
+
+---
+
+# Final-Score Rounding Parity Hotfix
+
+A live participant exposed a finalization-only rounding mismatch at an exact
+half-cent boundary. The authoritative Python score for a durable monthly-score
+sum of `1912.20` is `79.67`, while PostgreSQL `NUMERIC` rounding independently
+produced `79.68`. The atomic finalization RPC therefore rejected a valid final
+score and surfaced the database conflict as if another client had changed the
+participant state.
+
+`migration_final_score_rounding_parity.sql` keeps Python scoring authoritative.
+PostgreSQL still reconstructs the unrounded score from all 24 durable month
+rows and rejects discrepancies greater than half a cent, then persists the
+two-decimal score supplied by the server-side Python application. Monthly
+scoring, final-score calculation, bonus thresholds, participant progression,
+idempotency, and optimistic concurrency are unchanged.
+
+The affected session was verified without mutation: all 156 pre-study answers,
+35 post-study answers, and 24 month rows were durable. A rolled-back diagnostic
+transaction proved that the corrected RPC accepts that exact session. A
+synthetic real-Supabase regression independently finalized the `79.675`
+boundary as the authoritative Python result `79.67`, with Prolific credentials
+disabled.
+
+Verification after the hotfix:
+
+```text
+complete suite: 143 passed, 8 skipped
+real Supabase suite: 8 passed
+golden digest: 17f8a2632d861e432c2cd81f86495c4b75356deaa7b55911c2eca6a53f75ab43
+```

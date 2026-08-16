@@ -28,10 +28,20 @@ from sim_app.content.tables import get_month
 from sim_app.domain.experimental_conditions import condition_config, performance_bonus
 from sim_app.domain.loan import Loan
 from sim_app.domain.overdraft import Overdraft
-from sim_app.domain.scoring import compute_monthly_score
+from sim_app.domain.scoring import compute_final_score_from_results, compute_monthly_score
 from sim_app.domain.simulation import compute_month_preview, compute_month_result
 from sim_app.application.services import ExperimentService
 from sim_app.persistence.memory import InMemoryExperimentRepository
+
+
+def test_final_score_half_cent_boundary_keeps_authoritative_python_rounding():
+    results = [
+        {"monthly_score": score, "score_model": "behavioral_v1"}
+        for score in ([80.0] * 23 + [72.2])
+    ]
+
+    assert sum(result["monthly_score"] for result in results) == 1912.2
+    assert compute_final_score_from_results(results) == 79.67
 
 
 class DummySessionState(dict):
