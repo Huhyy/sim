@@ -45,6 +45,11 @@ SCALE_5_POST_AGREE_EN = [
     "5 - Completely agree",
 ]
 
+STATE_STRESS_SCALE_EN = ["1", "2", "3", "4", "5"]
+SCORE_CHECK_SCALE_EN = ["1", "2", "3", "4", "5", "6", "7"]
+SCORE_PERCEIVED_SCALE_EN = ["1", "2", "3"]
+MCHECK_AVOID_SCALE_EN = ["1", "2", "3", "4", "5"]
+
 
 PRE_SECTIONS_EN = [
     {
@@ -364,6 +369,12 @@ PRE_SECTIONS_EN = [
         "instruction": "How well do the statements below describe you?",
         "scale": SCALE_5_AGREE_EN,
         "key_prefix": "dark",
+        "question_keys": [f"dark_{index}" for index in range(12)] + [f"state_stress_pre_{index + 1}" for index in range(7)],
+        "question_scales": [SCALE_5_AGREE_EN] * 12 + [STATE_STRESS_SCALE_EN] * 7,
+        "question_option_labels": [SCALE_5_AGREE_EN] * 12 + [["1 - not at all", "2 - slightly", "3 - moderately", "4 - quite a lot", "5 - very much"]] * 7,
+        "question_instructions": {
+            12: "Right now, at this moment, to what extent do you feel each of the following?\n\n1 = Not at all\n2 = Slightly\n3 = Moderately\n4 = Quite a lot\n5 = Very much",
+        },
         "questions": [
             "I believe it is more important to be effective than moral.",
             "People are easily manipulated if you know their weaknesses.",
@@ -377,6 +388,13 @@ PRE_SECTIONS_EN = [
             "It is hard for me to feel remorse even when I know I was wrong.",
             "I get over other people’s suffering quickly — life goes on.",
             "I like risks and intense experiences, even if they involve breaking rules.",
+            "Overwhelmed by what I have to deal with",
+            "Unable to control the things that matter to me",
+            "Nervous or tense",
+            "That events and responsibilities are getting on top of me",
+            "Under time pressure",
+            "That too much is being expected of me",
+            "Close to physical or mental exhaustion",
         ],
     },
 ]
@@ -388,7 +406,21 @@ POST_SECTIONS_EN = [
         "instruction": "The following statements refer to how you felt during the financial experiment and immediately after completing it. Please answer based on your experience in this task, not based on your usual state.\n\nResponse scale\n1 = Not at all\n2 = A little\n3 = Moderately\n4 = A lot\n5 = Very much",
         "scale": SCALE_5_POST_STRESS_EN,
         "key_prefix": "post_stress",
+        "question_keys": [f"state_stress_post_{index + 1}" for index in range(7)] + [f"post_stress_{index}" for index in range(25)],
+        "persisted_question_numbers": list(range(36, 43)) + list(range(1, 26)),
+        "question_scales": [STATE_STRESS_SCALE_EN] * 7 + [SCALE_5_POST_STRESS_EN] * 25,
+        "question_option_labels": [["1 - not at all", "2 - slightly", "3 - moderately", "4 - quite a lot", "5 - very much"]] * 7 + [SCALE_5_POST_STRESS_EN] * 25,
+        "question_instructions": {
+            0: "Right now, at this moment, to what extent do you feel each of the following?\n\n1 = Not at all\n2 = Slightly\n3 = Moderately\n4 = Quite a lot\n5 = Very much",
+        },
         "questions": [
+            "Overwhelmed by what I have to deal with",
+            "Unable to control the things that matter to me",
+            "Nervous or tense",
+            "That events and responsibilities are getting on top of me",
+            "Under time pressure",
+            "That too much is being expected of me",
+            "Close to physical or mental exhaustion",
             "During the experiment, I felt overwhelmed by the information and decisions I had to manage.",
             "During the experiment, I had the impression that I could not fully control the evolution of the financial situation presented.",
             "During the experiment, I felt nervous or tense.",
@@ -421,6 +453,17 @@ POST_SECTIONS_EN = [
         "instruction": "Scale for perception of the experiment:\n1 = Completely disagree\n2 = Rather disagree\n3 = Neither agree nor disagree\n4 = Rather agree\n5 = Completely agree",
         "scale": SCALE_5_POST_AGREE_EN,
         "key_prefix": "post_perception",
+        "question_keys": [f"post_perception_{index}" for index in range(10)] + ["score_check", "score_perceived", "mcheck_avoid"],
+        "persisted_question_numbers": list(range(26, 36)) + [43, 44, 45],
+        "question_scales": [SCALE_5_POST_AGREE_EN] * 10 + [SCORE_CHECK_SCALE_EN, SCORE_PERCEIVED_SCALE_EN, MCHECK_AVOID_SCALE_EN],
+        "question_option_labels": [SCALE_5_POST_AGREE_EN] * 10 + [
+            ["1 - how much I had gained", "", "", "4 - equally both", "", "", "7 - how much I had lost"],
+            ["1 - points gained", "2 - points lost", "3 - I don't remember"],
+            ["1 - strongly disagree", "2 - disagree", "3 - neither agree nor disagree", "4 - agree", "5 - strongly agree"],
+        ],
+        "question_instructions": {
+            10: "Answer the following questions about how your monthly score was presented.",
+        },
         "questions": [
             "The experiment felt realistic to me.",
             "The monthly decisions seemed credible for a real financial situation.",
@@ -432,6 +475,9 @@ POST_SECTIONS_EN = [
             "I felt pressure when I had to choose the repayment amount.",
             "I had the impression that my decisions had important consequences.",
             "I treated the experiment as a serious situation.",
+            "When you looked at your monthly score, what were you mainly thinking about?",
+            "Each month, your score was shown to you as:",
+            "During the task I focused more on avoiding losses than on achieving gains.",
         ],
     },
 ]

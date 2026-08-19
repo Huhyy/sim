@@ -146,6 +146,8 @@ class QuestionnaireQuestion(StrictModel):
     number: int = Field(ge=1)
     prompt: str
     options: list[str]
+    option_labels: list[str] | None = None
+    instruction: str | None = None
 
 
 class AttentionCheck(StrictModel):

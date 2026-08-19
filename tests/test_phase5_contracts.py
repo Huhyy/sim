@@ -10,6 +10,7 @@ from sim_app.application.state import ParticipantState
 from sim_app.application.participant_views import participant_session_view
 from sim_app.content.i18n_questionnaire import POST_SECTIONS_EN, PRE_SECTIONS_EN
 from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS
+from sim_app.persistence.mappers import _psychometric_rows
 from sim_app.persistence.memory import InMemoryExperimentRepository
 
 
@@ -22,14 +23,44 @@ def _created(*, principal=None):
 
 
 def test_questionnaire_structure_and_localized_order_are_unchanged():
-    assert (len(PRE_SECTIONS), sum(len(section["questions"]) for section in PRE_SECTIONS)) == (22, 156)
-    assert (len(POST_SECTIONS), sum(len(section["questions"]) for section in POST_SECTIONS)) == (2, 35)
-    assert (len(PRE_SECTIONS_EN), sum(len(section["questions"]) for section in PRE_SECTIONS_EN)) == (22, 156)
-    assert (len(POST_SECTIONS_EN), sum(len(section["questions"]) for section in POST_SECTIONS_EN)) == (2, 35)
+    assert (len(PRE_SECTIONS), sum(len(section["questions"]) for section in PRE_SECTIONS)) == (22, 163)
+    assert (len(POST_SECTIONS), sum(len(section["questions"]) for section in POST_SECTIONS)) == (2, 45)
+    assert (len(PRE_SECTIONS_EN), sum(len(section["questions"]) for section in PRE_SECTIONS_EN)) == (22, 163)
+    assert (len(POST_SECTIONS_EN), sum(len(section["questions"]) for section in POST_SECTIONS_EN)) == (2, 45)
     for romanian, english in zip(PRE_SECTIONS + POST_SECTIONS, PRE_SECTIONS_EN + POST_SECTIONS_EN):
         assert romanian["key_prefix"] == english["key_prefix"]
         assert len(romanian["questions"]) == len(english["questions"])
         assert len(romanian["scale"]) == len(english["scale"])
+
+
+def test_new_post_psychometric_items_use_explicit_keys_scales_and_blind_labels():
+    pre = PRE_SECTIONS[-1]
+    post_stress = POST_SECTIONS[0]
+    post_perception = POST_SECTIONS[1]
+    assert pre["question_keys"][-7:] == [f"state_stress_pre_{i}" for i in range(1, 8)]
+    assert post_stress["question_keys"][:7] == [f"state_stress_post_{i}" for i in range(1, 8)]
+    assert post_perception["question_keys"][-3:] == ["score_check", "score_perceived", "mcheck_avoid"]
+    assert post_perception["question_scales"][-3:] == [
+        ["1", "2", "3", "4", "5", "6", "7"],
+        ["1", "2", "3"],
+        ["1", "2", "3", "4", "5"],
+    ]
+    assert post_perception["question_option_labels"][-1][0].endswith("dezacord total")
+    assert post_perception["question_option_labels"][-3][1:3] == ["", ""]
+
+
+def test_new_post_items_keep_legacy_persistent_question_numbers():
+    answers = {}
+    for section in POST_SECTIONS:
+        for index, key in enumerate(section["question_keys"]):
+            answers[key] = section.get("question_scales", [section["scale"]] * len(section["questions"]))[index][0]
+    rows = _psychometric_rows("session", answers, POST_SECTIONS)
+    numbers = {row["question_key"]: row["question_number"] for row in rows}
+    assert numbers["post_stress_0"] == 1
+    assert numbers["state_stress_post_1"] == 36
+    assert numbers["post_perception_0"] == 26
+    assert numbers["score_check"] == 43
+    assert numbers["mcheck_avoid"] == 45
 
 
 @pytest.mark.parametrize(
@@ -37,8 +68,8 @@ def test_questionnaire_structure_and_localized_order_are_unchanged():
     [
         ("pre_question_0", 1, 7),
         ("pre_question_4", 29, 58),
-        ("post_question_0", 1, 25),
-        ("post_question_1", 26, 35),
+        ("post_question_0", 1, 32),
+        ("post_question_1", 33, 45),
     ],
 )
 def test_questionnaire_safe_view_preserves_global_numbering_without_scale_titles(

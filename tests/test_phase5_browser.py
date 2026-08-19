@@ -130,7 +130,7 @@ def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
         while page.locator("#quiz").count():
             pre_question += _answer_questionnaire(page, chapter=pre_chapter, first_question=pre_question)
             pre_chapter += 1
-        assert (pre_chapter, pre_question) == (23, 157)
+        assert (pre_chapter, pre_question) == (23, 164)
         page.wait_for_selector('[data-view="instructions"]')
         page.locator(".card .actions button").click()  # instructions
         page.wait_for_selector('[data-view="profile"]')
@@ -159,7 +159,7 @@ def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
         while page.locator("#quiz").count():
             post_question += _answer_questionnaire(page, chapter=post_chapter, first_question=post_question)
             post_chapter += 1
-        assert (post_chapter, post_question) == (3, 36)
+        assert (post_chapter, post_question) == (3, 46)
         page.wait_for_selector('[data-view="final_score"]')
         page.locator(".card .actions button").click()  # final score acknowledgement
         page.wait_for_selector('[data-view="completion"]')

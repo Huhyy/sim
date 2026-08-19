@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS psychometric_post_answers (
   question_number INTEGER NOT NULL,
   question_key TEXT NOT NULL,
   question_text TEXT NOT NULL,
-  answer_value SMALLINT NOT NULL CHECK (answer_value BETWEEN 1 AND 5),
+  answer_value SMALLINT NOT NULL CHECK (answer_value BETWEEN 1 AND 7),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (session_id, question_key),

@@ -3,13 +3,14 @@
 from copy import deepcopy
 
 from sim_app.infra.time import _utcnow
+from sim_app.content.questions import question_key
 
 
 def _parse(value):
     if value is None:
         return None
     try:
-        return int(str(value).split(" - ")[0].strip())
+        return int(str(value).split(" - ", 1)[0].strip())
     except Exception:
         return None
 
@@ -57,10 +58,15 @@ def _psychometric_rows(session_id: str, answers: dict, sections, metadata=None):
     metadata_columns = _clean_metadata(metadata)
 
     for section_number, section in enumerate(sections or [], start=1):
-        prefix = section.get("key_prefix")
+        persisted_numbers = section.get("persisted_question_numbers") or []
         for index, question_text in enumerate(section.get("questions", [])):
-            key = f"{prefix}_{index}"
+            key = question_key(section, index)
             answer = _parse(answers.get(key))
+            stored_question_number = (
+                persisted_numbers[index]
+                if index < len(persisted_numbers)
+                else question_number
+            )
             if answer is None:
                 question_number += 1
                 continue
@@ -70,7 +76,7 @@ def _psychometric_rows(session_id: str, answers: dict, sections, metadata=None):
                     "session_id": session_id,
                     **metadata_columns,
                     "section_number": section_number,
-                    "question_number": question_number,
+                    "question_number": stored_question_number,
                     "question_key": key,
                     "question_text": question_text,
                     "answer_value": answer,

@@ -5,6 +5,33 @@ SCALE_5_FREQ2 = ["1 - Niciodată", "2 - Rareori", "3 - Uneori", "4 - Deseori", "
 SCALE_5_AGREE = ["1 - Complet neadevărat", "2 - Mai degrabă neadevărat", "3 - Nici/nici", "4 - Mai degrabă adevărat", "5 - Complet adevărat"]
 SCALE_5_POST  = ["1 - Complet în dezacord", "2 - În dezacord", "3 - Neutru", "4 - De acord", "5 - Complet de acord"]
 
+# These response values are intentionally kept separate from their display
+# labels.  The new post-task items use compact stored values ("1", "2", ...)
+# and, for the bipolar score item, only the anchor positions are labelled.
+STATE_STRESS_SCALE = ["1", "2", "3", "4", "5"]
+SCORE_CHECK_SCALE = ["1", "2", "3", "4", "5", "6", "7"]
+SCORE_PERCEIVED_SCALE = ["1", "2", "3"]
+MCHECK_AVOID_SCALE = ["1", "2", "3", "4", "5"]
+
+
+def question_key(section, index):
+    keys = section.get("question_keys")
+    if keys:
+        return keys[index]
+    return f"{section['key_prefix']}_{index}"
+
+
+def question_scale(section, index):
+    scales = section.get("question_scales")
+    return list(scales[index] if scales else section["scale"])
+
+
+def question_option_labels(section, index):
+    labels = section.get("question_option_labels")
+    if labels:
+        return list(labels[index])
+    return question_scale(section, index)
+
 PRE_SECTIONS = [
     {
         "title": "🧠 I. Funcționalitate dopaminergică",
@@ -323,6 +350,12 @@ PRE_SECTIONS = [
         "instruction": "Cât de bine te descriu afirmațiile de mai jos?",
         "scale": SCALE_5_AGREE,
         "key_prefix": "dark",
+        "question_keys": [f"dark_{index}" for index in range(12)] + [f"state_stress_pre_{index + 1}" for index in range(7)],
+        "question_scales": [SCALE_5_AGREE] * 12 + [STATE_STRESS_SCALE] * 7,
+        "question_option_labels": [SCALE_5_AGREE] * 12 + [["1 - Deloc", "2 - Puțin", "3 - Moderat", "4 - Destul de mult", "5 - Foarte mult"]] * 7,
+        "question_instructions": {
+            12: "Chiar acum, în acest moment, în ce măsură te simți în felul următor?\n\n1 = Deloc\n2 = Puțin\n3 = Moderat\n4 = Destul de mult\n5 = Foarte mult",
+        },
         "questions": [
             "Cred că e mai important să fii eficient decât moral.",
             "Oamenii se lasă manipulați ușor dacă le cunoști slăbiciunile.",
@@ -336,6 +369,13 @@ PRE_SECTIONS = [
             "Îmi este greu să simt remușcări chiar dacă știu că am greșit.",
             "Trec rapid peste suferința altora – viața merge înainte.",
             "Îmi plac riscurile și trăirile intense, chiar dacă implică reguli încălcate.",
+            "Copleșit(ă) de ceea ce am de gestionat",
+            "Incapabil(ă) să controlez lucrurile care contează pentru mine",
+            "Nervos/nervoasă sau încordat(ă)",
+            "Că evenimentele și responsabilitățile mă depășesc",
+            "Sub presiunea timpului",
+            "Că se așteaptă prea mult de la mine",
+            "Aproape de epuizare fizică sau psihică",
         ],
     },
 ]
@@ -353,7 +393,25 @@ Scală de răspuns
 5 = Foarte mult""",
         "scale": ["1 - Deloc", "2 - Puțin", "3 - Moderat", "4 - Mult", "5 - Foarte mult"],
         "key_prefix": "post_stress",
+        "question_keys": [f"state_stress_post_{index + 1}" for index in range(7)] + [f"post_stress_{index}" for index in range(25)],
+        # Persist the legacy post-question numbers for existing items.  The
+        # newly inserted stress block is displayed first but stored after the
+        # original 35 questions, avoiding conflicts with the legacy UNIQUE
+        # (session_id, question_number) constraint.
+        "persisted_question_numbers": list(range(36, 43)) + list(range(1, 26)),
+        "question_scales": [STATE_STRESS_SCALE] * 7 + [["1 - Deloc", "2 - Puțin", "3 - Moderat", "4 - Mult", "5 - Foarte mult"]] * 25,
+        "question_option_labels": [["1 - Deloc", "2 - Puțin", "3 - Moderat", "4 - Destul de mult", "5 - Foarte mult"]] * 7 + [["1 - Deloc", "2 - Puțin", "3 - Moderat", "4 - Mult", "5 - Foarte mult"]] * 25,
+        "question_instructions": {
+            0: "Chiar acum, în acest moment, în ce măsură te simți în felul următor?\n\n1 = Deloc\n2 = Puțin\n3 = Moderat\n4 = Destul de mult\n5 = Foarte mult",
+        },
         "questions": [
+            "Copleșit(ă) de ceea ce am de gestionat",
+            "Incapabil(ă) să controlez lucrurile care contează pentru mine",
+            "Nervos/nervoasă sau încordat(ă)",
+            "Că evenimentele și responsabilitățile mă depășesc",
+            "Sub presiunea timpului",
+            "Că se așteaptă prea mult de la mine",
+            "Aproape de epuizare fizică sau psihică",
             "În timpul experimentului, m-am simțit copleșit(ă) de informațiile și deciziile pe care trebuia să le gestionez.",
             "În timpul experimentului, am avut impresia că nu pot controla complet evoluția situației financiare prezentate.",
             "În timpul experimentului, m-am simțit nervos/oasă sau încordat(ă).",
@@ -397,6 +455,29 @@ Scală de răspuns
             "5 - Complet de acord",
         ],
         "key_prefix": "post_perception",
+        "question_keys": [f"post_perception_{index}" for index in range(10)] + ["score_check", "score_perceived", "mcheck_avoid"],
+        "persisted_question_numbers": list(range(26, 36)) + [43, 44, 45],
+        "question_scales": [[
+            "1 - Complet în dezacord",
+            "2 - Mai degrabă în dezacord",
+            "3 - Nici de acord, nici în dezacord",
+            "4 - Mai degrabă de acord",
+            "5 - Complet de acord",
+        ]] * 10 + [SCORE_CHECK_SCALE, SCORE_PERCEIVED_SCALE, MCHECK_AVOID_SCALE],
+        "question_option_labels": [[
+            "1 - Complet în dezacord",
+            "2 - Mai degrabă în dezacord",
+            "3 - Nici de acord, nici în dezacord",
+            "4 - Mai degrabă de acord",
+            "5 - Complet de acord",
+        ]] * 10 + [
+            ["1 - la cât am câștigat", "", "", "4 - în egală măsură", "", "", "7 - la cât am pierdut"],
+            ["1 - puncte câștigate", "2 - puncte pierdute", "3 - nu îmi amintesc"],
+            ["1 - dezacord total", "2 - dezacord", "3 - nici acord, nici dezacord", "4 - acord", "5 - acord total"],
+        ],
+        "question_instructions": {
+            10: "Răspunde la următoarele întrebări despre felul în care ți-a fost prezentat scorul lunar.",
+        },
         "questions": [
             "Experimentul mi s-a părut realist.",
             "Deciziile lunare mi s-au părut credibile pentru o situație financiară reală.",
@@ -408,6 +489,9 @@ Scală de răspuns
             "Am simțit presiune când trebuia să aleg suma de rambursare.",
             "Am avut impresia că deciziile mele aveau consecințe importante.",
             "Am tratat experimentul ca pe o situație serioasă.",
+            "Când te uitai la scorul lunar, la ce te gândeai în principal?",
+            "În fiecare lună, scorul tău ți-a fost prezentat ca:",
+            "În timpul sarcinii m-am concentrat mai mult pe a evita pierderile decât pe a obține câștiguri.",
         ],
     },
 ]

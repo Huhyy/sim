@@ -786,6 +786,7 @@ def test_psychometric_completion_migration_wraps_transition_atomically():
 
 
 def test_service_requests_structured_write_only_at_questionnaire_phase_end():
+    from sim_app.content.questions import question_key, question_scale
     from sim_app.content.translations import get_display_pre_sections
 
     class RecordingRepository(InMemoryExperimentRepository):
@@ -810,7 +811,7 @@ def test_service_requests_structured_write_only_at_questionnaire_phase_end():
         current.page = f"pre_question_{section_index}"
         section = sections[section_index]
         answers = {
-            f"{section['key_prefix']}_{index}": section["scale"][0]
+            question_key(section, index): question_scale(section, index)[0]
             for index in range(len(section["questions"]))
         }
         service.submit_questionnaire_section(

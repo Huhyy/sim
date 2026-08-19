@@ -45,7 +45,7 @@ from sim_app.application.principal import ParticipantPrincipal
 from sim_app.application.repositories import ExperimentRepository
 from sim_app.application.state import ParticipantState
 from sim_app.config import REPEAT_SCENARIO_DEV_MODE, SCENARIO_VERSION
-from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS
+from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS, question_key, question_scale
 from sim_app.content.tables import get_month
 from sim_app.content.translations import get_display_post_sections, get_display_pre_sections, t
 from sim_app.domain.experimental_conditions import assign_prolific_condition
@@ -385,13 +385,15 @@ class ExperimentService:
             section = sections[section_index]
             supplied = dict(answers or {})
             expected_keys = {
-                f"{section['key_prefix']}_{question_index}"
+                question_key(section, question_index)
                 for question_index in range(len(section["questions"]))
             }
             if set(supplied) != expected_keys:
                 raise InputValidationError("Answers must match the current questionnaire section")
-            if any(value not in section["scale"] for value in supplied.values()):
-                raise InputValidationError("A questionnaire answer is outside the allowed scale")
+            for question_index in range(len(section["questions"])):
+                key = question_key(section, question_index)
+                if supplied[key] not in question_scale(section, question_index):
+                    raise InputValidationError("A questionnaire answer is outside the allowed scale")
             proposed = state.copy()
             proposed.answers.update(supplied)
             if phase == "post" and section_index + 1 == len(sections):

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from sim_app.content.questions import question_key
+
 
 def page_after_consent(accepted: bool) -> str:
     return "demographics" if accepted else "consent_declined"
@@ -128,9 +130,8 @@ def required_page_before(
 
 def _first_section_gap(answers, sections):
     for section_index, section in enumerate(sections):
-        prefix = section.get("key_prefix")
         for question_index in range(len(section.get("questions", []))):
-            if answers.get(f"{prefix}_{question_index}") is None:
+            if answers.get(question_key(section, question_index)) is None:
                 return section_index
     return None
 

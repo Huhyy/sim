@@ -5,6 +5,7 @@ from __future__ import annotations
 from sim_app.application.commands import calculate_final_scores
 from sim_app.application.state import ParticipantState
 from sim_app.content.tables import get_month
+from sim_app.content.questions import question_key, question_option_labels, question_scale
 from sim_app.content.translations import (
     get_category_label,
     get_display_post_sections,
@@ -209,13 +210,20 @@ def _questionnaire_view(state, phase, stage, language):
     questions = []
     values = {}
     for question_index, prompt in enumerate(section["questions"]):
-        key = f"{section['key_prefix']}_{question_index}"
-        questions.append({
+        key = question_key(section, question_index)
+        options = question_scale(section, question_index)
+        option_labels = question_option_labels(section, question_index)
+        question = {
             "key": key,
             "number": question_offset + question_index + 1,
             "prompt": prompt,
-            "options": list(section["scale"]),
-        })
+            "options": options,
+        }
+        if option_labels != options:
+            question["option_labels"] = option_labels
+        if section.get("question_instructions", {}).get(question_index):
+            question["instruction"] = section["question_instructions"][question_index]
+        questions.append(question)
         if state.answers.get(key) is not None:
             values[key] = state.answers[key]
     attention_required = state.prolific_mode and (
