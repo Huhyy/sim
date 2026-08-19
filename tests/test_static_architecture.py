@@ -46,6 +46,16 @@ def test_browser_assets_contain_no_authoritative_or_sensitive_state_names():
         assert forbidden not in combined
 
 
+def test_browser_normalizes_session_envelopes_before_building_mutation_urls():
+    app_js = (ROOT / "sim_app/frontend/static/js/app.js").read_text(encoding="utf-8")
+    assert "normalizeState" in app_js
+    assert 'sessionStorage.setItem("sim.session_id"' in app_js
+    assert "reloadAuthoritativeState" in app_js
+    assert 'error.code==="session_state_invalid"' in app_js
+    assert "state=await api.mutate" not in app_js
+    assert "state=await api.get" not in app_js
+
+
 def test_no_node_build_or_cloud_deployment_files_were_added():
     # Phase 6 deliberately adds the production Dockerfile. Frontend build
     # tooling and provider-specific deployment configuration remain deferred.

@@ -6,6 +6,23 @@ const root=document.querySelector("#app"),bar=document.querySelector("#account-b
 const api=new ApiClient(); let auth=null,state=null,chromeLabels={};
 
 boot();
+function normalizeState(next){
+  if(!next||typeof next!=="object")throw new ApiError("session_state_invalid","The server returned an invalid participant state.",0,true);
+  const validSessionId=value=>typeof value==="string"&&value.trim()!==""&&value!=="undefined"&&value!=="null";
+  const candidate=[next.session_id,state?.session_id,auth?.session_id,sessionStorage.getItem("sim.session_id")].find(validSessionId);
+  if(!candidate)throw new ApiError("session_state_invalid","Your session could not be identified. Reloading is required.",0,true);
+  const versionNumber=Number(next.state_version);
+  if(!Number.isSafeInteger(versionNumber)||versionNumber<0)throw new ApiError("session_state_invalid","Your session version could not be verified. Reloading is required.",0,true);
+  const normalized={...next,session_id:String(candidate),state_version:versionNumber};
+  sessionStorage.setItem("sim.session_id",normalized.session_id);
+  if(auth)auth={...auth,session_id:auth.session_id||normalized.session_id};
+  return normalized;
+}
+async function reloadAuthoritativeState(){
+  const candidate=auth?.session_id||state?.session_id||sessionStorage.getItem("sim.session_id");
+  if(typeof candidate!=="string"||candidate.trim()===""||candidate==="undefined"||candidate==="null")throw new ApiError("session_state_invalid","Your session could not be recovered.",0,true);
+  return normalizeState(await api.get(`/api/v1/sessions/${encodeURIComponent(candidate)}`));
+}
 async function boot(){
   const launch=new URLSearchParams(location.search); const prolific=["PROLIFIC_PID","STUDY_ID","SESSION_ID"];
   if(prolific.some(k=>launch.has(k))){location.replace(`/auth/prolific/launch?${launch.toString()}`);return}
@@ -13,7 +30,7 @@ async function boot(){
   if(prolificError)history.replaceState({},"",location.pathname);
   try{chromeLabels=await api.get(`/api/v1/public/content/${sessionStorage.getItem("sim.language")||"en"}`);if(prolificError){renderProlificLaunchError(prolificError);return}auth=await api.get("/api/v1/auth/session");api.csrf=auth.csrf_token;renderAccount();
     if(location.pathname==="/admin"){await renderAdmin(root,api,auth,sessionStorage.getItem("sim.language")||"en");return}
-    if(auth.session_id){state=await api.get(`/api/v1/sessions/${auth.session_id}`)}else{state=await createSession()}
+    if(auth.session_id){state=normalizeState(await api.get(`/api/v1/sessions/${encodeURIComponent(auth.session_id)}`))}else{state=normalizeState(await createSession())}
     reconcile();render();
   }catch(error){if(error.status===401)renderLogin();else if(error.code==="participation_completed")renderCompletedAccount(error);else renderFatal(error)}
 }
@@ -56,14 +73,14 @@ function renderCompletion(v,l){const x=l.done||{},p=l.prolific||{};card(`<h1>${e
 function renderAlreadyCompleted(v){card(`<h1>${esc(v.title)}</h1><p>${esc(v.body)}</p>`)}function renderSimple(v){card(`<h1>XperimentCredit</h1>${message(v.message||v.body||"",v.type==="prolific_error"?"error":"warning")}`)}function renderUnavailable(){card(`<h1>Page unavailable</h1>${message("The server did not return a renderable participant view.","error")}`)}
 function version(){return{expected_version:state.state_version}}
 function renderUnresolvedRecovery(){const saved=api.unresolved();if(!saved||Number(saved.payload?.expected_version)!==state.state_version)return;const host=root.querySelector(".card");if(!host)return;const box=document.createElement("div");box.className="notice warning";box.innerHTML="<p>A previous action has an uncertain response. Reloaded server state has not advanced.</p>";const retry=document.createElement("button");retry.type="button";retry.className="btn secondary";retry.textContent="Retry saved action";retry.addEventListener("click",()=>mutate(saved.url,saved.payload,[retry]));box.appendChild(retry);host.prepend(box)}
-async function mutate(url,payload,controls=[]){try{state=await api.mutate(url,payload,controls);render()}catch(error){await handleMutationError(error,url,payload,controls)}}
+async function mutate(url,payload,controls=[]){try{state=normalizeState(await api.mutate(url,payload,controls));render()}catch(error){await handleMutationError(error,url,payload,controls)}}
 async function acknowledgeAndFinalize(button){
   const acknowledgeUrl=`/api/v1/sessions/${state.session_id}/final-score/acknowledge`,acknowledgePayload=version();
-  try{state=await api.mutate(acknowledgeUrl,acknowledgePayload,[button]);render()}
+  try{state=normalizeState(await api.mutate(acknowledgeUrl,acknowledgePayload,[button]));render()}
   catch(error){await handleMutationError(error,acknowledgeUrl,acknowledgePayload,[button]);return}
   if(state.view?.type!=="completion"||state.view.saved)return;
   const finalizeUrl=`/api/v1/sessions/${state.session_id}/finalize`,finalizePayload=version();
-  try{state=await api.mutate(finalizeUrl,finalizePayload,[]);render()}
+  try{state=normalizeState(await api.mutate(finalizeUrl,finalizePayload,[]));render()}
   catch(error){await handleMutationError(error,finalizeUrl,finalizePayload,[])}
 }
-async function handleMutationError(error,url,payload,controls){if(error.status===401){renderLogin();return}if(error.status===409){try{state=await api.get(`/api/v1/sessions/${state.session_id}`);api.clearUnresolved();render();showToast(error.message)}catch(loadError){renderFatal(loadError)}return}if(error.status===503||error.code==="network_error"){showToast(`${error.message} Use Retry to submit the exact same action.`);const host=controls[0]?.parentElement||root;const retry=document.createElement("button");retry.className="btn secondary";retry.textContent="Retry saved action";retry.addEventListener("click",()=>mutate(url,payload,[retry]));host.appendChild(retry);return}showToast(`${error.message}${error.requestId?` Request ID: ${error.requestId}`:""}`)}
+async function handleMutationError(error,url,payload,controls){if(error.status===401){renderLogin();return}if(error.status===409){try{state=await reloadAuthoritativeState();api.clearUnresolved();render();showToast(error.message)}catch(loadError){renderFatal(loadError)}return}if(error.code==="session_state_invalid"){try{state=await reloadAuthoritativeState();api.clearUnresolved();render();showToast("Your latest saved state was reloaded safely.")}catch(loadError){renderFatal(loadError)}return}if(error.status===503||error.code==="network_error"){showToast(`${error.message} Use Retry to submit the exact same action.`);const host=controls[0]?.parentElement||root;const retry=document.createElement("button");retry.className="btn secondary";retry.textContent="Retry saved action";retry.addEventListener("click",()=>mutate(url,payload,[retry]));host.appendChild(retry);return}showToast(`${error.message}${error.requestId?` Request ID: ${error.requestId}`:""}`)}

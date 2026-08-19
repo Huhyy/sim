@@ -1712,6 +1712,26 @@ real Supabase suite: 6 passed (provider call faked; token removed)
 golden digest: 17f8a2632d861e432c2cd81f86495c4b75356deaa7b55911c2eca6a53f75ab43
 ```
 
+---
+
+# Participant Session-Envelope Recovery Guard
+
+Cloud Run logs from 18 August 2026 showed repeated browser requests to
+`/api/v1/sessions/undefined/months/21/feedback/acknowledge`. The API correctly
+returned HTTP 422 before application progression because the browser had lost
+the session envelope while rendering feedback. The monthly decision had already
+been durably committed; the failed request did not duplicate or alter the
+economic result.
+
+The browser now normalizes every participant response before assigning it to
+client state. It requires a valid session identifier and non-negative integer
+state version, retains only the non-sensitive session UUID in `sessionStorage`
+for recovery, and refuses to construct a mutation from an invalid response. If
+a committed response is malformed or a stale client loses its envelope, the
+browser reloads the authoritative owned session instead of sending an
+`undefined` route. This preserves server authority and idempotency while making
+the failure recoverable without replaying an economic action.
+
 ## Numeric/Rounding Pipeline Audit
 
 The full pipeline was cross-checked against PostgreSQL numeric behavior:
