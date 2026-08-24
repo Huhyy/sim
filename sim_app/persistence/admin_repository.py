@@ -4,6 +4,7 @@ from sim_app.persistence.study_sessions import (
     cancel_admin_study_session,
     create_admin_study_session,
     list_admin_study_sessions,
+    list_participant_results_for_admin,
     list_participant_sessions_for_study_session,
 )
 
@@ -17,6 +18,9 @@ class SupabaseAdminRepository:
 
     def list_participants(self, study_session_id, study_session_code):
         return list_participant_sessions_for_study_session(study_session_id, study_session_code)
+
+    def list_participant_results(self, created_by_email):
+        return list_participant_results_for_admin(created_by_email)
 
     def cancel_study_session(self, session_id, created_by_email):
         return cancel_admin_study_session(session_id, created_by_email)

@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from sim_app.api.dependencies import get_admin_application_service, get_principal, require_csrf
-from sim_app.api.schemas import AdminCreateSessionRequest, AdminStudySessionView
+from sim_app.api.schemas import AdminCreateSessionRequest, AdminParticipantResultView, AdminStudySessionView
 from sim_app.application.principal import ParticipantPrincipal
 
 
@@ -19,6 +19,11 @@ PrincipalDependency = Annotated[ParticipantPrincipal, Depends(get_principal)]
 @router.get("/sessions", response_model=list[AdminStudySessionView], response_model_exclude_none=True)
 def list_sessions(service: AdminDependency, principal: PrincipalDependency):
     return service.list_sessions(principal)
+
+
+@router.get("/participants", response_model=list[AdminParticipantResultView], response_model_exclude_none=True)
+def list_participant_results(service: AdminDependency, principal: PrincipalDependency):
+    return service.list_participant_results(principal)
 
 
 @router.get("/content/{language}")

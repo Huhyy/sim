@@ -71,7 +71,7 @@ def list_admin_study_sessions(created_by_email: str, only_active: bool = True, l
 
 def list_participant_sessions_for_study_session(study_session_id: str = None, study_session_code: str = None):
     client = _require_client()
-    select_columns = "id,participant_code,current_page,status,checkpoint,updated_at,completed_at"
+    select_columns = "id,participant_code,prolific_pid,current_page,status,checkpoint,updated_at,completed_at"
 
     if study_session_id:
         response = (
@@ -100,6 +100,18 @@ def list_participant_sessions_for_study_session(study_session_id: str = None, st
     return _with_session_summaries(client, _with_participant_codes(getattr(response, "data", None) or []))
 
 
+def list_participant_results_for_admin(created_by_email: str):
+    """Return participant rows from every study session owned by an admin."""
+    sessions = list_admin_study_sessions(created_by_email, only_active=False, limit=1000)
+    results = []
+    for session in sessions:
+        for participant in list_participant_sessions_for_study_session(
+            session.get("id"), session.get("session_code")
+        ):
+            results.append({**participant, "session_code": session.get("session_code")})
+    return results
+
+
 def _with_participant_codes(rows):
     return [row for row in rows if row.get("participant_code")]
 
@@ -112,7 +124,7 @@ def _with_session_summaries(client, rows):
     response = (
         client
         .table("session_summaries")
-        .select("session_id,final_score,performance_bonus_gbp,loss_amount_gbp,prolific_base_reward_gbp,total_payout_gbp,payment_status,prolific_bonus_status,completion_timestamp")
+        .select("session_id,prolific_pid,final_score,performance_bonus_gbp,loss_amount_gbp,prolific_base_reward_gbp,total_payout_gbp,payment_status,prolific_bonus_status,completion_timestamp")
         .in_("session_id", session_ids)
         .execute()
     )
@@ -151,6 +163,7 @@ __all__ = [
     "cancel_admin_study_session",
     "create_admin_study_session",
     "list_admin_study_sessions",
+    "list_participant_results_for_admin",
     "list_participant_sessions_for_study_session",
     "load_admin_study_session_by_code",
 ]

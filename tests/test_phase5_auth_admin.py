@@ -121,6 +121,22 @@ def test_admin_routes_are_server_authorized_and_never_expose_checkpoint():
     assert listing.status_code == 200
     assert listing.json()[0]["participants"][0]["progress_percent"] > 0
     assert "checkpoint" not in listing.text and "secret" not in listing.text
+    repository.participants[session["id"]][0]["summary"] = {
+        "final_score": 87.5,
+        "performance_bonus_gbp": 2,
+        "total_payout_gbp": 7,
+    }
+    repository.participants[session["id"]][0]["prolific_pid"] = "prolific-participant"
+    results = client.get("/api/v1/admin/participants")
+    assert results.status_code == 200
+    assert results.json() == [{
+        "participant_code": "P001",
+        "session_code": session["session_code"],
+        "final_score": 87.5,
+        "performance_bonus_gbp": 2.0,
+        "payout_gbp": 7.0,
+        "status": "in_progress",
+    }]
     cancelled = client.post(f"/api/v1/admin/sessions/{session['id']}/cancel", headers=headers, json={})
     assert cancelled.status_code == 200
 

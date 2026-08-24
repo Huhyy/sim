@@ -18,6 +18,10 @@ class AdminService:
         rows = self.repository.list_study_sessions(email)
         return [self._session_view(row) for row in rows]
 
+    def list_participant_results(self, principal: ParticipantPrincipal):
+        email = self._require_admin(principal)
+        return [_participant_result_view(row) for row in self.repository.list_participant_results(email)]
+
     def localized_content(self, principal: ParticipantPrincipal, *, language: str):
         self._require_admin(principal)
         if language not in {"en", "ro"}:
@@ -80,6 +84,24 @@ def _participant_view(row):
         "payout": payout,
         "updated_at": row.get("updated_at"),
     }
+
+
+def _participant_result_view(row):
+    summary = row.get("summary") or {}
+    is_prolific = bool(row.get("prolific_pid") or summary.get("prolific_pid"))
+    return {
+        "participant_code": row.get("participant_code"),
+        "session_code": str(row.get("session_code") or ""),
+        "final_score": _float_or_none(summary.get("final_score")),
+        "performance_bonus_gbp": _float_or_none(summary.get("performance_bonus_gbp")),
+        "payout_gbp": _float_or_none(summary.get("total_payout_gbp")) if is_prolific else None,
+        "status": row.get("status") or "in_progress",
+        "updated_at": row.get("updated_at"),
+    }
+
+
+def _float_or_none(value):
+    return float(value) if value is not None else None
 
 
 def _participant_page(row):

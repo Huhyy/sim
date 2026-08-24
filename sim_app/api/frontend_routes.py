@@ -12,6 +12,7 @@ router = APIRouter(include_in_schema=False)
 
 @router.get("/")
 @router.get("/admin")
+@router.get("/admin/participants")
 def frontend_shell():
     return FileResponse(FRONTEND_ROOT / "index.html")
 

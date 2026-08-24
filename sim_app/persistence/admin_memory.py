@@ -29,6 +29,17 @@ class MemoryAdminRepository:
         del study_session_code
         return [dict(row) for row in self.participants.get(study_session_id, [])]
 
+    def list_participant_results(self, created_by_email):
+        results = []
+        for session in self.sessions:
+            if session["created_by_email"] != created_by_email:
+                continue
+            for participant in self.participants.get(session["id"], []):
+                row = dict(participant)
+                row["session_code"] = session["session_code"]
+                results.append(row)
+        return results
+
     def cancel_study_session(self, session_id, created_by_email):
         for row in self.sessions:
             if row["id"] == session_id and row["created_by_email"] == created_by_email and row["status"] == "active":

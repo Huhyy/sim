@@ -94,6 +94,16 @@ class AdminParticipantView(StrictModel):
     updated_at: str | None
 
 
+class AdminParticipantResultView(StrictModel):
+    participant_code: str | None
+    session_code: str
+    final_score: float | None
+    performance_bonus_gbp: float | None
+    payout_gbp: float | None
+    status: str
+    updated_at: str | None
+
+
 class AdminStudySessionView(StrictModel):
     id: str
     session_code: str
