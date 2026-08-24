@@ -1,7 +1,7 @@
 import {ApiClient,ApiError} from "./api.js";
 import {button,esc,euro,field,gbp,message,metric,number,plainLabel,progress,safeUrl,selectField,trustedMarkdown} from "./render.js?v=20260813-ui1";
-import {renderAdmin} from "./admin.js";
-import {renderAdminParticipants} from "./admin-participants.js";
+import {renderAdmin} from "./admin.js?v=20260825-admin-tabs1";
+import {renderAdminParticipants} from "./admin-participants.js?v=20260825-admin-tabs1";
 
 const root=document.querySelector("#app"),bar=document.querySelector("#account-bar"),toast=document.querySelector("#toast");
 const api=new ApiClient(); let auth=null,state=null,chromeLabels={};
