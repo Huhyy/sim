@@ -88,10 +88,12 @@ def _participant_view(row):
 
 def _participant_result_view(row):
     summary = row.get("summary") or {}
-    is_prolific = bool(row.get("prolific_pid") or summary.get("prolific_pid"))
-    identifier = row.get("participant_code") or row.get("prolific_pid") or summary.get("prolific_pid")
+    prolific_pid = row.get("prolific_pid") or summary.get("prolific_pid")
+    is_prolific = bool(prolific_pid)
+    identifier = row.get("participant_code") or prolific_pid
     return {
         "participant_code": row.get("participant_code"),
+        "prolific_pid": str(prolific_pid) if prolific_pid else None,
         "participant_identifier": str(identifier or ""),
         "session_code": str(row.get("session_code") or ""),
         "final_score": _float_or_none(summary.get("final_score")),

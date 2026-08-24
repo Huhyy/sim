@@ -8,13 +8,17 @@ export async function renderAdminParticipants(root,api,auth,language="en"){
   try{
     const rows=await api.get("/api/v1/admin/participants");
     const host=root.querySelector("#participant-results");
-    host.innerHTML=rows.length?`<div class="table-wrap"><table class="admin-results"><thead><tr><th>${esc(admin.participant_id_label||"Participant ID")}</th><th>${esc(admin.session_code_label||"Session")}</th><th>${esc(admin.final_score_label||"Final score")}</th><th>${esc(admin.bonus_label||"Bonus")}</th><th>${esc(admin.payout_label||"Payout (GBP)")}</th><th>${esc(admin.status||"Status")}</th></tr></thead><tbody>${rows.map(resultRow).join("")}</tbody></table></div>`:message(admin.no_participant_results||"No participant identifiers are available yet.");
+    host.innerHTML=rows.length?`<div class="admin-results-panel"><div class="admin-results-toolbar"><div><span class="admin-results-count">${rows.length}</span> <span>${esc(admin.participant_count_label||"participants listed")}</span></div><span class="admin-results-hint">${esc(admin.participant_results_note||"Final results across all study sessions")}</span></div><div class="table-wrap"><table class="admin-results"><thead><tr><th>${esc(admin.participant_code_label||"Participant code")}</th><th>${esc(admin.prolific_id_label||"Prolific ID")}</th><th>${esc(admin.session_code_label||"Session")}</th><th class="numeric">${esc(admin.final_score_label||"Final score")}</th><th class="numeric">${esc(admin.bonus_label||"Bonus")}</th><th class="numeric">${esc(admin.payout_label||"Payout (GBP)")}</th><th>${esc(admin.status||"Status")}</th></tr></thead><tbody>${rows.map(resultRow).join("")}</tbody></table></div></div>`:message(admin.no_participant_results||"No participant identifiers are available yet.");
   }catch(error){root.querySelector("#participant-results").innerHTML=message(error.message,"error")}
 
   function resultRow(row){
+    const participantCode=row.participant_code||"—";
+    const prolificId=row.prolific_pid||(!row.participant_code?row.participant_identifier:"")||"—";
     const score=row.final_score==null?"—":`${number(row.final_score)} / 100`;
     const bonus=row.performance_bonus_gbp==null?"—":gbp(row.performance_bonus_gbp);
     const payout=row.payout_gbp==null?"—":gbp(row.payout_gbp);
-    return `<tr><td><strong>${esc(row.participant_identifier||row.participant_code||"—")}</strong></td><td>${esc(row.session_code||"—")}</td><td>${esc(score)}</td><td>${esc(bonus)}</td><td>${esc(payout)}</td><td>${esc(row.status||"—")}</td></tr>`;
+    const status=row.status||"—";
+    const statusClass=String(status).toLowerCase().replace(/[^a-z0-9_-]/g,"-");
+    return `<tr><td class="identifier-cell"><strong>${esc(participantCode)}</strong></td><td class="identifier-cell prolific-cell">${esc(prolificId)}</td><td class="session-cell">${esc(row.session_code||"—")}</td><td class="numeric">${esc(score)}</td><td class="numeric">${esc(bonus)}</td><td class="numeric">${esc(payout)}</td><td><span class="admin-status admin-status-${statusClass}">${esc(status)}</span></td></tr>`;
   }
 }

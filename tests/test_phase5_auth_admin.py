@@ -152,6 +152,7 @@ def test_admin_routes_are_server_authorized_and_never_expose_checkpoint():
     assert results.json() == [
         {
             "participant_code": "P001",
+            "prolific_pid": "prolific-participant",
             "participant_identifier": "P001",
             "session_code": session["session_code"],
             "final_score": 87.5,
@@ -168,6 +169,7 @@ def test_admin_routes_are_server_authorized_and_never_expose_checkpoint():
             "status": "completed",
         },
         {
+            "prolific_pid": "prolific-only-participant",
             "participant_identifier": "prolific-only-participant",
             "session_code": session["session_code"],
             "final_score": 76.0,
