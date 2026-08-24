@@ -127,16 +127,35 @@ def test_admin_routes_are_server_authorized_and_never_expose_checkpoint():
         "total_payout_gbp": 7,
     }
     repository.participants[session["id"]][0]["prolific_pid"] = "prolific-participant"
+    historical = repository.create_study_session("other-admin@example.com", "C1")
+    repository.participants[historical["id"]] = [{
+        "participant_code": "P002",
+        "status": "completed",
+        "summary": {
+            "final_score": 91,
+            "performance_bonus_gbp": 3,
+            "total_payout_gbp": 8,
+        },
+    }]
     results = client.get("/api/v1/admin/participants")
     assert results.status_code == 200
-    assert results.json() == [{
-        "participant_code": "P001",
-        "session_code": session["session_code"],
-        "final_score": 87.5,
-        "performance_bonus_gbp": 2.0,
-        "payout_gbp": 7.0,
-        "status": "in_progress",
-    }]
+    assert results.json() == [
+        {
+            "participant_code": "P001",
+            "session_code": session["session_code"],
+            "final_score": 87.5,
+            "performance_bonus_gbp": 2.0,
+            "payout_gbp": 7.0,
+            "status": "in_progress",
+        },
+        {
+            "participant_code": "P002",
+            "session_code": historical["session_code"],
+            "final_score": 91.0,
+            "performance_bonus_gbp": 3.0,
+            "status": "completed",
+        },
+    ]
     cancelled = client.post(f"/api/v1/admin/sessions/{session['id']}/cancel", headers=headers, json={})
     assert cancelled.status_code == 200
 

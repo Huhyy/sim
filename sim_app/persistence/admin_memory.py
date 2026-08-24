@@ -29,16 +29,14 @@ class MemoryAdminRepository:
         del study_session_code
         return [dict(row) for row in self.participants.get(study_session_id, [])]
 
-    def list_participant_results(self, created_by_email):
+    def list_all_participant_results(self):
         results = []
         for session in self.sessions:
-            if session["created_by_email"] != created_by_email:
-                continue
             for participant in self.participants.get(session["id"], []):
                 row = dict(participant)
                 row["session_code"] = session["session_code"]
                 results.append(row)
-        return results
+        return sorted(results, key=lambda row: (str(row.get("participant_code") or ""), str(row.get("session_code") or "")))
 
     def cancel_study_session(self, session_id, created_by_email):
         for row in self.sessions:

@@ -19,8 +19,8 @@ class AdminService:
         return [self._session_view(row) for row in rows]
 
     def list_participant_results(self, principal: ParticipantPrincipal):
-        email = self._require_admin(principal)
-        return [_participant_result_view(row) for row in self.repository.list_participant_results(email)]
+        self._require_admin(principal)
+        return [_participant_result_view(row) for row in self.repository.list_all_participant_results()]
 
     def localized_content(self, principal: ParticipantPrincipal, *, language: str):
         self._require_admin(principal)

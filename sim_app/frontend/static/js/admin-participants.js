@@ -4,7 +4,7 @@ export async function renderAdminParticipants(root,api,auth,language="en"){
   if(!auth.is_admin){root.innerHTML=`<section class="card">${message("Administrator authorization is required.","error")}</section>`;return}
   const labels=await api.get(`/api/v1/admin/content/${language}`);
   const admin=labels||{};
-  root.innerHTML=`<section class="card"><div class="eyebrow">${esc(admin.title||"Admin panel")}</div><h1>${esc(admin.participant_results_title||"Participant results")}</h1><p class="lead">${esc(admin.participant_results_note||"All participant identifiers and their final results across your study sessions.")}</p><div id="participant-results"><div class="spinner"></div></div></section>`;
+  root.innerHTML=`<section class="card"><div class="eyebrow">${esc(admin.title||"Admin panel")}</div><nav class="admin-tabs" aria-label="Admin pages"><a class="btn secondary" href="/admin">${esc(admin.sessions_title||"Session management")}</a><a class="btn" href="/admin/participants">${esc(admin.participant_results_page||"Participant results")}</a></nav><h1>${esc(admin.participant_results_title||"Participant results")}</h1><p class="lead">${esc(admin.participant_results_note||"All participant identifiers and their final results across your study sessions.")}</p><div id="participant-results"><div class="spinner"></div></div></section>`;
   try{
     const rows=await api.get("/api/v1/admin/participants");
     const host=root.querySelector("#participant-results");

@@ -100,16 +100,32 @@ def list_participant_sessions_for_study_session(study_session_id: str = None, st
     return _with_session_summaries(client, _with_participant_codes(getattr(response, "data", None) or []))
 
 
-def list_participant_results_for_admin(created_by_email: str):
-    """Return participant rows from every study session owned by an admin."""
-    sessions = list_admin_study_sessions(created_by_email, only_active=False, limit=1000)
+def list_all_participant_results():
+    """Return every participant-coded session, including historical sessions."""
+    client = _require_client()
+    select_columns = "id,participant_code,prolific_pid,study_session_code,current_page,status,checkpoint,updated_at,completed_at"
+    page_size = 500
     results = []
-    for session in sessions:
-        for participant in list_participant_sessions_for_study_session(
-            session.get("id"), session.get("session_code")
-        ):
-            results.append({**participant, "session_code": session.get("session_code")})
-    return results
+    offset = 0
+    while True:
+        response = (
+            client
+            .table("participant_sessions")
+            .select(select_columns)
+            .order("participant_code")
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        raw_rows = getattr(response, "data", None) or []
+        rows = _with_participant_codes(raw_rows)
+        results.extend(_with_session_summaries(client, rows))
+        if len(raw_rows) < page_size:
+            break
+        offset += page_size
+    return [
+        {**row, "session_code": row.get("study_session_code") or ""}
+        for row in results
+    ]
 
 
 def _with_participant_codes(rows):
@@ -163,7 +179,7 @@ __all__ = [
     "cancel_admin_study_session",
     "create_admin_study_session",
     "list_admin_study_sessions",
-    "list_participant_results_for_admin",
+    "list_all_participant_results",
     "list_participant_sessions_for_study_session",
     "load_admin_study_session_by_code",
 ]
