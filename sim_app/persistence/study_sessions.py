@@ -117,7 +117,10 @@ def list_all_participant_results():
             .execute()
         )
         raw_rows = getattr(response, "data", None) or []
-        rows = _with_participant_codes(raw_rows)
+        rows = [
+            row for row in raw_rows
+            if row.get("participant_code") or row.get("prolific_pid")
+        ]
         results.extend(_with_session_summaries(client, rows))
         if len(raw_rows) < page_size:
             break

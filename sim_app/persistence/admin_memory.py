@@ -36,7 +36,13 @@ class MemoryAdminRepository:
                 row = dict(participant)
                 row["session_code"] = session["session_code"]
                 results.append(row)
-        return sorted(results, key=lambda row: (str(row.get("participant_code") or ""), str(row.get("session_code") or "")))
+        return sorted(
+            results,
+            key=lambda row: (
+                str(row.get("participant_code") or row.get("prolific_pid") or ""),
+                str(row.get("session_code") or ""),
+            ),
+        )
 
     def cancel_study_session(self, session_id, created_by_email):
         for row in self.sessions:

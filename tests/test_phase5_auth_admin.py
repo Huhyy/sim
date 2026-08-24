@@ -127,6 +127,16 @@ def test_admin_routes_are_server_authorized_and_never_expose_checkpoint():
         "total_payout_gbp": 7,
     }
     repository.participants[session["id"]][0]["prolific_pid"] = "prolific-participant"
+    repository.participants[session["id"]].append({
+        "participant_code": None,
+        "prolific_pid": "prolific-only-participant",
+        "status": "completed",
+        "summary": {
+            "final_score": 76,
+            "performance_bonus_gbp": 1,
+            "total_payout_gbp": 6,
+        },
+    })
     historical = repository.create_study_session("other-admin@example.com", "C1")
     repository.participants[historical["id"]] = [{
         "participant_code": "P002",
@@ -142,6 +152,7 @@ def test_admin_routes_are_server_authorized_and_never_expose_checkpoint():
     assert results.json() == [
         {
             "participant_code": "P001",
+            "participant_identifier": "P001",
             "session_code": session["session_code"],
             "final_score": 87.5,
             "performance_bonus_gbp": 2.0,
@@ -150,9 +161,18 @@ def test_admin_routes_are_server_authorized_and_never_expose_checkpoint():
         },
         {
             "participant_code": "P002",
+            "participant_identifier": "P002",
             "session_code": historical["session_code"],
             "final_score": 91.0,
             "performance_bonus_gbp": 3.0,
+            "status": "completed",
+        },
+        {
+            "participant_identifier": "prolific-only-participant",
+            "session_code": session["session_code"],
+            "final_score": 76.0,
+            "performance_bonus_gbp": 1.0,
+            "payout_gbp": 6.0,
             "status": "completed",
         },
     ]

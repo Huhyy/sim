@@ -89,8 +89,10 @@ def _participant_view(row):
 def _participant_result_view(row):
     summary = row.get("summary") or {}
     is_prolific = bool(row.get("prolific_pid") or summary.get("prolific_pid"))
+    identifier = row.get("participant_code") or row.get("prolific_pid") or summary.get("prolific_pid")
     return {
         "participant_code": row.get("participant_code"),
+        "participant_identifier": str(identifier or ""),
         "session_code": str(row.get("session_code") or ""),
         "final_score": _float_or_none(summary.get("final_score")),
         "performance_bonus_gbp": _float_or_none(summary.get("performance_bonus_gbp")),

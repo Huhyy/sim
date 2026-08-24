@@ -96,6 +96,7 @@ class AdminParticipantView(StrictModel):
 
 class AdminParticipantResultView(StrictModel):
     participant_code: str | None
+    participant_identifier: str
     session_code: str
     final_score: float | None
     performance_bonus_gbp: float | None

@@ -15,6 +15,6 @@ export async function renderAdminParticipants(root,api,auth,language="en"){
     const score=row.final_score==null?"—":`${number(row.final_score)} / 100`;
     const bonus=row.performance_bonus_gbp==null?"—":gbp(row.performance_bonus_gbp);
     const payout=row.payout_gbp==null?"—":gbp(row.payout_gbp);
-    return `<tr><td><strong>${esc(row.participant_code||"—")}</strong></td><td>${esc(row.session_code||"—")}</td><td>${esc(score)}</td><td>${esc(bonus)}</td><td>${esc(payout)}</td><td>${esc(row.status||"—")}</td></tr>`;
+    return `<tr><td><strong>${esc(row.participant_identifier||row.participant_code||"—")}</strong></td><td>${esc(row.session_code||"—")}</td><td>${esc(score)}</td><td>${esc(bonus)}</td><td>${esc(payout)}</td><td>${esc(row.status||"—")}</td></tr>`;
   }
 }
