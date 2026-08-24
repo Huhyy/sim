@@ -189,7 +189,7 @@ def test_frontend_shell_and_assets_are_same_origin():
     assert "default-src 'self'" in shell.headers["content-security-policy"]
     assert shell.headers["x-content-type-options"] == "nosniff"
     assert "/static/css/app.css?v=20260813-framing1" in shell.text
-    assert "/static/js/app.js?v=20260825-admin-tabs1" in shell.text
+    assert "/static/js/app.js?v=20260825-admin-results2" in shell.text
     assert client.get("/admin").status_code == 200
     script = client.get("/static/js/app.js")
     assert script.status_code == 200
