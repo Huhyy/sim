@@ -148,26 +148,30 @@ class ExperimentService:
             state.page = "consent"
         linked_session_id = self.repository.find_session_id_for_account(principal.account_key)
         if linked_session_id:
-            stored_hash = self.repository.creation_request_payload_hash(linked_session_id, request_id)
-            requested_hash = _payload_hash({
-                "state": state.to_resume_projection(),
-                "treatment": _treatment(state),
-            })
-            if stored_hash is not None and stored_hash != requested_hash:
-                raise IdempotencyConflict("The creation request key has a different payload")
             linked_state = self.load_owned_session(linked_session_id, principal)
-            if (
-                principal.identity_kind == "prolific"
-                and linked_state.prolific_session_id != principal.prolific_session_id
-            ):
-                proposed = linked_state.copy()
-                proposed.prolific_session_id = principal.prolific_session_id
-                return self.save_stage(
-                    proposed,
-                    expected_version=linked_state.state_version,
-                    request_id=request_id,
-                )
-            return ServiceResult(linked_state, idempotency_hit=True)
+            if principal.is_admin and linked_state.submission_finalized:
+                self.repository.release_account_session(principal.account_key, linked_state.session_id)
+                linked_session_id = None
+            else:
+                stored_hash = self.repository.creation_request_payload_hash(linked_session_id, request_id)
+                requested_hash = _payload_hash({
+                    "state": state.to_resume_projection(),
+                    "treatment": _treatment(state),
+                })
+                if stored_hash is not None and stored_hash != requested_hash:
+                    raise IdempotencyConflict("The creation request key has a different payload")
+                if (
+                    principal.identity_kind == "prolific"
+                    and linked_state.prolific_session_id != principal.prolific_session_id
+                ):
+                    proposed = linked_state.copy()
+                    proposed.prolific_session_id = principal.prolific_session_id
+                    return self.save_stage(
+                        proposed,
+                        expected_version=linked_state.state_version,
+                        request_id=request_id,
+                    )
+                return ServiceResult(linked_state, idempotency_hit=True)
         if principal.identity_kind == "prolific":
             existing = self.repository.find_prolific_session(
                 principal.prolific_pid,
@@ -198,6 +202,7 @@ class ExperimentService:
         if (
             principal.identity_kind != "prolific"
             and not REPEAT_SCENARIO_DEV_MODE
+            and not principal.is_admin
             and self.repository.account_has_completed(principal.account_key)
         ):
             raise ParticipationCompleted("This account has already completed the experiment")

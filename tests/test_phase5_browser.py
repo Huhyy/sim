@@ -208,6 +208,37 @@ def test_admin_browser_authorization_creation_and_polling_view():
         context.close(); browser.close()
 
 
+def test_admin_can_repeat_simulator_from_completed_screen():
+    principal = ParticipantPrincipal("r" * 64, email="admin@example.com", display_name="Admin", is_admin=True)
+    repository = InMemoryExperimentRepository()
+    service = ExperimentService(repository)
+    first = service.bootstrap_session(principal, expected_version=0, language="en", request_id="first").state
+    completed = first.copy()
+    completed.page = "done"
+    completed.submission_finalized = True
+    completed.saved = True
+    completed.final_score = 82.0
+    repository.replace_state_and_ledger(completed)
+    repository._accounts[principal.account_key] = first.session_id
+    repository._completed_accounts.add(principal.account_key)
+    bound = ParticipantPrincipal(**{**principal.__dict__, "bound_session_id": first.session_id})
+
+    with live_app(repository=repository) as (base, manager, _service, _repo), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = _context(browser, base, manager, bound)
+        page = context.new_page()
+        page.goto(base)
+        page.wait_for_selector('[data-view="completion"]')
+        assert page.locator("#admin-repeat").is_visible()
+        page.locator("#admin-repeat").click()
+        page.wait_for_selector('[data-view="home"]')
+        assert len(repository._sessions) == 2
+        assert repository._accounts[principal.account_key] != first.session_id
+        page.reload()
+        page.wait_for_selector('[data-view="home"]')
+        context.close(); browser.close()
+
+
 def test_browser_language_consent_decline_and_reconsider_are_authoritative():
     principal = ParticipantPrincipal("e" * 64, display_name="Participant")
     with live_app() as (base, manager, _service, repository), sync_playwright() as playwright:

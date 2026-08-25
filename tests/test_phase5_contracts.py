@@ -122,6 +122,25 @@ def test_completed_account_does_not_silently_create_a_fresh_attempt(monkeypatch)
     assert repository._sessions == {}
 
 
+def test_admin_can_create_a_fresh_attempt_after_completion():
+    admin = ParticipantPrincipal("a" * 64, email="admin@example.com", is_admin=True)
+    repository, service, _principal, first = _created(principal=admin)
+    completed = first.copy()
+    completed.page = "done"
+    completed.submission_finalized = True
+    completed.saved = True
+    completed.final_score = 82.0
+    repository.replace_state_and_ledger(completed)
+    repository._accounts[admin.account_key] = first.session_id
+    repository._completed_accounts.add(admin.account_key)
+
+    second = service.bootstrap_session(admin, expected_version=0, language="en", request_id="create-again")
+
+    assert second.state.session_id != first.session_id
+    assert second.state.page == "home"
+    assert repository._accounts[admin.account_key] == second.state.session_id
+
+
 def test_finalized_session_can_be_recovered_only_from_encrypted_bound_identity():
     repository, service, principal, state = _created()
     state.submission_finalized = True

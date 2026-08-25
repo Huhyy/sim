@@ -60,6 +60,11 @@ class InMemoryExperimentRepository:
         with self._lock:
             return account_key in self._completed_accounts
 
+    def release_account_session(self, account_key, session_id):
+        with self._lock:
+            if self._accounts.get(account_key) == session_id:
+                self._accounts.pop(account_key, None)
+
     def find_prolific_session(self, prolific_pid, study_id):
         with self._lock:
             for state in self._sessions.values():

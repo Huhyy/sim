@@ -73,6 +73,12 @@ class SupabaseExperimentRepository:
         except Exception as exc:
             raise PersistenceReadError("Could not verify completed participation") from exc
 
+    def release_account_session(self, account_key, session_id):
+        try:
+            self.client.table("resume_links").delete().eq("account_key", account_key).eq("session_id", session_id).execute()
+        except Exception as exc:
+            raise PersistenceWriteError("Could not release the completed admin session") from exc
+
     def find_prolific_session(self, prolific_pid, study_id):
         try:
             with self.metrics.measure("prolific_session_lookup", layer="database"):
