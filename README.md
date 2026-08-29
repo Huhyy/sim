@@ -1,0 +1,2 @@
+WiseCredit is a fully developed and experimentally tested financial decision simulator and behavioural scoring framework for studying creditworthiness, repayment behaviour, debt allocation, and potential fraud-risk indicators. The repository includes the simulator architecture, scoring logic, data-processing workflow, validation procedures, and implementation guidelines for research and applied financial settings.
+Funded by the EU NextGenerationEU through the Recovery and Resilience Plan for Slovakia under the project No. 09I03-03-V04-00502
