@@ -48,7 +48,7 @@ from sim_app.config import REPEAT_SCENARIO_DEV_MODE, SCENARIO_VERSION
 from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS, question_key, question_scale
 from sim_app.content.tables import get_month
 from sim_app.content.translations import get_display_post_sections, get_display_pre_sections, t
-from sim_app.domain.experimental_conditions import assign_prolific_condition
+from sim_app.domain.experimental_conditions import assign_prolific_condition, has_psychometric_battery
 from sim_app.infra.time import _utcnow
 from sim_app.prolific.identity import completion_redirect_url, configured_completion_code
 
@@ -369,6 +369,8 @@ class ExperimentService:
         if phase not in {"pre", "post"}:
             raise InputValidationError("Questionnaire phase must be pre or post")
         state = self.load_owned_session(session_id, principal)
+        if not has_psychometric_battery(state.experimental_condition):
+            raise InvalidTransition("The psychometric questionnaire is disabled for this condition")
         sections = _questionnaire_sections(phase, state.language)
         if section_index < 0 or section_index >= len(sections):
             raise InputValidationError("Questionnaire section is out of range")

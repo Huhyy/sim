@@ -23,6 +23,7 @@ from sim_app.application.progression import (
     required_page_before_pre_questions,
 )
 from sim_app.application.state import ParticipantState
+from sim_app.application.participant_views import participant_session_view
 from sim_app.config import SCENARIO_VERSION
 from sim_app.content.tables import get_month
 from sim_app.domain.experimental_conditions import condition_config, performance_bonus
@@ -97,7 +98,7 @@ def test_all_24_months_match_the_production_golden_journey():
     assert round(sum(result["monthly_score"] for result in results), 2) == 2010.67
 
 
-@pytest.mark.parametrize("condition", ["C1", "C2", "C3", "C4"])
+@pytest.mark.parametrize("condition", ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"])
 def test_final_breakdown_preserves_every_treatment_and_payment_field(condition):
     results, _, loan, overdraft = _golden_month_journey()
     config = condition_config(condition)
@@ -299,6 +300,40 @@ def test_full_framework_neutral_progression_matches_the_research_flow():
     state = complete_final_score(state).state
     assert state.page == "done"
     assert len(state.monthly_results) == 24
+
+
+@pytest.mark.parametrize("condition", ["C5", "C6", "C7", "C8"])
+def test_no_battery_conditions_skip_both_questionnaire_phases(condition):
+    state = ParticipantState.initial(SCENARIO_VERSION)
+    state.experimental_condition = condition
+    state = accept_consent(state).state
+    state = submit_demographics(state, {"demo_age": 30}).state
+    assert state.page == "instructions"
+
+    state.page = "month_feedback"
+    state.month = 24
+    state.pending_month_result = {"month": 24, "monthly_score": 80, "costs_this_month": 0, "score_model": "behavioral_v1"}
+    state.monthly_results = [state.pending_month_result]
+    state = acknowledge_month_feedback(state).state
+    assert state.month == 25
+    assert state.page == "final_score"
+
+
+@pytest.mark.parametrize(
+    ("score", "earned", "lost"),
+    [(74.99, 0, 3), (75, 1, 2), (80, 2, 1), (90, 3, 0)],
+)
+def test_participant_bonus_points_follow_exact_payment_tiers(score, earned, lost):
+    state = ParticipantState.initial(SCENARIO_VERSION)
+    state.page = "final_score"
+    state.score_frame = "loss_frame"
+    state.monthly_results = [{"monthly_score": score, "score_model": "behavioral_v1"}] * 24
+    bonus = participant_session_view(state)["view"]["bonus"]
+    assert bonus == {
+        "performance_bonus_points": earned,
+        "initial_bonus_points": 3,
+        "loss_amount_points": lost,
+    }
 
 
 def test_prolific_instructions_and_comprehension_progression_are_stable():

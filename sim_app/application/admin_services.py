@@ -31,7 +31,7 @@ class AdminService:
     def create_session(self, principal: ParticipantPrincipal, *, experimental_condition: str):
         email = self._require_admin(principal)
         if experimental_condition not in condition_options():
-            raise InputValidationError("Experimental condition must be C1, C2, C3, or C4")
+            raise InputValidationError("Experimental condition must be C1 through C8")
         return self._session_view(self.repository.create_study_session(email, experimental_condition))
 
     def cancel_session(self, principal: ParticipantPrincipal, *, session_id: str):

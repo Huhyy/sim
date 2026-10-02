@@ -15,6 +15,7 @@ from sim_app.content.translations import (
     t,
 )
 from sim_app.domain.simulation import compute_month_preview
+from sim_app.domain.experimental_conditions import has_psychometric_battery
 
 
 def participant_session_view(state: ParticipantState, *, idempotency_replayed=False):
@@ -35,7 +36,7 @@ def participant_session_view(state: ParticipantState, *, idempotency_replayed=Fa
 
 def _effective_stage(state):
     if state.page == "simulation" and state.month > 24:
-        return "post_question_0"
+        return "post_question_0" if has_psychometric_battery(state.experimental_condition) else "final_score"
     if state.page == "pre_questions":
         return "pre_question_0"
     if state.page == "post_questions":
@@ -49,7 +50,10 @@ def _stage_view(state, stage, language):
             "type": "home",
             "title": t("home.title", language=language),
             "body": t("home.body", language=language),
-            "info": t("home.info", language=language),
+            "info": t(
+                "home.info" if has_psychometric_battery(state.experimental_condition) else "home.info_no_battery",
+                language=language,
+            ),
             "framing_notice": t(
                 "home.loss_frame_notice" if state.score_frame == "loss_frame" else "home.gain_frame_notice",
                 language=language,
@@ -63,9 +67,23 @@ def _stage_view(state, stage, language):
             "body": t("study_session.body", language=language),
         }
     if stage == "consent":
+        content = t("consent.markdown", language=language)
+        if not has_psychometric_battery(state.experimental_condition):
+            omitted = (
+                "- you will answer an initial psychological questionnaire;",
+                "- you will complete a final questionnaire about your psychological state after the experiment and your perception of the task.",
+                "- answers to psychometric questionnaires;",
+                "- answers to final questions about your experience during the experiment.",
+                "- vei r?spunde la un chestionar psihologic ini?ial;",
+                "- vei completa un chestionar final despre starea ta psihologic? dup? experiment ?i despre percep?ia asupra sarcinii.",
+                "- r?spunsuri la chestionare psihometrice;",
+                "- r?spunsuri la ?ntreb?ri finale despre experien?a ?n cadrul experimentului.",
+            )
+            for line in omitted:
+                content = content.replace(line + "\n", "").replace(line, "")
         return {
             "type": "consent",
-            "content": t("consent.markdown", language=language),
+            "content": content,
             "items": t("consent.items", language=language),
             "anti_ai_declaration_required": bool(state.prolific_mode),
             "framing_notice": t(
@@ -188,6 +206,11 @@ def _demographics_view(state, language):
         "type": "demographics",
         "title": t("demographics.title", language=language),
         "intro": t("demographics.intro", language=language),
+        "continue_label": t(
+            "demographics.continue_button" if has_psychometric_battery(state.experimental_condition)
+            else "demographics.continue_without_battery",
+            language=language,
+        ),
         "values": {key: state.answers.get(key) for key in keys if state.answers.get(key) is not None},
         "options": {
             key: t(f"demographics.options.{option_key}", language=language)
@@ -342,11 +365,13 @@ def _feedback_view(state, language):
 def _final_score_view(state, language):
     calculated = calculate_final_scores(state)
     breakdown = calculated.final_score_breakdown or {}
-    bonus = {"performance_bonus_gbp": breakdown.get("performance_bonus_gbp")}
+    # Participant points follow the exact 0/1/2/3 bonus tiers. GBP stays in
+    # the durable breakdown for actual Prolific payment processing.
+    bonus = {"performance_bonus_points": breakdown.get("performance_bonus_gbp")}
     if state.score_frame == "loss_frame":
         bonus.update({
-            "initial_bonus_gbp": 3,
-            "loss_amount_gbp": breakdown.get("loss_amount_gbp"),
+            "initial_bonus_points": 3,
+            "loss_amount_points": breakdown.get("loss_amount_gbp"),
         })
     return {
         "type": "final_score",
@@ -364,11 +389,11 @@ def _final_score_view(state, language):
 
 def _completion_view(state, language):
     breakdown = state.final_score_breakdown or calculate_final_scores(state).final_score_breakdown or {}
-    bonus = {"performance_bonus_gbp": breakdown.get("performance_bonus_gbp")}
+    bonus = {"performance_bonus_points": breakdown.get("performance_bonus_gbp")}
     if state.score_frame == "loss_frame":
         bonus.update({
-            "initial_bonus_gbp": 3,
-            "loss_amount_gbp": breakdown.get("loss_amount_gbp"),
+            "initial_bonus_points": 3,
+            "loss_amount_points": breakdown.get("loss_amount_gbp"),
         })
     view = {
         "type": "completion",

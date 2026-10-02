@@ -296,7 +296,7 @@ def test_concurrent_month_double_click_commits_once(harness):
     assert sum(bool(response.json()["idempotency_replayed"]) for response in responses) == 1
 
 
-@pytest.mark.parametrize("condition,score_visible", [("C1", True), ("C2", False), ("C3", True), ("C4", False)])
+@pytest.mark.parametrize("condition,score_visible", [("C1", True), ("C2", False), ("C3", True), ("C4", False), ("C5", True), ("C6", False), ("C7", True), ("C8", False)])
 def test_feedback_experimental_blindness(harness, condition, score_visible):
     _app, client, service, repository, _principal = harness
     created = _create(client, key=f"create-{condition}")
@@ -324,6 +324,20 @@ def test_feedback_experimental_blindness(harness, condition, score_visible):
     if not score_visible:
         keys = set(_all_keys(body))
         assert not {key for key in keys if key.startswith("score_") or key.startswith("monthly_score")}
+
+
+@pytest.mark.parametrize("condition", ["C5", "C6", "C7", "C8"])
+def test_disabled_battery_cannot_be_submitted_directly(harness, condition):
+    _app, client, service, repository, _principal = harness
+    created = _create(client, key=f"create-no-battery-{condition}")
+    session_id = created["session_id"]
+    state = _seed_stage(repository, service, session_id, page="pre_question_0", condition=condition)
+    response = client.post(
+        f"/api/v1/sessions/{session_id}/questionnaires/pre/sections/0",
+        headers=_headers(f"questionnaire-no-battery-{condition}"),
+        json={"expected_version": state.state_version, "answers": {}},
+    )
+    assert response.status_code == 409
 
 
 def test_questionnaire_attention_and_comprehension_are_server_evaluated():

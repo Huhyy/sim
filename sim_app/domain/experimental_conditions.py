@@ -1,4 +1,4 @@
-"""Experimental condition helpers for the 2 x 2 study design."""
+"""Experimental condition helpers for the 2 x 2 x 2 study design."""
 
 import hashlib
 
@@ -28,7 +28,31 @@ CONDITIONS = {
         "score_frame": "loss_frame",
         "monthly_score_feedback": "hidden",
     },
+    "C5": {
+        "experimental_condition": "C5",
+        "score_frame": "gain_frame",
+        "monthly_score_feedback": "displayed",
+    },
+    "C6": {
+        "experimental_condition": "C6",
+        "score_frame": "gain_frame",
+        "monthly_score_feedback": "hidden",
+    },
+    "C7": {
+        "experimental_condition": "C7",
+        "score_frame": "loss_frame",
+        "monthly_score_feedback": "displayed",
+    },
+    "C8": {
+        "experimental_condition": "C8",
+        "score_frame": "loss_frame",
+        "monthly_score_feedback": "hidden",
+    },
 }
+
+
+def has_psychometric_battery(value=None):
+    return normalize_experimental_condition(value) in {"C1", "C2", "C3", "C4"}
 
 
 def normalize_experimental_condition(value):
@@ -102,6 +126,7 @@ __all__ = [
     "assign_prolific_condition",
     "condition_from_record",
     "condition_options",
+    "has_psychometric_battery",
     "monthly_score_is_displayed",
     "normalize_experimental_condition",
     "performance_bonus",

@@ -17,7 +17,7 @@ from sim_app.application.progression import (
     page_after_profile,
 )
 from sim_app.application.state import ParticipantState
-from sim_app.domain.experimental_conditions import condition_from_record
+from sim_app.domain.experimental_conditions import condition_from_record, has_psychometric_battery
 from sim_app.domain.scoring import (
     compute_final_score_from_results,
     get_final_score_breakdown_from_results,
@@ -63,7 +63,7 @@ def submit_demographics(state: ParticipantState, values: dict[str, Any]) -> Comm
     updated = state.copy()
     updated.answers.update(values)
     updated.scroll_to_top = True
-    updated.page = page_after_demographics()
+    updated.page = page_after_demographics() if has_psychometric_battery(updated.experimental_condition) else "instructions"
     return CommandResult(updated, updated.page)
 
 
@@ -225,7 +225,11 @@ def acknowledge_month_feedback(state: ParticipantState) -> CommandResult:
         updated.monthly_results.append(result)
     updated.pending_month_result = None
     updated.month += 1
-    updated.page = page_after_month_feedback()
+    updated.page = (
+        "final_score"
+        if updated.month > 24 and not has_psychometric_battery(updated.experimental_condition)
+        else page_after_month_feedback()
+    )
     return CommandResult(updated, updated.page, feedback=result)
 
 

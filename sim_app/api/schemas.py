@@ -73,7 +73,7 @@ class FinalizeRequest(VersionedCommandRequest):
 
 
 class AdminCreateSessionRequest(StrictModel):
-    experimental_condition: Literal["C1", "C2", "C3", "C4"]
+    experimental_condition: Literal["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
 
 
 class AdminPayoutView(StrictModel):
@@ -109,7 +109,7 @@ class AdminParticipantResultView(StrictModel):
 class AdminStudySessionView(StrictModel):
     id: str
     session_code: str
-    experimental_condition: Literal["C1", "C2", "C3", "C4"]
+    experimental_condition: Literal["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
     status: str
     created_at: str | None
     participants: list[AdminParticipantView]
@@ -148,6 +148,7 @@ class DemographicsView(StrictModel):
     type: Literal["demographics"]
     title: str
     intro: str
+    continue_label: str
     values: dict[str, Any]
     options: dict[str, list[str]]
     age_range: dict[str, int]

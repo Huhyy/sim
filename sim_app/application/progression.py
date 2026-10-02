@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from sim_app.content.questions import question_key
+from sim_app.domain.experimental_conditions import has_psychometric_battery
 
 
 def page_after_consent(accepted: bool) -> str:
@@ -26,6 +27,8 @@ def required_page_before_pre_questions(state: Any) -> str | None:
         return "consent"
     if not _demographics_complete(answers):
         return "demographics"
+    if not has_psychometric_battery(_state_get(state, "experimental_condition")):
+        return "instructions"
     return None
 
 
@@ -104,7 +107,8 @@ def required_page_before(
         return None if page == "consent" else "consent"
     if not _demographics_complete(answers):
         return None if page == "demographics" else "demographics"
-    first_pre_gap = _first_section_gap(answers, pre_sections)
+    battery_enabled = has_psychometric_battery(_state_get(state, "experimental_condition"))
+    first_pre_gap = _first_section_gap(answers, pre_sections) if battery_enabled else None
     if first_pre_gap is not None:
         required = f"pre_question_{first_pre_gap}"
         return None if page == required else required
@@ -115,7 +119,9 @@ def required_page_before(
     completed_months = len(_state_get(state, "monthly_results", []) or [])
     if _is_after_simulation_page(page) and completed_months < 24:
         return "simulation"
-    first_post_gap = _first_section_gap(answers, post_sections)
+    first_post_gap = _first_section_gap(answers, post_sections) if battery_enabled else None
+    if not battery_enabled and page.startswith(("pre_question_", "post_question_")):
+        return "instructions" if page.startswith("pre_question_") else "final_score"
     if page.startswith("post_question_") and first_post_gap is not None:
         try:
             requested_post_index = int(page.rsplit("_", 1)[1])

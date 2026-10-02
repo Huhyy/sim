@@ -74,6 +74,11 @@ Prolific completion uses the configured completion URL/code. Bonus automation
 only creates a bonus batch for manual review; the application has no active
 bonus `/pay/` request and no dynamic submission-completion transition.
 
+Before deploying the C5-C8 application code to an existing Supabase database,
+run `migration_conditions_c5_c8.sql`. It expands the condition checks on
+participant sessions, admin study sessions, and session summaries. The fresh
+schema scripts already include these conditions.
+
 ## Health and smoke checks
 
 After startup:

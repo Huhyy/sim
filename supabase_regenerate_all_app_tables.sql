@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS participant_sessions (
   study_session_id UUID,
   study_session_code TEXT,
   participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$'),
-  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4')),
+  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8')),
   score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame')),
   monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden')),
   UNIQUE (study_session_id, participant_code)
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS admin_study_sessions (
   session_code TEXT NOT NULL UNIQUE CHECK (session_code ~ '^[0-9]{6}$'),
   created_by_email TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'active',
-  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4')),
+  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8')),
   score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame')),
   monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS session_summaries (
   final_score NUMERIC(6,2),
   bonus_max_session NUMERIC(12,2),
   bonus_final NUMERIC(12,2),
-  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4')),
+  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8')),
   score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame')),
   monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden')),
   performance_bonus_czk INTEGER NOT NULL DEFAULT 0,
@@ -202,7 +202,7 @@ ALTER TABLE participant_sessions
 ALTER TABLE participant_sessions
   ADD COLUMN IF NOT EXISTS participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$');
 ALTER TABLE participant_sessions
-  ADD COLUMN IF NOT EXISTS experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4'));
+  ADD COLUMN IF NOT EXISTS experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8'));
 ALTER TABLE participant_sessions
   ADD COLUMN IF NOT EXISTS score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame'));
 ALTER TABLE participant_sessions
@@ -260,7 +260,7 @@ CREATE TABLE IF NOT EXISTS admin_study_sessions (
 ALTER TABLE admin_study_sessions ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE admin_study_sessions
-  ADD COLUMN IF NOT EXISTS experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4'));
+  ADD COLUMN IF NOT EXISTS experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8'));
 ALTER TABLE admin_study_sessions
   ADD COLUMN IF NOT EXISTS score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame'));
 ALTER TABLE admin_study_sessions
@@ -353,7 +353,7 @@ CREATE TABLE IF NOT EXISTS session_summaries (
   final_score NUMERIC(6,2),
   bonus_max_session NUMERIC(12,2),
   bonus_final NUMERIC(12,2),
-  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4')),
+  experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8')),
   score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame')),
   monthly_score_feedback TEXT NOT NULL DEFAULT 'displayed' CHECK (monthly_score_feedback IN ('displayed', 'hidden')),
   performance_bonus_gbp NUMERIC(6,2) NOT NULL DEFAULT 0,
@@ -430,7 +430,7 @@ ALTER TABLE month_results
 ALTER TABLE session_summaries
   ADD COLUMN IF NOT EXISTS participant_code TEXT CHECK (participant_code IS NULL OR participant_code ~ '^P[0-9]{3}$');
 ALTER TABLE session_summaries
-  ADD COLUMN IF NOT EXISTS experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4'));
+  ADD COLUMN IF NOT EXISTS experimental_condition TEXT NOT NULL DEFAULT 'C1' CHECK (experimental_condition IN ('C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8'));
 ALTER TABLE session_summaries
   ADD COLUMN IF NOT EXISTS score_frame TEXT NOT NULL DEFAULT 'gain_frame' CHECK (score_frame IN ('gain_frame', 'loss_frame'));
 ALTER TABLE session_summaries

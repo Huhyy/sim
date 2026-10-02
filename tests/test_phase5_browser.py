@@ -51,6 +51,16 @@ def _context(browser, base, manager, principal, *, viewport=None):
     return context
 
 
+def test_login_homepage_has_no_prolific_access_denied_notice():
+    with live_app() as (base, _manager, _service, _repository), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(base)
+        page.get_by_role("link", name="Continue with Google").wait_for()
+        assert "Access denied" not in page.locator("#app").inner_text()
+        browser.close()
+
+
 def test_mobile_account_bar_stays_compact_and_controls_remain_usable():
     principal = ParticipantPrincipal("8" * 64, email="participant@example.com", display_name="Nutzu 999", is_admin=True)
     with live_app() as (base, manager, _service, _repository), sync_playwright() as playwright:
@@ -67,10 +77,10 @@ def test_mobile_account_bar_stays_compact_and_controls_remain_usable():
 @pytest.mark.parametrize(
     ("condition", "expected_text"),
     [
-        ("C1", "performance bonus starts from 0 GBP"),
-        ("C2", "performance bonus starts from 0 GBP"),
-        ("C3", "provisional performance bonus starts from 3 GBP"),
-        ("C4", "provisional performance bonus starts from 3 GBP"),
+        ("C1", "performance bonus starts from 0 points"),
+        ("C2", "performance bonus starts from 0 points"),
+        ("C3", "provisional performance bonus starts from 3 points"),
+        ("C4", "provisional performance bonus starts from 3 points"),
     ],
 )
 def test_consent_restores_blue_treatment_framing_notice(condition, expected_text):
@@ -161,8 +171,11 @@ def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
             post_chapter += 1
         assert (post_chapter, post_question) == (3, 46)
         page.wait_for_selector('[data-view="final_score"]')
+        assert "points" in page.locator(".score-card + .grid").inner_text()
+        assert "GBP" not in page.locator("#app").inner_text()
         page.locator(".card .actions button").click()  # final score acknowledgement
         page.wait_for_selector('[data-view="completion"]')
+        assert "points" in page.locator(".card .grid").inner_text()
         page.wait_for_selector("#finalize", state="detached")
         assert "Thank" in page.locator("h1").inner_text()
         assert len(repository.month_results(next(iter(repository._sessions)))) == 24
