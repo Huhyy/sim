@@ -68,8 +68,33 @@ export function trustedMarkdown(source){
   flushParagraph();closeList();return html;
 }
 export const button=(label,cls="btn")=>`<button class="${cls}" type="submit">${esc(label)}</button>`;
-export function progress(current,total){return `<div class="progress" aria-label="${current} of ${total}"><span style="width:${Math.max(0,Math.min(100,current/total*100))}%"></span></div>`}
+export function progress(current,total){return `<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${current}" aria-label="${current} of ${total}"><span style="width:${Math.max(0,Math.min(100,current/total*100))}%"></span></div>`}
 export function message(text,tone="warning"){return `<div class="notice ${tone}">${esc(text)}</div>`}
-export function metric(label,value){return `<div class="metric"><small>${esc(label)}</small><strong>${esc(value)}</strong></div>`}
-export function field(name,label,type="text",value="",attrs=""){return `<label for="${name}">${esc(label)}</label><input id="${name}" name="${name}" type="${type}" value="${esc(value)}" ${attrs}>`}
-export function selectField(name,label,options,value=""){return `<label for="${name}">${esc(label)}</label><select id="${name}" name="${name}"><option value=""></option>${options.map(x=>`<option ${x===value?"selected":""} value="${esc(x)}">${esc(x)}</option>`).join("")}</select>`}
+export function metric(label,value){
+  const parts=String(label).split(/\s*=\s*/);
+  return `<div class="metric"><small>${esc(parts[0])}</small><strong>${esc(value)}</strong>${parts.length>1?`<small class="metric-note">= ${esc(parts.slice(1).join(" = "))}</small>`:""}</div>`;
+}
+export function field(name,label,type="text",value="",attrs=""){return `<div class="form-field"><label for="${name}">${esc(label)}</label><input id="${name}" name="${name}" type="${type}" value="${esc(value)}" ${attrs}></div>`}
+export function selectField(name,label,options,value=""){return `<div class="form-field"><label for="${name}">${esc(label)}</label><select id="${name}" name="${name}"><option value=""></option>${options.map(x=>`<option ${x===value?"selected":""} value="${esc(x)}">${esc(x)}</option>`).join("")}</select></div>`}
+export function financialRow(label,value,cls=""){return `<div class="decision-row ${cls}"><strong>${esc(label)}</strong><span class="decision-value">${esc(euro(value))}</span></div>`}
+export function questionOptions(question,index,value){
+  const labels=question.option_labels||question.options;
+  const long=labels.some(label=>String(label).length>32)||labels.length>7;
+  return `<div class="question-options${long?" long-options":""}" style="--option-count:${Math.min(7,question.options.length)}">${question.options.map((option,optionIndex)=>{
+    const label=labels[optionIndex]??option,id=`q${index}-${optionIndex}`;
+    return `<div class="choice"><input type="radio" id="${id}" name="${esc(question.key)}" value="${esc(option)}" aria-label="${esc(label||option)}" ${value===option?"checked":""} required><label for="${id}">${label?esc(label):""}</label></div>`;
+  }).join("")}</div>`;
+}
+
+export function brandMark(){
+  return `<svg class="brand-symbol" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M3 3h7l15 22h-7z" fill="currentColor"/><path d="M18 3h7l-7 10h-7zM10 15h7l-7 10H3z" fill="var(--accent)"/></svg>`;
+}
+
+export function narrativeParts(source){
+  const template=document.createElement("template");
+  template.innerHTML=trustedMarkdown(source);
+  const first=template.content.firstElementChild;
+  const monthName=first?.tagName==="P"&&first.textContent.trim().length<=24?first.textContent.trim():"";
+  if(monthName)first.remove();
+  return {monthName,body:template.innerHTML};
+}

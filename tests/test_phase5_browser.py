@@ -317,3 +317,42 @@ def test_browser_comprehension_correctness_stays_server_side():
         page.locator('#comp button[type="submit"]').click(); page.wait_for_selector('[data-view="profile"]')
         assert service.load_session(state.session_id).comprehension_passed
         context.close(); browser.close()
+
+
+@pytest.mark.parametrize("motion", ["normal", "skip", "reduce", "reduce-midway"])
+def test_next_month_narration_reveal_preserves_reading_and_decision_controls(motion):
+    repository = InMemoryExperimentRepository()
+    service = ExperimentService(repository)
+    state = ParticipantState.initial(SCENARIO_VERSION)
+    state.session_id = str(uuid.uuid4()); state.page = "simulation"
+    for key, value in condition_config("C1").items(): setattr(state, key, value)
+    state.treatment_bound = True
+    service.create_session(state, account_key="m" * 64, request_id="motion-seed")
+    principal = ParticipantPrincipal("m" * 64, bound_session_id=state.session_id)
+    with live_app(repository=repository) as (base, manager, _service, _repo), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = _context(browser, base, manager, principal)
+        page = context.new_page()
+        page.emulate_media(reduced_motion="reduce" if motion == "reduce" else "no-preference")
+        page.goto(base); page.wait_for_selector("#decision")
+        assert page.locator(".narrative-word").count() == 0  # No reveal on initial load.
+        page.locator("#decision input").fill("0")
+        page.locator("#decision button").click(); page.wait_for_selector('[data-view="month_feedback"]')
+        page.locator(".card .actions button").click(); page.wait_for_selector('[data-view="simulation"][data-month="2"]')
+        passage = page.locator(".narrative-copy").text_content()
+        assert passage and "The bills arrive again" in passage
+        assert page.locator("#decision input").is_enabled()
+        assert page.locator("#decision button").is_enabled()
+        assert page.locator(".decision-workspace").evaluate("el => el.getAnimations({subtree:true}).length") == 0
+        if motion == "reduce":
+            assert page.locator(".narrative-word").count() == 0
+        else:
+            assert page.locator(".narrative-word").count() > 0
+            assert page.locator(".narrative-copy").evaluate("el => Math.max(...el.getAnimations({subtree:true}).map(a => a.effect.getComputedTiming().endTime))") <= 1800
+            if motion == "skip": page.locator(".narrative-copy").click()
+            if motion == "reduce-midway": page.emulate_media(reduced_motion="reduce")
+            page.wait_for_selector(".narrative-word", state="detached", timeout=2500)
+            assert page.locator(".narrative-copy").text_content() == passage
+        page.reload(); page.wait_for_selector("#decision")
+        assert page.locator(".narrative-word").count() == 0  # No replay on recovery.
+        context.close(); browser.close()
