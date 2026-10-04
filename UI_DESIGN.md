@@ -22,6 +22,8 @@ Page changes focus the new page title. A keyboard skip link reaches the main
 content. Language changes retain focus on the language control. Consent and
 instructions promote their existing Markdown title and subsections to the
 correct heading levels without changing the text.
+The Markdown renderer removes legacy layout wrappers after escaping the source;
+wrapper contents remain readable and all other HTML stays escaped.
 
 At widths below 900px, the simulation stacks narrative before the financial
 statement and includes a link to the payment decision. Keep narration readable,

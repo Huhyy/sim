@@ -1,9 +1,9 @@
 import {ApiClient,ApiError} from "./api.js";
-import {brandMark,button,esc,euro,field,financialRow,message,metric,narrativeParts,number,plainLabel,progress,questionOptions,safeUrl,selectField,trustedMarkdown} from "./render.js?v=20261004-ui2";
-import {renderAdmin} from "./admin.js?v=20261004-ui2";
-import {renderAdminParticipants} from "./admin-participants.js?v=20261004-ui2";
+import {brandMark,button,esc,euro,field,financialRow,message,metric,narrativeParts,number,plainLabel,progress,questionOptions,safeUrl,selectField,trustedMarkdown} from "./render.js?v=20261004-ui3";
+import {renderAdmin} from "./admin.js?v=20261004-ui3";
+import {renderAdminParticipants} from "./admin-participants.js?v=20261004-ui3";
 
-import {revealNarrative,transitionPage} from "./motion.js?v=20261004-ui2";
+import {revealNarrative,transitionPage} from "./motion.js?v=20261004-ui3";
 
 const root=document.querySelector("#app"),bar=document.querySelector("#account-bar"),toast=document.querySelector("#toast");
 const api=new ApiClient(); let auth=null,state=null,chromeLabels={};

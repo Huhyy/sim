@@ -30,6 +30,7 @@ with suite.live_app(admin_repository=admin_repo) as (base, manager, service, rep
     def capture(name, mobile=True):
         # Static review captures the complete passage; motion gets a separate test.
         page.wait_for_selector('.narrative-word', state='detached', timeout=4000)
+        page.evaluate("async () => {await Promise.all(document.querySelector('#app').getAnimations().map(a=>a.finished.catch(()=>{})))}")
         for width, height, suffix in [(1440, 1000, 'desktop'), (390, 844, 'mobile')] if mobile else [(1440, 1000, 'desktop')]:
             page.set_viewport_size({'width': width, 'height': height})
             page.screenshot(path=str(out / f'{name}-{suffix}.png'), full_page=True)

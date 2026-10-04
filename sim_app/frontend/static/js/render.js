@@ -34,7 +34,7 @@ function isTableDivider(line){
 }
 
 export function trustedMarkdown(source,headingShift=0){
-  let text=esc(source).replace(/&lt;div[^&]*&gt;/g,"").replace(/&lt;\/div&gt;/g,"")
+  let text=esc(source).replace(/&lt;div\b[\s\S]*?&gt;/gi,"").replace(/&lt;\/div&gt;/g,"")
     .replace(/&lt;strong&gt;/g,"**").replace(/&lt;\/strong&gt;/g,"**")
     .replace(/&lt;br\s*\/?&gt;/g,"\n")
     .replace(/&lt;ul&gt;/g,"\n").replace(/&lt;\/ul&gt;/g,"\n")

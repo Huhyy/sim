@@ -122,6 +122,24 @@ def test_admin_condition_help_is_readable_and_preserves_condition_codes(language
         context.close(); browser.close()
 
 
+def test_instruction_markup_is_hidden_and_wrapper_content_remains_readable():
+    repository = InMemoryExperimentRepository()
+    state = ParticipantState.initial(SCENARIO_VERSION)
+    state.session_id = str(uuid.uuid4()); state.page = "instructions"; state.treatment_bound = True
+    ExperimentService(repository).create_session(state, account_key="i" * 64, request_id="instructions-seed")
+    principal = ParticipantPrincipal("i" * 64, bound_session_id=state.session_id)
+    with live_app(repository=repository) as (base, manager, _service, _repository), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = _context(browser, base, manager, principal)
+        page = context.new_page(); page.goto(base); page.wait_for_selector('[data-view="instructions"]')
+        content = page.locator(".rich").inner_text()
+        assert "<div" not in content and "border-radius:" not in content
+        assert "Monthly decision steps" in content
+        assert "Enter the amount you want to pay toward the loan for that month." in content
+        assert page.locator(".rich h1").count() == 1
+        context.close(); browser.close()
+
+
 def test_mobile_account_bar_stays_compact_and_controls_remain_usable():
     principal = ParticipantPrincipal("8" * 64, email="participant@example.com", display_name="Nutzu 999", is_admin=True)
     with live_app() as (base, manager, _service, _repository), sync_playwright() as playwright:
