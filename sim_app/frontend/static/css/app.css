@@ -959,6 +959,9 @@ details>.rich,details>.grid,details>form {
 }
 
 #create-admin {
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px 20px;
+  align-items:end;
   padding:18px;
   background:var(--surface);
   border:1px solid var(--line);
@@ -966,8 +969,16 @@ details>.rich,details>.grid,details>form {
 }
 
 #create-admin select {
-  width:auto;
-  min-width:180px;
+  width:100%;
+  min-width:0;
+}
+
+#create-admin .field-help {
+  grid-column:1/-1;
+  margin:0;
+  font-size:14px;
+  line-height:1.6;
+  color:var(--muted);
 }
 
 .admin-session {
@@ -1434,6 +1445,7 @@ details>.rich,details>.grid,details>form {
 
 @media(max-width:480px) {
   #create-admin {
+    grid-template-columns:1fr;
     align-items:stretch;
   }
   #create-admin .btn {

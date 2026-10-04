@@ -28,6 +28,11 @@ statement and includes a link to the payment decision. Keep narration readable,
 inputs at least 16px, visible focus indicators, and header controls at least 44px
 high. Test 320, 768, 1024, and 1440px layouts.
 
+The administrator's condition selector keeps C1–C8 as submission values and
+displays the localized explanation below it, so narrow screens never hide the
+meaning of the selected treatment. Set the document language on administrative
+and participant pages alike.
+
 Page transitions use a short opacity fade. Next-month narration uses a separate
 word reveal that never blocks decisions. Both respect reduced motion. The main
 content is not a live region: focusing the heading announces page changes without

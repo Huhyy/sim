@@ -102,6 +102,26 @@ def test_mobile_decision_shortcut_and_header_touch_targets():
         context.close(); browser.close()
 
 
+@pytest.mark.parametrize("language", ["en", "ro"])
+def test_admin_condition_help_is_readable_and_preserves_condition_codes(language):
+    admin_repository = MemoryAdminRepository()
+    principal = ParticipantPrincipal("a" * 64, email="admin@example.test", is_admin=True)
+    with live_app(admin_repository=admin_repository) as (base, manager, _service, _repository), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = _context(browser, base, manager, principal, viewport={"width": 320, "height": 844})
+        context.add_init_script(f"sessionStorage.setItem('sim.language','{language}')")
+        page = context.new_page(); page.goto(base + "/admin"); page.wait_for_selector("#create-admin")
+        assert page.locator('label[for="condition"]').is_visible()
+        page.select_option('[name="condition"]', "C8")
+        assert page.locator("#condition-description").is_visible()
+        assert ("without psychometric questionnaires" if language == "en" else "fără baterie psihometrică") in page.locator("#condition-description").inner_text()
+        assert page.locator("html").get_attribute("lang") == language
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
+        page.locator("#create-admin button").click(); page.wait_for_selector(".admin-session")
+        assert admin_repository.sessions[0]["experimental_condition"] == "C8"
+        context.close(); browser.close()
+
+
 def test_mobile_account_bar_stays_compact_and_controls_remain_usable():
     principal = ParticipantPrincipal("8" * 64, email="participant@example.com", display_name="Nutzu 999", is_admin=True)
     with live_app() as (base, manager, _service, _repository), sync_playwright() as playwright:

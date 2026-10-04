@@ -1,9 +1,9 @@
 import {ApiClient,ApiError} from "./api.js";
-import {brandMark,button,esc,euro,field,financialRow,message,metric,narrativeParts,number,plainLabel,progress,questionOptions,safeUrl,selectField,trustedMarkdown} from "./render.js?v=20261004-ui1";
-import {renderAdmin} from "./admin.js?v=20261004-ui1";
-import {renderAdminParticipants} from "./admin-participants.js?v=20261004-ui1";
+import {brandMark,button,esc,euro,field,financialRow,message,metric,narrativeParts,number,plainLabel,progress,questionOptions,safeUrl,selectField,trustedMarkdown} from "./render.js?v=20261004-ui2";
+import {renderAdmin} from "./admin.js?v=20261004-ui2";
+import {renderAdminParticipants} from "./admin-participants.js?v=20261004-ui2";
 
-import {revealNarrative,transitionPage} from "./motion.js?v=20261004-ui1";
+import {revealNarrative,transitionPage} from "./motion.js?v=20261004-ui2";
 
 const root=document.querySelector("#app"),bar=document.querySelector("#account-bar"),toast=document.querySelector("#toast");
 const api=new ApiClient(); let auth=null,state=null,chromeLabels={};
@@ -31,7 +31,7 @@ async function boot(){
   if(prolific.some(k=>launch.has(k))){location.replace(`/auth/prolific/launch?${launch.toString()}`);return}
   const prolificError=launch.get("prolific_error");
   if(prolificError)history.replaceState({},"",location.pathname);
-  try{chromeLabels=await api.get(`/api/v1/public/content/${sessionStorage.getItem("sim.language")||"en"}`);if(prolificError){renderProlificLaunchError(prolificError);return}auth=await api.get("/api/v1/auth/session");api.csrf=auth.csrf_token;renderAccount();
+  try{setDocumentLanguage(sessionStorage.getItem("sim.language")||"en");chromeLabels=await api.get(`/api/v1/public/content/${sessionStorage.getItem("sim.language")||"en"}`);if(prolificError){renderProlificLaunchError(prolificError);return}auth=await api.get("/api/v1/auth/session");api.csrf=auth.csrf_token;renderAccount();
     if(location.pathname==="/admin"){await renderAdmin(root,api,auth,sessionStorage.getItem("sim.language")||"en");return}
     if(location.pathname==="/admin/participants"){await renderAdminParticipants(root,api,auth,sessionStorage.getItem("sim.language")||"en");return}
     if(auth.session_id){state=normalizeState(await api.get(`/api/v1/sessions/${encodeURIComponent(auth.session_id)}`))}else{state=normalizeState(await createSession())}
@@ -50,6 +50,11 @@ function showToast(text){toast.textContent=text;toast.classList.remove("hidden")
 function renderAccount(){const x=chromeLabels.auth||{};bar.classList.remove("hidden");bar.innerHTML=`<a class="workspace-brand" href="/" aria-label="XperimentCredit">${brandMark()}<span class="brand-wordmark">Xperiment<span>Credit</span></span></a><select id="language" aria-label="${esc(x.language_label||"Language")}"><option value="en">EN</option><option value="ro">RO</option></select>${auth.is_admin?`<a class="btn secondary" href="/admin">${esc(x.admin_page||"Admin")}</a>`:""}<button class="btn secondary" id="logout">${esc(x.logout||"Log out")}</button>`;bar.querySelector("#language").value=state?.language||sessionStorage.getItem("sim.language")||"en";bar.querySelector("#language").addEventListener("change",changeLanguage);bar.querySelector("#logout").addEventListener("click",async()=>{try{await api.request("/api/v1/auth/logout",{method:"POST",body:JSON.stringify({})})}finally{sessionStorage.clear();location.href="/"}})}
 async function changeLanguage(event){const restoreFocus=document.activeElement===event.target;const language=event.target.value;sessionStorage.setItem("sim.language",language);if(!state){if(location.pathname.startsWith("/admin"))location.reload();return}await mutate(`/api/v1/sessions/${state.session_id}/language`,{expected_version:state.state_version,language},[event.target]);if(restoreFocus)bar.querySelector("#language")?.focus({preventScroll:true})}
 
+function setDocumentLanguage(language){
+  document.documentElement.lang=language;
+  document.querySelector(".skip-link").textContent=language==="ro"?"Sari la conținut":"Skip to content";
+}
+
 function render(){
   const view=state.view,labels=state.labels||{};
   const pageKey=JSON.stringify([view.type,view.month,view.phase,view.section_index]);
@@ -57,8 +62,7 @@ function render(){
   const reveal=view.type==="simulation"&&root.dataset.view==="month_feedback"&&Number(root.dataset.month)<view.month;
   renderAccount();window.scrollTo({top:0,behavior:"instant"});
   root.dataset.view=view.type;root.dataset.month=view.month||"";root.dataset.version=String(state.state_version);
-  document.documentElement.lang=state.language||"en";
-  document.querySelector(".skip-link").textContent=state.language==="ro"?"Sari la conținut":"Skip to content";
+  setDocumentLanguage(state.language||"en");
   const renderer=renderers[view.type]||renderUnavailable;
   renderer(view,labels);renderUnresolvedRecovery();
   root.dataset.pageKey=pageKey;
