@@ -18,7 +18,8 @@
   --surface:#f3f1ea;
   --radius:4px;
   --shadow:0 4px 16px #18252b0d;
-  --accent:#a87935;
+  --accent:#835d24;
+  --focus:#26776c;
   --paper:#faf8f2;
   font-family:"IBM Plex Sans","Segoe UI",sans-serif;
   font-size:15px;
@@ -99,7 +100,7 @@ body {
   width:auto;
   min-width:70px;
   padding:7px 9px;
-  min-height:36px;
+  min-height:44px;
   font-size:13px;
   background:#293d46;
   color:#f8f5ed;
@@ -108,7 +109,7 @@ body {
 
 .account-bar .btn {
   padding:8px 12px;
-  min-height:36px;
+  min-height:44px;
   font-size:13px;
   white-space:nowrap;
   color:#f8f5ed;
@@ -278,7 +279,7 @@ p {
 }
 
 :focus-visible {
-  outline:3px solid #26776c;
+  outline:3px solid var(--focus);
   outline-offset:3px;
 }
 
@@ -292,17 +293,18 @@ label {
 
 input,select,textarea {
   width:100%;
-  border:1px solid #b8c5c9;
+  border:1px solid #7b8985;
   border-radius:var(--radius);
   padding:10px 12px;
   background:#fff;
   color:var(--ink);
   font:inherit;
+  font-size:16px;
   min-height:44px;
 }
 
 input:focus,select:focus,textarea:focus {
-  outline:2px solid #155b5230;
+  outline:2px solid var(--focus);
   outline-offset:1px;
   border-color:var(--green);
 }
@@ -986,7 +988,7 @@ details>.rich,details>.grid,details>form {
 .admin-head .btn {
   margin-left:auto;
   font-size:12px;
-  min-height:36px;
+  min-height:44px;
 }
 
 .admin-code {
@@ -1474,7 +1476,7 @@ details>.rich,details>.grid,details>form {
 .debt-group{background:var(--paper);margin-inline:-12px;padding-inline:12px;padding-bottom:9px}
 .available-before-payment .decision-value{font-size:29px;font-weight:500}
 .decision-row.primary{border-color:var(--line);font-size:12px}
-.decision-row.formula{font-size:11px;color:#69716d}
+.decision-row.formula{font-size:12px;color:var(--muted)}
 .decision-input{padding-top:20px;border-top:1px solid var(--line)}
 .decision-input input{min-height:54px;border-color:#a9b2af;font-size:25px;font-weight:500;letter-spacing:-.025em}
 .decision-input .btn{background:var(--ink)}
@@ -1513,7 +1515,7 @@ details>.rich,details>.grid,details>form {
   .simulation-heading h1{font-size:30px}
   .simulation-workspace{padding:20px}
   .month-count strong{font-size:25px}
-  .simulation-context .rich{font-size:14px}
+  .simulation-context .rich{font-size:15px}
   .profile-section:first-child h2{font-size:22px}
 }
 @media(max-width:480px){
@@ -1530,3 +1532,14 @@ details>.rich,details>.grid,details>form {
 }
 .account-bar .btn.secondary{background:transparent;color:#f8f5ed;border-color:#536269}
 .account-bar .btn.secondary:hover{background:#344b55;border-color:#78878c}
+
+/* Reading and keyboard navigation share the visible page hierarchy. */
+.skip-link{position:fixed;inset:8px auto auto 16px;z-index:20;padding:12px 16px;background:var(--ink);color:#fff;transform:translateY(-150%)}
+.skip-link:focus{transform:none}
+.account-bar :focus-visible{outline-color:#e6c180}
+#app:focus,h1[tabindex="-1"]:focus{outline:none}
+.choice:has(input:focus-visible){outline:3px solid var(--focus);outline-offset:3px}
+.simulation-jump{display:none}
+@media(max-width:900px){
+  .simulation-jump{display:flex;justify-content:space-between;align-items:center;min-height:44px;margin:-10px 0 16px;padding:8px 4px;color:var(--green);font-weight:500;font-size:14px;text-underline-offset:4px}
+}

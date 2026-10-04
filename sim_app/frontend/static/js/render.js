@@ -33,7 +33,7 @@ function isTableDivider(line){
   return /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(line.trim());
 }
 
-export function trustedMarkdown(source){
+export function trustedMarkdown(source,headingShift=0){
   let text=esc(source).replace(/&lt;div[^&]*&gt;/g,"").replace(/&lt;\/div&gt;/g,"")
     .replace(/&lt;strong&gt;/g,"**").replace(/&lt;\/strong&gt;/g,"**")
     .replace(/&lt;br\s*\/?&gt;/g,"\n")
@@ -57,7 +57,7 @@ export function trustedMarkdown(source){
       continue;
     }
     const heading=line.match(/^(#{1,3})\s+(.+)$/);
-    if(heading){flushParagraph();closeList();const level=heading[1].length;html+=`<h${level}>${inlineMarkdown(heading[2])}</h${level}>`;continue}
+    if(heading){flushParagraph();closeList();const level=Math.max(1,heading[1].length+headingShift);html+=`<h${level}>${inlineMarkdown(heading[2])}</h${level}>`;continue}
     if(/^(-{3,}|\*{3,})$/.test(line)){flushParagraph();closeList();html+="<hr>";continue}
     if(line.startsWith("- ")){flushParagraph();openList("ul");html+=`<li>${inlineMarkdown(line.slice(2))}</li>`;continue}
     const ordered=line.match(/^\d+\.\s+(.+)$/);

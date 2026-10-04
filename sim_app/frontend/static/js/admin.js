@@ -1,4 +1,4 @@
-import {esc,button,message} from "./render.js?v=20261003-editorial5";
+import {esc,button,message} from "./render.js?v=20261004-ui1";
 
 export async function renderAdmin(root,api,auth,language="en"){
   if(!auth.is_admin){root.innerHTML=`<section class="card">${message("Administrator authorization is required.","error")}</section>`;return}

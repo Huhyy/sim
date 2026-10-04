@@ -61,6 +61,47 @@ def test_login_homepage_has_no_prolific_access_denied_notice():
         browser.close()
 
 
+def test_page_changes_keep_keyboard_focus_and_language_control_usable():
+    principal = ParticipantPrincipal("k" * 64)
+    with live_app() as (base, manager, _service, _repository), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = _context(browser, base, manager, principal)
+        page = context.new_page(); page.goto(base); page.wait_for_selector("#start")
+        page.locator("#start").press("Enter"); page.wait_for_selector('[data-view="consent"]')
+        assert page.locator("#app h1").count() == 1
+        assert page.locator("#app h1").evaluate("el => el === document.activeElement")
+        page.locator("#language").focus(); page.select_option("#language", "ro")
+        page.wait_for_selector('html[lang="ro"]')
+        assert page.locator("#language").evaluate("el => el === document.activeElement")
+        page.locator(".skip-link").focus(); page.locator(".skip-link").press("Enter")
+        assert page.locator("#app").evaluate("el => el === document.activeElement")
+        assert page.locator(".skip-link").inner_text() == "Sari la conținut"
+        context.close(); browser.close()
+
+
+def test_mobile_decision_shortcut_and_header_touch_targets():
+    repository = InMemoryExperimentRepository()
+    state = ParticipantState.initial(SCENARIO_VERSION)
+    state.session_id = str(uuid.uuid4()); state.page = "simulation"; state.treatment_bound = True
+    ExperimentService(repository).create_session(state, account_key="j" * 64, request_id="mobile-seed")
+    principal = ParticipantPrincipal("j" * 64, is_admin=True, bound_session_id=state.session_id)
+    with live_app(repository=repository) as (base, manager, _service, _repository), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = _context(browser, base, manager, principal, viewport={"width": 320, "height": 844})
+        page = context.new_page(); page.goto(base); page.wait_for_selector("#decision")
+        for selector in ["#language", "#logout", '.account-bar a[href="/admin"]']:
+            assert page.locator(selector).bounding_box()["height"] >= 44
+        page.locator(".simulation-jump").press("Enter")
+        assert page.locator("#decision-heading").evaluate("el => el === document.activeElement")
+        bounds = page.locator("#decision-heading").bounding_box()
+        assert bounds["y"] >= page.locator(".account-bar").bounding_box()["height"]
+        assert bounds["y"] < 200
+        page.locator("#payment").fill("0"); page.locator("#decision button").press("Enter")
+        page.wait_for_selector('[data-view="month_feedback"]')
+        assert page.locator("#app h1").evaluate("el => el === document.activeElement")
+        context.close(); browser.close()
+
+
 def test_mobile_account_bar_stays_compact_and_controls_remain_usable():
     principal = ParticipantPrincipal("8" * 64, email="participant@example.com", display_name="Nutzu 999", is_admin=True)
     with live_app() as (base, manager, _service, _repository), sync_playwright() as playwright:
