@@ -1,5 +1,21 @@
 # Container and Cloud Run Handoff
 
+## Existing production service
+
+Production runs as `behavioral-credit-simulator` in Google Cloud project
+`behavioral-credit-sim-prod`, region `europe-west3`. Images are stored under
+`europe-west3-docker.pkg.dev/behavioral-credit-sim-prod/behavioral-credit-simulator/app`.
+
+Build the Dockerfile, tag the image with the Git commit, push it to that registry,
+and update the existing service with `gcloud run deploy --image`. Deploying only
+the image preserves the service's runtime configuration and Secret Manager
+references. Verify `/health`, `/ready`, and the frontend assets after deployment.
+To roll back, use `gcloud run services update-traffic` to route 100% to the
+previous ready revision recorded before deployment.
+
+Automatic participant assignment uses C1–C4. The existing database condition
+columns already store the assignment; this release needs no database migration.
+
 Phase 6 packages the FastAPI-only simulator as a disposable container. It does
 not deploy the service or move secrets. Supabase/Postgres remains authoritative;
 the container contains only code, static frontend assets, and runtime Python

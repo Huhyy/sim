@@ -195,72 +195,72 @@ procesul decizional în situații economice riscante.""",
             "button": "Începe experimentul →",
         },
         "consent": {
-            "markdown": """## Acord de participare ?i consim??m?nt informat
+            "markdown": """## Acord de participare și consimțământ informat
 
-Percep?ia riscului ?i decizia financiar? ?n condi?ii de incertitudine
+Percepția riscului și decizia financiară în condiții de incertitudine
 
-E?ti invitat(?) s? participi la un studiu de cercetare despre modul ?n care persoanele iau decizii financiare ?n condi?ii de incertitudine. Studiul include un experiment financiar structurat, ?n care vei lua decizii lunare privind rambursarea unui credit, pe baza unor informa?ii despre venituri, cheltuieli, sold disponibil ?i evolu?ia obliga?iilor financiare.
+Ești invitat(ă) să participi la un studiu de cercetare despre modul în care persoanele iau decizii financiare în condiții de incertitudine. Studiul include un experiment financiar structurat, în care vei lua decizii lunare privind rambursarea unui credit, pe baza unor informații despre venituri, cheltuieli, sold disponibil și evoluția obligațiilor financiare.
 
-Participarea este voluntar?. Te rug?m s? cite?ti cu aten?ie informa?iile de mai jos ?nainte de a decide dac? dore?ti s? continui.
+Participarea este voluntară. Te rugăm să citești cu atenție informațiile de mai jos înainte de a decide dacă dorești să continui.
 
-Scopul studiului este de a analiza rela?ia dintre profilul psihologic, percep?ia riscului, nivelul de stres ?i deciziile financiare luate ?ntr-un experiment de credit.
+Scopul studiului este de a analiza relația dintre profilul psihologic, percepția riscului, nivelul de stres și deciziile financiare luate într-un experiment de credit.
 
-Dac? accep?i s? participi, vei parcurge urm?toarele etape:
+Dacă accepți să participi, vei parcurge următoarele etape:
 
-- vei citi informa?iile despre studiu ?i vei confirma consim??m?ntul informat;
+- vei citi informațiile despre studiu și vei confirma consimțământul informat;
 - vei completa un scurt profil demografic;
-- vei r?spunde la un chestionar psihologic ini?ial;
-- vei parcurge un experiment financiar structurat pe mai multe luni, ?n care vei lua decizii privind rambursarea unui credit;
-- vei completa un chestionar final despre starea ta psihologic? dup? experiment ?i despre percep?ia asupra sarcinii.
+- vei răspunde la un chestionar psihologic inițial;
+- vei parcurge un experiment financiar structurat pe mai multe luni, în care vei lua decizii privind rambursarea unui credit;
+- vei completa un chestionar final despre starea ta psihologică după experiment și despre percepția asupra sarcinii.
 
-?n cadrul experimentului, vei primi informa?ii financiare lunare ?i vei decide suma pe care dore?ti s? o aloci ramburs?rii creditului. Experimentul este construit pentru a reflecta situa?ii financiare realiste, f?r? a implica acces la conturi bancare reale sau modific?ri asupra unor obliga?ii financiare personale.
+În cadrul experimentului, vei primi informații financiare lunare și vei decide suma pe care dorești să o aloci rambursării creditului. Experimentul este construit pentru a reflecta situații financiare realiste, fără a implica acces la conturi bancare reale sau modificări asupra unor obligații financiare personale.
 
-Participarea dureaz? aproximativ 30-45 de minute, ?n func?ie de ritmul de completare.
+Participarea durează aproximativ 30-45 de minute, în funcție de ritmul de completare.
 
-?n cadrul studiului pot fi colectate urm?toarele categorii de date:
+În cadrul studiului pot fi colectate următoarele categorii de date:
 
-- r?spunsuri la ?ntreb?ri demografice generale;
-- r?spunsuri la chestionare psihometrice;
-- deciziile introduse ?n cadrul experimentului financiar;
-- indicatori calcula?i automat pe baza deciziilor luate ?n experiment, precum soldul creditului, utilizarea overdraftului, penalit??i, dob?nzi ?i scoruri experimentale;
-- r?spunsuri la ?ntreb?ri finale despre experien?a ?n cadrul experimentului.
+- răspunsuri la întrebări demografice generale;
+- răspunsuri la chestionare psihometrice;
+- deciziile introduse în cadrul experimentului financiar;
+- indicatori calculați automat pe baza deciziilor luate în experiment, precum soldul creditului, utilizarea overdraftului, penalități, dobânzi și scoruri experimentale;
+- răspunsuri la întrebări finale despre experiența în cadrul experimentului.
 
-Nu ?i se va cere s? furnizezi date bancare reale, parole, coduri de acces, extrase de cont reale sau informa?ii financiare identificabile.
+Nu ți se va cere să furnizezi date bancare reale, parole, coduri de acces, extrase de cont reale sau informații financiare identificabile.
 
-Situa?iile financiare, evenimentele lunare ?i informa?iile prezentate ?n cadrul experimentului sunt construite pentru scopuri de cercetare. Acestea nu reprezint? o evaluare a situa?iei tale financiare personale ?i nu produc efecte asupra vreunui credit real, cont bancar sau raport de credit.
+Situațiile financiare, evenimentele lunare și informațiile prezentate în cadrul experimentului sunt construite pentru scopuri de cercetare. Acestea nu reprezintă o evaluare a situației tale financiare personale și nu produc efecte asupra vreunui credit real, cont bancar sau raport de credit.
 
-Deciziile tale din cadrul experimentului sunt folosite exclusiv ?n scop de cercetare.
+Deciziile tale din cadrul experimentului sunt folosite exclusiv în scop de cercetare.
 
-Studiul include situa?ii legate de credit, datorii, presiune financiar?, stres, obliga?ii lunare ?i incertitudine.
+Studiul include situații legate de credit, datorii, presiune financiară, stres, obligații lunare și incertitudine.
 
-Nu exist? r?spunsuri corecte sau gre?ite. Nu evalu?m competen?a ta financiar? ?i nu formul?m judec??i individuale despre deciziile tale.
+Nu există răspunsuri corecte sau greșite. Nu evaluăm competența ta financiară și nu formulăm judecăți individuale despre deciziile tale.
 
-Po?i ?ntrerupe participarea ?n orice moment, f?r? s? oferi explica?ii.
+Poți întrerupe participarea în orice moment, fără să oferi explicații.
 
-Datele vor fi analizate anonim. R?spunsurile individuale nu vor fi publicate ?n mod identificabil.
+Datele vor fi analizate anonim. Răspunsurile individuale nu vor fi publicate în mod identificabil.
 
-Dac? platforma folose?te un cod de participant, acesta va fi utilizat doar pentru a lega r?spunsurile ini?iale, deciziile din cadrul experimentului ?i r?spunsurile finale. Codul nu va fi folosit pentru identificarea public? a participantului.
+Dacă platforma folosește un cod de participant, acesta va fi utilizat doar pentru a lega răspunsurile inițiale, deciziile din cadrul experimentului și răspunsurile finale. Codul nu va fi folosit pentru identificarea publică a participantului.
 
-Rezultatele vor fi raportate agregat, de exemplu sub form? de medii, corela?ii, modele statistice sau grafice.
+Rezultatele vor fi raportate agregat, de exemplu sub formă de medii, corelații, modele statistice sau grafice.
 
-Participarea este voluntar?. Ai dreptul:
+Participarea este voluntară. Ai dreptul:
 
-- s? refuzi participarea;
-- s? ?ntrerupi completarea ?n orice moment;
-- s? nu r?spunzi la o ?ntrebare, dac? aceasta permite op?iune de necompletare;
-- s? solici?i informa?ii suplimentare despre studiu.
+- să refuzi participarea;
+- să întrerupi completarea în orice moment;
+- să nu răspunzi la o întrebare, dacă aceasta permite opțiune de necompletare;
+- să soliciți informații suplimentare despre studiu.
 
-Retragerea din studiu nu va avea consecin?e negative asupra ta.
+Retragerea din studiu nu va avea consecințe negative asupra ta.
 
-Participarea la acest studiu poate include o compensa?ie fix? pentru participare ?i/sau o recompens? experimental? calculat? pe baza deciziilor luate ?n cadrul experimentului financiar.
+Participarea la acest studiu poate include o compensație fixă pentru participare și/sau o recompensă experimentală calculată pe baza deciziilor luate în cadrul experimentului financiar.
 
-Recompensa experimental? are rol exclusiv de stimulent ?n cadrul studiului ?i nu reprezint? o evaluare real? a situa?iei financiare, a competen?ei financiare sau a bonit??ii participantului.
+Recompensa experimentală are rol exclusiv de stimulent în cadrul studiului și nu reprezintă o evaluare reală a situației financiare, a competenței financiare sau a bonității participantului.
 
-Datele colectate pot fi utilizate pentru: analize statistice; lucr?ri ?tiin?ifice; prezent?ri academice; rapoarte de cercetare; dezvoltarea unor modele experimentale privind decizia financiar?.
+Datele colectate pot fi utilizate pentru: analize statistice; lucrări științifice; prezentări academice; rapoarte de cercetare; dezvoltarea unor modele experimentale privind decizia financiară.
 
-Nicio publica?ie sau prezentare nu va include informa?ii care s? permit? identificarea direct? a participan?ilor.
+Nicio publicație sau prezentare nu va include informații care să permită identificarea directă a participanților.
 
-Te rug?m s? confirmi urm?toarele afirma?ii ?nainte de a continua:""",
+Te rugăm să confirmi următoarele afirmații înainte de a continua:""",
             "items": [
                 "Am citit și am înțeles informațiile despre studiu.",
                 "Am înțeles că participarea este voluntară.",
@@ -986,7 +986,7 @@ Withdrawing from the study will not have negative consequences for you.
 
 Participation in this study may include a fixed compensation for participation and/or an experimental reward calculated on the basis of the decisions made during the financial experiment.
 
-The experimental reward serves exclusively as an incentive within the study and does not represent a real evaluation of the participant?s financial situation, financial competence, or creditworthiness.
+The experimental reward serves exclusively as an incentive within the study and does not represent a real evaluation of the participant’s financial situation, financial competence, or creditworthiness.
 
 The collected data may be used for: statistical analyses; scientific papers; academic presentations; research reports; and the development of experimental models of financial decision-making.
 
@@ -1580,4 +1580,3 @@ def get_localized_narrative(month, language=None):
     if selected_language == "en":
         return NARRATIVES_EN.get(month, "No narrative available.")
     return get_ro_narrative(month)
-

@@ -48,7 +48,7 @@ from sim_app.config import REPEAT_SCENARIO_DEV_MODE, SCENARIO_VERSION
 from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS, question_key, question_scale
 from sim_app.content.tables import get_month
 from sim_app.content.translations import get_display_post_sections, get_display_pre_sections, t
-from sim_app.domain.experimental_conditions import assign_prolific_condition, has_psychometric_battery
+from sim_app.domain.experimental_conditions import assign_participant_condition, assign_prolific_condition, has_psychometric_battery
 from sim_app.infra.time import _utcnow
 from sim_app.prolific.identity import completion_redirect_url, configured_completion_code
 
@@ -131,6 +131,10 @@ class ExperimentService:
         state = ParticipantState.initial(SCENARIO_VERSION)
         state.session_id = str(uuid.uuid4())
         state.language = language
+        treatment = assign_participant_condition(principal.account_key)
+        state.experimental_condition = treatment["experimental_condition"]
+        state.score_frame = treatment["score_frame"]
+        state.monthly_score_feedback = treatment["monthly_score_feedback"]
         if principal.identity_kind == "prolific":
             if not all((principal.prolific_pid, principal.prolific_study_id, principal.prolific_session_id)):
                 raise AuthenticationRequired("A complete trusted Prolific identity is required")
@@ -350,6 +354,28 @@ class ExperimentService:
             request_id=request_id,
             expected_page="demographics",
             command=lambda state: submit_demographics_command(state, values),
+        )
+
+    def skip_psychometrics(self, session_id, principal, *, phase, expected_version, request_id):
+        self._require_principal(principal)
+        if not principal.is_admin:
+            raise SessionAccessDenied("Only administrators can skip psychometrics")
+        if phase not in {"pre", "post"}:
+            raise InputValidationError("Questionnaire phase must be pre or post")
+        state = self.load_owned_session(session_id, principal)
+        sections = _questionnaire_sections(phase, state.language)
+        pages = tuple(f"{phase}_question_{index}" for index in range(len(sections))) + (f"{phase}_questions",)
+        if phase == "post" and state.month > 24:
+            pages += ("simulation",)
+
+        def skip(current):
+            result = go_to_page(current, "instructions" if phase == "pre" else "final_score")
+            result.state.answers[f"admin_skipped_psychometrics_{phase}"] = True
+            return result
+
+        return self._stage_command(
+            session_id, principal, expected_version=expected_version, request_id=request_id,
+            expected_page=pages, command=skip,
         )
 
     def submit_questionnaire_section(

@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sim_app.api.app import create_app
 from sim_app.application.principal import ParticipantPrincipal
 from sim_app.application.services import ExperimentService
-from sim_app.domain.experimental_conditions import condition_config
+from sim_app.domain.experimental_conditions import assign_participant_condition, condition_config
 from sim_app.persistence.memory import InMemoryExperimentRepository
 
 
@@ -66,6 +66,43 @@ def _all_keys(value):
     elif isinstance(value, list):
         for nested in value:
             yield from _all_keys(nested)
+
+
+@pytest.mark.parametrize(("phase", "destination"), [("pre", "instructions"), ("post", "final_score")])
+def test_admin_can_skip_only_own_current_psychometric_phase(harness, phase, destination):
+    app, client, service, repository, _principal = harness
+    created = _create(client)
+    sid = created["session_id"]
+    state = _seed_stage(repository, service, sid, page=f"{phase}_question_1")
+    before_answers = dict(state.answers)
+    path = f"/api/v1/sessions/{sid}/questionnaires/{phase}/skip"
+    payload = {"expected_version": state.state_version}
+    assert client.post(path, headers=_headers("skip-denied"), json=payload).status_code == 403
+    assert repository.load(sid).page == state.page
+    app.state.principal_provider = lambda _request: ParticipantPrincipal(OTHER_ACCOUNT_KEY, is_admin=True)
+    assert client.post(path, headers=_headers("skip-foreign"), json=payload).status_code == 403
+    app.state.principal_provider = lambda _request: ParticipantPrincipal(ACCOUNT_KEY, is_admin=True)
+    response = client.post(path, headers=_headers("skip-admin"), json=payload)
+    assert response.status_code == 200
+    assert response.json()["stage"] == destination
+    saved = repository.load(sid)
+    assert saved.answers == {**before_answers, f"admin_skipped_psychometrics_{phase}": True}
+    assert saved.experimental_condition == state.experimental_condition
+    assert saved.month == state.month and saved.total_score == state.total_score
+    retry = client.post(path, headers=_headers("skip-admin"), json=payload)
+    assert retry.status_code == 200 and retry.json()["idempotency_replayed"]
+
+
+def test_admin_skip_rejects_non_questionnaire_pages_and_stale_commands(harness):
+    app, client, service, repository, _principal = harness
+    created = _create(client)
+    sid = created["session_id"]
+    app.state.principal_provider = lambda _request: ParticipantPrincipal(ACCOUNT_KEY, is_admin=True)
+    path = f"/api/v1/sessions/{sid}/questionnaires/pre/skip"
+    assert client.post(path, headers=_headers("skip-home"), json={"expected_version": created["state_version"]}).status_code == 409
+    state = _seed_stage(repository, service, sid, page="pre_question_0")
+    assert client.post(path, headers=_headers("skip-stale"), json={"expected_version": state.state_version + 1}).status_code == 409
+    assert repository.load(sid).page == "pre_question_0"
 
 
 def test_health_ready_and_request_id(harness):
@@ -271,7 +308,7 @@ def test_study_session_binding_and_skip_are_server_derived(bind):
     assert "experimental_condition" not in set(_all_keys(response.json()))
     durable = service.load_session(session_id)
     assert durable.treatment_bound is True
-    assert durable.experimental_condition == ("C4" if bind else "C1")
+    assert durable.experimental_condition == assign_participant_condition(ACCOUNT_KEY)["experimental_condition"]
 
 
 def test_concurrent_month_double_click_commits_once(harness):

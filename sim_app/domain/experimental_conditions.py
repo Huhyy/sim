@@ -3,6 +3,7 @@
 import hashlib
 
 DEFAULT_EXPERIMENTAL_CONDITION = "C1"
+ASSIGNABLE_CONDITIONS = ("C1", "C2", "C3", "C4")
 DEFAULT_PAYMENT_STATUS = "unpaid"
 MAX_PERFORMANCE_BONUS_GBP = 3
 PROLIFIC_BASE_REWARD_GBP = 5
@@ -110,13 +111,20 @@ def condition_options():
 
 
 def assign_prolific_condition(prolific_pid, study_id):
-    """Preserve the deterministic production Prolific assignment algorithm."""
+    """Assign a stable pseudorandom C1-C4 condition for a Prolific identity."""
     key = f"{prolific_pid}-{study_id}"
     value = int(hashlib.sha256(key.encode("utf-8")).hexdigest(), 16)
-    return condition_config(condition_options()[value % len(condition_options())])
+    return condition_config(ASSIGNABLE_CONDITIONS[value % len(ASSIGNABLE_CONDITIONS)])
+
+
+def assign_participant_condition(account_key):
+    """Assign pseudorandomly across C1-C4 without rerolling on retries or sign-in."""
+    value = int(hashlib.sha256(f"participant:{account_key}".encode("utf-8")).hexdigest(), 16)
+    return condition_config(ASSIGNABLE_CONDITIONS[value % len(ASSIGNABLE_CONDITIONS)])
 
 
 __all__ = [
+    "ASSIGNABLE_CONDITIONS",
     "CONDITIONS",
     "DEFAULT_EXPERIMENTAL_CONDITION",
     "DEFAULT_PAYMENT_STATUS",
@@ -124,6 +132,7 @@ __all__ = [
     "PROLIFIC_BASE_REWARD_GBP",
     "condition_config",
     "assign_prolific_condition",
+    "assign_participant_condition",
     "condition_from_record",
     "condition_options",
     "has_psychometric_battery",

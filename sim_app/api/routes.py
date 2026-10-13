@@ -136,6 +136,13 @@ def submit_demographics(session_id: str, payload: DemographicsRequest, response:
     ))
 
 
+@participant_router.post("/sessions/{session_id}/questionnaires/{phase}/skip", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
+def skip_psychometrics(session_id: str, phase: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
+    return _present(response, service.skip_psychometrics(
+        session_id, principal, phase=phase, expected_version=payload.expected_version, request_id=idempotency_key,
+    ))
+
+
 @participant_router.post("/sessions/{session_id}/questionnaires/{phase}/sections/{section_index}", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def submit_questionnaire_section(session_id: str, phase: str, section_index: int, payload: QuestionnaireSectionRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
     return _present(response, service.submit_questionnaire_section(

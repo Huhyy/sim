@@ -99,6 +99,7 @@ class AdminParticipantResultView(StrictModel):
     prolific_pid: str | None
     participant_identifier: str
     session_code: str
+    experimental_condition: str | None
     final_score: float | None
     performance_bonus_gbp: float | None
     payout_gbp: float | None

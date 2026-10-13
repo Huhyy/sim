@@ -74,10 +74,10 @@ def _stage_view(state, stage, language):
                 "- you will complete a final questionnaire about your psychological state after the experiment and your perception of the task.",
                 "- answers to psychometric questionnaires;",
                 "- answers to final questions about your experience during the experiment.",
-                "- vei r?spunde la un chestionar psihologic ini?ial;",
-                "- vei completa un chestionar final despre starea ta psihologic? dup? experiment ?i despre percep?ia asupra sarcinii.",
-                "- r?spunsuri la chestionare psihometrice;",
-                "- r?spunsuri la ?ntreb?ri finale despre experien?a ?n cadrul experimentului.",
+                "- vei răspunde la un chestionar psihologic inițial;",
+                "- vei completa un chestionar final despre starea ta psihologică după experiment și despre percepția asupra sarcinii.",
+                "- răspunsuri la chestionare psihometrice;",
+                "- răspunsuri la întrebări finale despre experiența în cadrul experimentului.",
             )
             for line in omitted:
                 content = content.replace(line + "\n", "").replace(line, "")

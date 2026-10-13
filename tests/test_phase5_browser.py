@@ -4,6 +4,8 @@ import socket
 import threading
 import time
 import uuid
+import re
+from pathlib import Path
 from contextlib import contextmanager
 
 import pytest
@@ -20,6 +22,9 @@ from sim_app.application.state import ParticipantState
 from sim_app.auth.browser_session import BrowserSessionManager, SESSION_COOKIE
 from sim_app.config import SCENARIO_VERSION
 from sim_app.domain.experimental_conditions import condition_config
+from sim_app.content.translations import get_display_pre_sections, get_display_post_sections
+from sim_app.content.tables import get_month
+from sim_app.application.commands import submit_month_decision
 from sim_app.persistence.admin_memory import MemoryAdminRepository
 from sim_app.persistence.memory import InMemoryExperimentRepository
 
@@ -49,6 +54,50 @@ def _context(browser, base, manager, principal, *, viewport=None):
     context = browser.new_context(viewport=viewport or {"width": 1280, "height": 900})
     context.add_cookies([{"name": SESSION_COOKIE, "value": manager.encode_principal(principal, csrf_token="csrf-e2e"), "url": base, "httpOnly": True, "sameSite": "Lax"}])
     return context
+
+
+def test_romanian_pages_render_intact_diacritics():
+    pages = [(name, 1) for name in (
+        "home", "enter_session_code", "consent", "consent_declined", "demographics",
+        "instructions", "comprehension", "profile", "final_score", "done",
+    )]
+    pages += [(f"pre_question_{i}", 1) for i in range(len(get_display_pre_sections("ro")))]
+    pages += [(f"post_question_{i}", 25) for i in range(len(get_display_post_sections("ro")))]
+    pages += [("simulation", month) for month in range(1, 25)]
+    pages += [("month_feedback", 1), ("consent_no_battery", 1)]
+    output = Path("artifacts/ui-review/diacritics")
+    output.mkdir(parents=True, exist_ok=True)
+    with live_app() as (base, manager, service, _repository), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        for index, (name, month) in enumerate(pages):
+            state = ParticipantState.initial(SCENARIO_VERSION)
+            state.session_id = str(uuid.uuid4())
+            state.language = "ro"
+            state.page = "consent" if name == "consent_no_battery" else name
+            state.month = month
+            state.experimental_condition = "C5" if name == "consent_no_battery" else "C1"
+            state.treatment_bound = True
+            if name == "month_feedback":
+                state.page = "simulation"
+                state = submit_month_decision(state, month_data=get_month(1), payment=0).state
+            key = f"unicode-{index}".ljust(64, "x")
+            service.create_session(state, account_key=key, request_id=f"unicode-seed-{index}")
+            principal = ParticipantPrincipal(key, bound_session_id=state.session_id)
+            context = _context(browser, base, manager, principal)
+            page = context.new_page()
+            page.goto(base)
+            page.wait_for_selector("#app[data-view]")
+            text = page.locator("#app").inner_text()
+            assert "\ufffd" not in text, name
+            assert not re.search(r"\w\?\w", text), name
+            assert not re.search(r"[ÃÄÈ][\x80-\xbf]", text), name
+            assert page.locator("html").get_attribute("lang") == "ro"
+            if name.startswith("consent") and name != "consent_declined":
+                assert "consimțământ informat" in text
+                assert "Nu ți se va cere" in text
+            page.screenshot(path=str(output / f"{name}-{month}.png"), full_page=True)
+            context.close()
+        browser.close()
 
 
 def test_login_homepage_has_no_prolific_access_denied_notice():
@@ -297,6 +346,66 @@ def test_admin_browser_authorization_creation_and_polling_view():
         page.wait_for_selector(".admin-session")
         assert "C4" in page.locator(".admin-session").inner_text()
         page.on("dialog",lambda dialog:dialog.accept()); page.locator("[data-cancel]").click()
+        context.close(); browser.close()
+
+
+def test_admin_participant_results_show_each_saved_condition():
+    admin_repository = MemoryAdminRepository()
+    study = admin_repository.create_study_session("admin@example.com", "C8")
+    admin_repository.participants[study["id"]] = [
+        {"participant_code": f"P00{i}", "experimental_condition": f"C{i}"}
+        for i in range(1, 5)
+    ]
+    principal = ParticipantPrincipal("d" * 64, email="admin@example.com", is_admin=True)
+    with live_app(admin_repository=admin_repository) as (base, manager, _service, _repo), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = _context(browser, base, manager, principal)
+        page = context.new_page()
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(f"{base}/admin/participants")
+        page.wait_for_selector(".admin-results tbody tr")
+        assert "condition" in page.locator(".admin-results thead").inner_text().lower()
+        for i in range(1, 5):
+            row = page.locator(".admin-results tbody tr").filter(has_text=f"P00{i}")
+            assert row.locator("td").nth(3).inner_text() == f"C{i}"
+        assert not errors
+        context.close()
+        browser.close()
+
+
+@pytest.mark.parametrize("phase, destination", [("pre", "instructions"), ("post", "final_score")])
+def test_psychometrics_skip_is_visible_only_to_admin_and_skips_unanswered_form(phase, destination):
+    repository = InMemoryExperimentRepository()
+    service = ExperimentService(repository)
+    state = ParticipantState.initial(SCENARIO_VERSION)
+    state.session_id = str(uuid.uuid4())
+    state.page = f"{phase}_question_0"
+    state.language = "ro"
+    for key, value in condition_config("C1").items(): setattr(state, key, value)
+    state.treatment_bound = True
+    service.create_session(state, account_key="s" * 64, request_id="skip-browser-seed")
+    with live_app(repository=repository) as (base, manager, _service, _repo), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        participant = ParticipantPrincipal("s" * 64, bound_session_id=state.session_id)
+        context = _context(browser, base, manager, participant)
+        page = context.new_page(); page.goto(base)
+        page.wait_for_selector("#quiz")
+        assert page.locator("#skip-psychometrics").count() == 0
+        context.close()
+        admin = ParticipantPrincipal("s" * 64, is_admin=True, bound_session_id=state.session_id)
+        context = _context(browser, base, manager, admin, viewport={"width": 390, "height": 844})
+        page = context.new_page(); page.goto(base)
+        page.wait_for_selector("#skip-psychometrics")
+        assert page.locator("#skip-psychometrics").inner_text() == "SKIP PSYCHOMETRICS"
+        assert page.locator("#quiz input:checked").count() == 0
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        output = Path("artifacts/ui-review"); output.mkdir(parents=True, exist_ok=True)
+        page.screenshot(path=str(output / f"admin-skip-psychometrics-{phase}.png"))
+        page.locator("#skip-psychometrics").click()
+        page.wait_for_selector(f'[data-view="{destination}"]')
+        assert service.load_session(state.session_id).answers[f"admin_skipped_psychometrics_{phase}"] is True
+        page.reload(); page.wait_for_selector(f'[data-view="{destination}"]')
         context.close(); browser.close()
 
 

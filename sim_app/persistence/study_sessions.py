@@ -103,7 +103,7 @@ def list_participant_sessions_for_study_session(study_session_id: str = None, st
 def list_all_participant_results():
     """Return every participant-coded session, including historical sessions."""
     client = _require_client()
-    select_columns = "id,participant_code,prolific_pid,study_session_code,current_page,status,checkpoint,updated_at,completed_at"
+    select_columns = "id,participant_code,prolific_pid,study_session_code,experimental_condition,current_page,status,checkpoint,updated_at,completed_at"
     page_size = 500
     results = []
     offset = 0

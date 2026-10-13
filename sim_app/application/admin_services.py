@@ -96,6 +96,7 @@ def _participant_result_view(row):
         "prolific_pid": str(prolific_pid) if prolific_pid else None,
         "participant_identifier": str(identifier or ""),
         "session_code": str(row.get("session_code") or ""),
+        "experimental_condition": row.get("experimental_condition") or summary.get("experimental_condition"),
         "final_score": _float_or_none(summary.get("final_score")),
         "performance_bonus_gbp": _float_or_none(summary.get("performance_bonus_gbp")),
         "payout_gbp": _float_or_none(summary.get("total_payout_gbp")) if is_prolific else None,
