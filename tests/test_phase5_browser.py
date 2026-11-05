@@ -301,6 +301,12 @@ def test_complete_24_month_participant_browser_journey_and_refresh_recovery():
         page.wait_for_selector('[data-view="final_score"]')
         assert "points" in page.locator(".score-card + .grid").inner_text()
         assert "GBP" not in page.locator("#app").inner_text()
+        session_id = next(iter(repository._sessions))
+        deadline = time.monotonic() + 10
+        while repository.finalization_count(session_id) == 0 and time.monotonic() < deadline:
+            time.sleep(0.05)
+        assert repository.finalization_count(session_id) == 1  # saved before any click on the final score page
+        assert page.locator('[data-view="final_score"]').count() == 1
         page.locator(".card .actions button").click()  # final score acknowledgement
         page.wait_for_selector('[data-view="completion"]')
         assert "points" in page.locator(".card .grid").inner_text()
@@ -405,7 +411,9 @@ def test_psychometrics_skip_is_visible_only_to_admin_and_skips_unanswered_form(p
         page.locator("#skip-psychometrics").click()
         page.wait_for_selector(f'[data-view="{destination}"]')
         assert service.load_session(state.session_id).answers[f"admin_skipped_psychometrics_{phase}"] is True
-        page.reload(); page.wait_for_selector(f'[data-view="{destination}"]')
+        # Reaching the final score persists completion immediately, so a reload lands past it.
+        reloaded = "completion" if destination == "final_score" else destination
+        page.reload(); page.wait_for_selector(f'[data-view="{reloaded}"]')
         context.close(); browser.close()
 
 
