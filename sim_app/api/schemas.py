@@ -18,6 +18,7 @@ class VersionedCommandRequest(StrictModel):
 class CreateSessionRequest(VersionedCommandRequest):
     expected_version: int = Field(ge=0, le=0)
     language: Literal["en", "ro"] = "en"
+    restart: bool = False
 
 
 class ConsentRequest(VersionedCommandRequest):

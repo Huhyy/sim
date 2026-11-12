@@ -134,6 +134,40 @@ def required_page_before(
     return None
 
 
+def admin_previous_page(state: Any, pre_section_count: int) -> str | None:
+    """Return the page an administrator may step back to, or None.
+
+    Only stage pages are reversible. Committed month decisions live in the
+    month ledger, so the simulation itself can only be restarted, not undone.
+    """
+    page = str(_state_get(state, "page") or "")
+    battery = has_psychometric_battery(_state_get(state, "experimental_condition"))
+    if page in {"demographics", "consent_declined"}:
+        return "consent"
+    if page.startswith(("pre_question_", "post_question_")):
+        prefix, _, raw_index = page.rpartition("_")
+        try:
+            index = int(raw_index)
+        except ValueError:
+            return None
+        if index > 0:
+            return f"{prefix}_{index - 1}"
+        return "demographics" if prefix == "pre_question" else None
+    if page == "instructions":
+        if battery and pre_section_count > 0:
+            return f"pre_question_{pre_section_count - 1}"
+        return "demographics"
+    if page == "comprehension":
+        return "instructions"
+    if page == "profile":
+        return "comprehension" if _state_get(state, "prolific_mode") else "instructions"
+    if page == "simulation":
+        months_done = len(_state_get(state, "monthly_results", []) or [])
+        if months_done == 0 and not _state_get(state, "pending_month_result"):
+            return "profile"
+    return None
+
+
 def _first_section_gap(answers, sections):
     for section_index, section in enumerate(sections):
         for question_index in range(len(section.get("questions", []))):
@@ -175,6 +209,7 @@ def _state_get(state, key, default=None):
 
 
 __all__ = [
+    "admin_previous_page",
     "page_after_comprehension",
     "page_after_consent",
     "page_after_demographics",

@@ -43,6 +43,7 @@ from sim_app.application.errors import (
 from sim_app.application.instrumentation import DEFAULT_METRICS
 from sim_app.application.principal import ParticipantPrincipal
 from sim_app.application.repositories import ExperimentRepository
+from sim_app.application.progression import admin_previous_page
 from sim_app.application.state import ParticipantState
 from sim_app.config import REPEAT_SCENARIO_DEV_MODE, SCENARIO_VERSION
 from sim_app.content.questions import POST_SECTIONS, PRE_SECTIONS, question_key, question_scale
@@ -123,8 +124,10 @@ class ExperimentService:
         # durably rebound with normal version/idempotency protection.
         return str(record["id"]) if completed and same_attempt else None
 
-    def bootstrap_session(self, principal, *, expected_version, language, request_id):
+    def bootstrap_session(self, principal, *, expected_version, language, request_id, restart=False):
         self._require_principal(principal)
+        if restart and not principal.is_admin:
+            raise SessionAccessDenied("Only administrators can restart the simulator")
         if expected_version != 0:
             raise InputValidationError("Session creation requires expected_version 0")
         language = _validate_language(language)
@@ -153,7 +156,7 @@ class ExperimentService:
         linked_session_id = self.repository.find_session_id_for_account(principal.account_key)
         if linked_session_id:
             linked_state = self.load_owned_session(linked_session_id, principal)
-            if principal.is_admin and linked_state.submission_finalized:
+            if principal.is_admin and (restart or linked_state.submission_finalized):
                 self.repository.release_account_session(principal.account_key, linked_state.session_id)
                 linked_session_id = None
             else:
@@ -510,6 +513,21 @@ class ExperimentService:
             psychometric_phase=("all" if phase == "post" else phase)
             if section_index + 1 == len(sections)
             else None,
+        )
+
+    def admin_go_back(self, session_id, principal, *, expected_version, request_id):
+        """Let administrators step back through pages that have no committed ledger rows."""
+        self._require_principal(principal)
+        if not principal.is_admin:
+            raise SessionAccessDenied("Only administrators can go back")
+        state = self.load_owned_session(session_id, principal)
+        target = admin_previous_page(state, len(_questionnaire_sections("pre", state.language)))
+        if state.state_version == expected_version and target is None:
+            raise InvalidTransition("This page cannot be undone; restart the simulator instead")
+        return self.save_stage(
+            go_to_page(state, target or state.page).state,
+            expected_version=expected_version,
+            request_id=request_id,
         )
 
     def acknowledge_instructions(self, session_id, principal, *, expected_version, request_id):

@@ -38,6 +38,9 @@ async function boot(){
     reconcile();render();
   }catch(error){if(error.status===401)renderLogin();else if(error.code==="participation_completed")renderCompletedAccount(error);else renderFatal(error)}
 }
+function renderAdminTools(){if(!auth?.is_admin||!state)return;const x=chromeLabels.auth||{},tools=document.createElement("nav");tools.className="admin-tools";tools.setAttribute("aria-label",x.admin_navigator||"Admin navigator");tools.innerHTML=`${adminCanGoBack(state.view)?`<button type="button" class="btn secondary" id="admin-back">${esc(x.admin_previous||"Previous")}</button>`:""}<button type="button" class="btn secondary" id="admin-restart">${esc(x.admin_restart||"Restart simulator")}</button>`;root.prepend(tools);tools.querySelector("#admin-back")?.addEventListener("click",e=>mutate(`/api/v1/sessions/${state.session_id}/admin/back`,version(),[e.currentTarget]));tools.querySelector("#admin-restart").addEventListener("click",e=>{if(confirm(x.admin_restart_confirm||"Start a fresh run from the beginning?"))adminRestart(e.currentTarget)})}
+function adminCanGoBack(v){if(!v)return false;if(["consent_declined","demographics","instructions","comprehension","profile"].includes(v.type))return true;if(v.type==="questionnaire_section")return v.phase==="pre"||v.section_index>0;return v.type==="simulation"&&Number(v.month)===1}
+async function adminRestart(control){control.disabled=true;try{api.clearUnresolved();const lang=sessionStorage.getItem("sim.language")||state?.language||"en";state=normalizeState(await api.mutate("/api/v1/sessions",{expected_version:0,language:lang,restart:true}));auth={...auth,session_id:state.session_id};render()}catch(error){control.disabled=false;showToast(error.message)}}
 async function createSession(){const lang=sessionStorage.getItem("sim.language")||"en";return api.mutate("/api/v1/sessions",{expected_version:0,language:lang})}
 function reconcile(){const unresolved=api.unresolved();if(unresolved&&state&&state.state_version>Number(unresolved.payload.expected_version??-1))api.clearUnresolved()}
 
@@ -64,7 +67,7 @@ function render(){
   root.dataset.view=view.type;root.dataset.month=view.month||"";root.dataset.version=String(state.state_version);
   setDocumentLanguage(state.language||"en");
   const renderer=renderers[view.type]||renderUnavailable;
-  renderer(view,labels);renderUnresolvedRecovery();
+  renderer(view,labels);renderAdminTools();renderUnresolvedRecovery();
   root.dataset.pageKey=pageKey;
   if(pageChanged){
     const heading=root.querySelector("h1")||root;

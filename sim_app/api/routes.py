@@ -65,6 +65,7 @@ def create_session(
         expected_version=payload.expected_version,
         language=payload.language,
         request_id=idempotency_key,
+        restart=payload.restart,
     )
     presented = _present(response, result)
     if getattr(request.app.state, "principal_provider", None) is None:
@@ -87,6 +88,11 @@ def get_session(session_id: str, service: ServiceDependency, principal: Principa
 @participant_router.post("/sessions/{session_id}/start", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def start_session(session_id: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
     return _present(response, service.start_experiment(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
+
+
+@participant_router.post("/sessions/{session_id}/admin/back", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
+def admin_go_back(session_id: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
+    return _present(response, service.admin_go_back(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
 
 
 @participant_router.post("/sessions/{session_id}/study-session", response_model=ParticipantSessionResponse, response_model_exclude_none=True)

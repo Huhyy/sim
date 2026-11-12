@@ -1555,3 +1555,5 @@ details>.rich,details>.grid,details>form {
 @media(max-width:900px){
   .simulation-jump{display:flex;justify-content:space-between;align-items:center;min-height:44px;margin:-10px 0 16px;padding:8px 4px;color:var(--green);font-weight:500;font-size:14px;text-underline-offset:4px}
 }
+.admin-tools{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin:0 auto 12px;max-width:1184px}
+.admin-tools .btn{min-height:44px}

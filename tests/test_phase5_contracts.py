@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 import sim_app.application.services as services_module
-from sim_app.application.errors import ParticipationCompleted, ProlificLaunchError
+from sim_app.application.errors import InvalidTransition, ParticipationCompleted, ProlificLaunchError, SessionAccessDenied
 from sim_app.application.principal import ParticipantPrincipal
 from sim_app.application.services import ExperimentService
 from sim_app.application.state import ParticipantState
@@ -139,6 +139,72 @@ def test_admin_can_create_a_fresh_attempt_after_completion():
     assert second.state.session_id != first.session_id
     assert second.state.page == "home"
     assert repository._accounts[admin.account_key] == second.state.session_id
+
+
+def test_admin_can_restart_an_unfinished_attempt():
+    admin = ParticipantPrincipal("a" * 64, email="admin@example.com", is_admin=True)
+    repository, service, _principal, first = _created(principal=admin)
+    in_progress = first.copy()
+    in_progress.page = "simulation"
+    in_progress.month = 4
+    repository.replace_state_and_ledger(in_progress)
+
+    resumed = service.bootstrap_session(admin, expected_version=0, language="en", request_id="resume")
+    assert resumed.state.session_id == first.session_id
+
+    restarted = service.bootstrap_session(admin, expected_version=0, language="en", request_id="restart", restart=True)
+    assert restarted.state.session_id != first.session_id
+    assert restarted.state.page == "home"
+    assert repository._accounts[admin.account_key] == restarted.state.session_id
+
+
+def test_participant_cannot_request_a_restart():
+    repository, service, principal, first = _created()
+    with pytest.raises(SessionAccessDenied):
+        service.bootstrap_session(principal, expected_version=0, language="en", request_id="restart", restart=True)
+    assert repository._accounts[principal.account_key] == first.session_id
+
+
+@pytest.mark.parametrize(
+    ("page", "expected"),
+    [
+        ("demographics", "consent"),
+        ("pre_question_0", "demographics"),
+        ("pre_question_3", "pre_question_2"),
+        ("instructions", f"pre_question_{len(PRE_SECTIONS) - 1}"),
+        ("profile", "instructions"),
+        ("simulation", "profile"),
+    ],
+)
+def test_admin_can_step_back_through_stage_pages(page, expected):
+    admin = ParticipantPrincipal("a" * 64, email="admin@example.com", is_admin=True)
+    repository, service, _principal, first = _created(principal=admin)
+    current = first.copy()
+    current.page = page
+    current.experimental_condition = "C1"
+    repository.replace_state_and_ledger(current)
+    loaded = service.load_session(first.session_id)
+
+    result = service.admin_go_back(first.session_id, admin, expected_version=loaded.state_version, request_id="back")
+
+    assert result.state.page == expected
+
+
+def test_admin_cannot_step_back_over_committed_months_and_participants_cannot_step_back():
+    admin = ParticipantPrincipal("a" * 64, email="admin@example.com", is_admin=True)
+    repository, service, _principal, first = _created(principal=admin)
+    current = first.copy()
+    current.page = "simulation"
+    current.month = 3
+    current.monthly_results = [{"month": 1}, {"month": 2}]
+    repository.replace_state_and_ledger(current)
+    loaded = service.load_session(first.session_id)
+    with pytest.raises(InvalidTransition):
+        service.admin_go_back(first.session_id, admin, expected_version=loaded.state_version, request_id="back")
+
+    _repo, participant_service, participant, state = _created()
+    with pytest.raises(SessionAccessDenied):
+        participant_service.admin_go_back(state.session_id, participant, expected_version=state.state_version, request_id="back")
 
 
 def test_finalized_session_can_be_recovered_only_from_encrypted_bound_identity():

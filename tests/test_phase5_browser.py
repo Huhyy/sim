@@ -552,3 +552,26 @@ def test_next_month_narration_reveal_preserves_reading_and_decision_controls(mot
         page.reload(); page.wait_for_selector("#decision")
         assert page.locator(".narrative-word").count() == 0  # No replay on recovery.
         context.close(); browser.close()
+
+
+def test_admin_can_step_back_and_restart_mid_run():
+    repository = InMemoryExperimentRepository()
+    state = ParticipantState.initial(SCENARIO_VERSION)
+    state.session_id = str(uuid.uuid4()); state.page = "profile"; state.treatment_bound = True
+    ExperimentService(repository).create_session(state, account_key="r" * 64, request_id="admin-nav-seed")
+    admin = ParticipantPrincipal("r" * 64, email="admin@example.com", is_admin=True, bound_session_id=state.session_id)
+    with live_app(repository=repository) as (base, manager, _service, _repository), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = _context(browser, base, manager, admin, viewport={"width": 390, "height": 844})
+        page = context.new_page(); page.goto(base)
+        page.wait_for_selector('[data-view="profile"]')
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.locator("#admin-back").click()
+        page.wait_for_selector('[data-view="instructions"]')
+        page.on("dialog", lambda dialog: dialog.accept())
+        page.locator("#admin-restart").click()
+        page.wait_for_selector('[data-view="home"]')
+        assert repository._accounts["r" * 64] != state.session_id
+        page.reload(); page.wait_for_selector('[data-view="home"]')
+        assert page.locator("#admin-back").count() == 0
+        context.close(); browser.close()

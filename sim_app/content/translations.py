@@ -43,6 +43,8 @@ UI_TEXT = {
             "admin_navigator_current": "Pagina: {page}",
             "admin_previous": "Inapoi",
             "admin_next": "Inainte",
+            "admin_restart": "Restart simulator",
+            "admin_restart_confirm": "Pornești o sesiune nouă de la început? Sesiunea curentă rămâne nefinalizată.",
             "logout": "Log out",
         },
         "study_session": {
@@ -775,6 +777,8 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "admin_navigator_current": "Page: {page}",
             "admin_previous": "Previous",
             "admin_next": "Next",
+            "admin_restart": "Restart simulator",
+            "admin_restart_confirm": "Start a fresh run from the beginning? The current run stays unfinished.",
             "logout": "Log out",
         },
         "study_session": {
