@@ -45,10 +45,10 @@ PrincipalDependency = Annotated[ParticipantPrincipal, Depends(get_principal)]
 IdempotencyDependency = Annotated[str, Depends(require_idempotency_key)]
 
 
-def _present(response: Response, result):
+def _present(response: Response, principal, result):
     if result.idempotency_hit:
         response.headers["Idempotency-Replayed"] = "true"
-    return present_result(result)
+    return present_result(result, admin=principal.is_admin)
 
 
 @participant_router.post("/sessions", response_model=ParticipantSessionResponse, response_model_exclude_none=True, status_code=201)
@@ -67,7 +67,7 @@ def create_session(
         request_id=idempotency_key,
         restart=payload.restart,
     )
-    presented = _present(response, result)
+    presented = _present(response, principal, result)
     if getattr(request.app.state, "principal_provider", None) is None:
         from dataclasses import replace
         manager = get_browser_session_manager(request)
@@ -82,22 +82,22 @@ def create_session(
 
 @participant_router.get("/sessions/{session_id}", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def get_session(session_id: str, service: ServiceDependency, principal: PrincipalDependency):
-    return present_state(service.load_owned_session(session_id, principal))
+    return present_state(service.load_owned_session(session_id, principal), admin=principal.is_admin)
 
 
 @participant_router.post("/sessions/{session_id}/start", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def start_session(session_id: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.start_experiment(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
+    return _present(response, principal, service.start_experiment(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
 
 
 @participant_router.post("/sessions/{session_id}/admin/back", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def admin_go_back(session_id: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.admin_go_back(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
+    return _present(response, principal, service.admin_go_back(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
 
 
 @participant_router.post("/sessions/{session_id}/study-session", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def bind_study_session(session_id: str, payload: StudySessionBindingRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.bind_study_session(
+    return _present(response, principal, service.bind_study_session(
         session_id, principal, expected_version=payload.expected_version,
         request_id=idempotency_key, session_code=payload.session_code,
         participant_code=payload.participant_code,
@@ -106,12 +106,12 @@ def bind_study_session(session_id: str, payload: StudySessionBindingRequest, res
 
 @participant_router.post("/sessions/{session_id}/study-session/skip", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def skip_study_session(session_id: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.skip_study_session(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
+    return _present(response, principal, service.skip_study_session(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
 
 
 @participant_router.post("/sessions/{session_id}/consent", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def submit_consent(session_id: str, payload: ConsentRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.submit_consent(
+    return _present(response, principal, service.submit_consent(
         session_id, principal, expected_version=payload.expected_version,
         request_id=idempotency_key, accepted=payload.accepted,
         anti_ai_declaration=payload.anti_ai_declaration,
@@ -120,14 +120,14 @@ def submit_consent(session_id: str, payload: ConsentRequest, response: Response,
 
 @participant_router.post("/sessions/{session_id}/consent/reconsider", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def reconsider_consent(session_id: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.reconsider_consent(
+    return _present(response, principal, service.reconsider_consent(
         session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key,
     ))
 
 
 @participant_router.post("/sessions/{session_id}/language", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def change_language(session_id: str, payload: LanguageRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.change_language(
+    return _present(response, principal, service.change_language(
         session_id, principal, expected_version=payload.expected_version,
         request_id=idempotency_key, language=payload.language,
     ))
@@ -136,7 +136,7 @@ def change_language(session_id: str, payload: LanguageRequest, response: Respons
 @participant_router.post("/sessions/{session_id}/demographics", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def submit_demographics(session_id: str, payload: DemographicsRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
     values = payload.model_dump(exclude={"expected_version"})
-    return _present(response, service.submit_demographics(
+    return _present(response, principal, service.submit_demographics(
         session_id, principal, expected_version=payload.expected_version,
         request_id=idempotency_key, values=values,
     ))
@@ -144,14 +144,14 @@ def submit_demographics(session_id: str, payload: DemographicsRequest, response:
 
 @participant_router.post("/sessions/{session_id}/questionnaires/{phase}/skip", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def skip_psychometrics(session_id: str, phase: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.skip_psychometrics(
+    return _present(response, principal, service.skip_psychometrics(
         session_id, principal, phase=phase, expected_version=payload.expected_version, request_id=idempotency_key,
     ))
 
 
 @participant_router.post("/sessions/{session_id}/questionnaires/{phase}/sections/{section_index}", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def submit_questionnaire_section(session_id: str, phase: str, section_index: int, payload: QuestionnaireSectionRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.submit_questionnaire_section(
+    return _present(response, principal, service.submit_questionnaire_section(
         session_id, principal, phase=phase, section_index=section_index,
         expected_version=payload.expected_version, request_id=idempotency_key,
         answers=payload.answers, attention_response=payload.attention_response,
@@ -161,12 +161,12 @@ def submit_questionnaire_section(session_id: str, phase: str, section_index: int
 
 @participant_router.post("/sessions/{session_id}/instructions/acknowledge", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def acknowledge_instructions(session_id: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.acknowledge_instructions(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
+    return _present(response, principal, service.acknowledge_instructions(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
 
 
 @participant_router.post("/sessions/{session_id}/comprehension", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def submit_comprehension(session_id: str, payload: ComprehensionRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.submit_comprehension(
+    return _present(response, principal, service.submit_comprehension(
         session_id, principal, expected_version=payload.expected_version,
         request_id=idempotency_key, responses=payload.responses,
     ))
@@ -174,12 +174,12 @@ def submit_comprehension(session_id: str, payload: ComprehensionRequest, respons
 
 @participant_router.post("/sessions/{session_id}/profile/acknowledge", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def acknowledge_profile(session_id: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.acknowledge_profile(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
+    return _present(response, principal, service.acknowledge_profile(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
 
 
 @participant_router.post("/sessions/{session_id}/months/{month}/decision", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def submit_month_decision(session_id: str, month: int, payload: MonthDecisionRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.submit_owned_month_decision(
+    return _present(response, principal, service.submit_owned_month_decision(
         session_id, principal, expected_version=payload.expected_version,
         expected_month=month, payment=payload.payment, request_id=idempotency_key,
     ))
@@ -187,7 +187,7 @@ def submit_month_decision(session_id: str, month: int, payload: MonthDecisionReq
 
 @participant_router.post("/sessions/{session_id}/months/{month}/feedback/acknowledge", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def acknowledge_feedback(session_id: str, month: int, payload: FeedbackAcknowledgementRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.acknowledge_owned_month_feedback(
+    return _present(response, principal, service.acknowledge_owned_month_feedback(
         session_id, principal, expected_version=payload.expected_version,
         expected_month=month, request_id=idempotency_key,
     ))
@@ -195,12 +195,12 @@ def acknowledge_feedback(session_id: str, month: int, payload: FeedbackAcknowled
 
 @participant_router.post("/sessions/{session_id}/final-score/acknowledge", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def acknowledge_final_score(session_id: str, payload: VersionedCommandRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.acknowledge_final_score(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
+    return _present(response, principal, service.acknowledge_final_score(session_id, principal, expected_version=payload.expected_version, request_id=idempotency_key))
 
 
 @participant_router.post("/sessions/{session_id}/finalize", response_model=ParticipantSessionResponse, response_model_exclude_none=True)
 def finalize_session(session_id: str, payload: FinalizeRequest, response: Response, service: ServiceDependency, principal: PrincipalDependency, idempotency_key: IdempotencyDependency):
-    return _present(response, service.finalize_owned_session(
+    return _present(response, principal, service.finalize_owned_session(
         session_id, principal, expected_version=payload.expected_version,
         request_id=idempotency_key,
     ))

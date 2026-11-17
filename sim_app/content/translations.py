@@ -45,6 +45,8 @@ UI_TEXT = {
             "admin_next": "Inainte",
             "admin_restart": "Restart simulator",
             "admin_restart_confirm": "Pornești o sesiune nouă de la început? Sesiunea curentă rămâne nefinalizată.",
+            "admin_condition": "Scenariu {condition}",
+            "admin_condition_help": "Scenariul alocat acestei sesiuni (vizibil doar pentru admin)",
             "logout": "Log out",
         },
         "study_session": {
@@ -779,6 +781,8 @@ Participanții nu activează manual overdraftul, dar decizia lor de plată poate
             "admin_next": "Next",
             "admin_restart": "Restart simulator",
             "admin_restart_confirm": "Start a fresh run from the beginning? The current run stays unfinished.",
+            "admin_condition": "Scenario {condition}",
+            "admin_condition_help": "Condition assigned to this session (visible to admins only)",
             "logout": "Log out",
         },
         "study_session": {

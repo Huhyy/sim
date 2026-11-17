@@ -1557,3 +1557,4 @@ details>.rich,details>.grid,details>form {
 }
 .admin-tools{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin:0 auto 12px;max-width:1184px}
 .admin-tools .btn{min-height:44px}
+.admin-condition{margin-right:auto;align-self:center;padding:6px 12px;border:1px solid var(--line,currentColor);border-radius:999px;font-weight:700;font-variant-numeric:tabular-nums}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import socket
 import threading
 import time
@@ -414,6 +415,35 @@ def test_psychometrics_skip_is_visible_only_to_admin_and_skips_unanswered_form(p
         # Reaching the final score persists completion immediately, so a reload lands past it.
         reloaded = "completion" if destination == "final_score" else destination
         page.reload(); page.wait_for_selector(f'[data-view="{reloaded}"]')
+        context.close(); browser.close()
+
+
+def test_admin_sees_condition_badge_and_study_code_sets_condition():
+    repository = InMemoryExperimentRepository()
+    repository.add_study_session({"id": "study-c1", "session_code": "111111", "status": "active", **condition_config("C1")})
+    admin = ParticipantPrincipal(hashlib.sha256(b"badge-admin").hexdigest(), email="admin@example.com", is_admin=True)
+    participant = ParticipantPrincipal(hashlib.sha256(b"badge-participant").hexdigest())
+    with live_app(repository=repository) as (base, manager, _service, _repo), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = _context(browser, base, manager, participant)
+        page = context.new_page(); page.goto(base)
+        page.wait_for_selector('[data-view="home"]')
+        assert page.locator("#admin-condition").count() == 0
+        context.close()
+        context = _context(browser, base, manager, admin, viewport={"width": 390, "height": 844})
+        page = context.new_page(); page.goto(base)
+        page.wait_for_selector("#admin-condition")
+        session_id = page.locator("#app").evaluate("() => sessionStorage.getItem('sim.session_id')")
+        assigned = repository.load(session_id).experimental_condition
+        assert page.locator("#admin-condition").inner_text() == f"Scenario {assigned}"
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.locator("details summary").click()
+        page.locator("#study [name=session_code]").fill("111111")
+        page.locator("#study [name=participant_code]").fill("P001")
+        page.locator('#study button[type="submit"]').click()
+        page.wait_for_function("() => document.querySelector('#admin-condition')?.textContent === 'Scenario C1'")
+        assert repository.load(session_id).experimental_condition == "C1"
+        assert repository.load(session_id).score_frame == "gain_frame"
         context.close(); browser.close()
 
 

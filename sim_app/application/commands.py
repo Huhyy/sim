@@ -17,7 +17,7 @@ from sim_app.application.progression import (
     page_after_profile,
 )
 from sim_app.application.state import ParticipantState
-from sim_app.domain.experimental_conditions import has_psychometric_battery
+from sim_app.domain.experimental_conditions import condition_from_record, has_psychometric_battery
 from sim_app.domain.scoring import (
     compute_final_score_from_results,
     get_final_score_breakdown_from_results,
@@ -144,6 +144,10 @@ def complete_profile(state: ParticipantState) -> CommandResult:
 
 def assign_study_session(state: ParticipantState, record: dict[str, Any], participant_code: str) -> CommandResult:
     updated = state.copy()
+    condition = condition_from_record(record)
+    updated.experimental_condition = condition["experimental_condition"]
+    updated.score_frame = condition["score_frame"]
+    updated.monthly_score_feedback = condition["monthly_score_feedback"]
     updated.study_session_id = record["id"]
     updated.study_session_code = record["session_code"]
     updated.participant_code = participant_code

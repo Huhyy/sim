@@ -117,9 +117,14 @@ def assign_prolific_condition(prolific_pid, study_id):
     return condition_config(ASSIGNABLE_CONDITIONS[value % len(ASSIGNABLE_CONDITIONS)])
 
 
-def assign_participant_condition(account_key):
-    """Assign pseudorandomly across C1-C4 without rerolling on retries or sign-in."""
-    value = int(hashlib.sha256(f"participant:{account_key}".encode("utf-8")).hexdigest(), 16)
+def assign_participant_condition(account_key, run_key=None):
+    """Assign pseudorandomly across C1-C4 without rerolling on retries or sign-in.
+
+    run_key lets one account get a fresh draw per run (admin restarts) while a
+    retry of the same request still lands on the same condition.
+    """
+    seed = f"participant:{account_key}" if run_key is None else f"participant:{account_key}:{run_key}"
+    value = int(hashlib.sha256(seed.encode("utf-8")).hexdigest(), 16)
     return condition_config(ASSIGNABLE_CONDITIONS[value % len(ASSIGNABLE_CONDITIONS)])
 
 

@@ -134,7 +134,10 @@ class ExperimentService:
         state = ParticipantState.initial(SCENARIO_VERSION)
         state.session_id = str(uuid.uuid4())
         state.language = language
-        treatment = assign_participant_condition(principal.account_key)
+        treatment = assign_participant_condition(
+            principal.account_key,
+            run_key=request_id if principal.is_admin else None,
+        )
         state.experimental_condition = treatment["experimental_condition"]
         state.score_frame = treatment["score_frame"]
         state.monthly_score_feedback = treatment["monthly_score_feedback"]

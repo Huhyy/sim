@@ -93,6 +93,22 @@ def test_admin_can_skip_only_own_current_psychometric_phase(harness, phase, dest
     assert retry.status_code == 200 and retry.json()["idempotency_replayed"]
 
 
+def test_condition_is_exposed_to_admins_only(harness):
+    app, client, service, repository, _principal = harness
+    created = _create(client)
+    sid = created["session_id"]
+    assert "admin_condition" not in _all_keys(created)
+    assert "admin_condition" not in _all_keys(client.get(f"/api/v1/sessions/{sid}").json())
+    state = _seed_stage(repository, service, sid, page="instructions", condition="C3")
+    app.state.principal_provider = lambda _request: ParticipantPrincipal(ACCOUNT_KEY, is_admin=True)
+    assert client.get(f"/api/v1/sessions/{sid}").json()["admin_condition"] == "C3"
+    acknowledged = client.post(
+        f"/api/v1/sessions/{sid}/instructions/acknowledge",
+        headers=_headers("ack-admin"), json={"expected_version": state.state_version},
+    )
+    assert acknowledged.status_code == 200 and acknowledged.json()["admin_condition"] == "C3"
+
+
 def test_admin_skip_rejects_non_questionnaire_pages_and_stale_commands(harness):
     app, client, service, repository, _principal = harness
     created = _create(client)

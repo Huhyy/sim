@@ -333,6 +333,7 @@ class ParticipantSessionResponse(StrictModel):
     labels: dict[str, Any]
     view: ParticipantView = Field(discriminator="type")
     idempotency_replayed: bool = False
+    admin_condition: Literal["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"] | None = None
 
 
 class ApiErrorDetail(StrictModel):
